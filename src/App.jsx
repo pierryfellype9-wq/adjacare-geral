@@ -71,8 +71,16 @@ export default function App(){
             />
 
             <button className="login-btn">
-              Entrar
-            </button>
+  Entrar
+</button>
+
+<button
+  type="button"
+  className="forgot-btn"
+  onClick={() => setPage("trocarSenha")}
+>
+  Esqueci minha senha
+</button>
 
           </form>
 
@@ -85,9 +93,8 @@ export default function App(){
   if(page === "trocarSenha"){
     return (
       <TrocarSenha
-        user={user}
-        setPage={setPage}
-      />
+  setPage={setPage}
+/>
     )
   }
 

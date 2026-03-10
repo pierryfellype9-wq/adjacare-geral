@@ -43,6 +43,13 @@ export default function App(){
 
     setUser(data)
   }
+  if(page === "trocarSenha"){
+  return (
+    <TrocarSenha
+      setPage={setPage}
+    />
+  )
+}
 
   if(!user){
     return (

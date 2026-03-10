@@ -1,3 +1,5 @@
+import "./dashboard.css"
+
 export default function Dashboard({user}){
 
   return(

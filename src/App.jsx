@@ -126,17 +126,19 @@ export default function App(){
         setOpen={setMenuOpen}
       />
 
+      {page === "dashboard" && <Dashboard user={user}/>}
+
       {page === "pedidos" && <Pedidos user={user}/>}
 
-{page === "kanban" && <KanbanPedidos user={user}/>}
+      {page === "kanban" && <KanbanPedidos user={user}/>}
 
-{page === "solicitacoes" && <Solicitacoes/>}
+      {page === "solicitacoes" && <Solicitacoes/>}
 
-{page === "agenda" && <Agenda/>}
+      {page === "agenda" && <Agenda/>}
 
-{page === "avisos" && <Avisos/>}
+      {page === "avisos" && <Avisos/>}
 
-{page === "usuarios" && <Usuarios user={user}/>}
+      {page === "usuarios" && <Usuarios user={user}/>}
 
     </div>
   )

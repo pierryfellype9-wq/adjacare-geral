@@ -100,6 +100,17 @@ export default function Pedidos({ user }) {
         data:new Date().toISOString()
       }])
 
+      await fetch("/api/enviar-email",{
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json"
+  },
+  body:JSON.stringify({
+    email:user.email,
+    titulo:titulo
+  })
+})
+
     if(error){
       alert("Erro: "+error.message)
       return

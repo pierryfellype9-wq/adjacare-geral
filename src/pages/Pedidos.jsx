@@ -131,7 +131,7 @@ export default function Pedidos({ user }) {
     if (!mensagem.trim()) return
 
     const payload = {
-      pedido_id: pedidoId,
+      pedido_id: String(pedidoId),
       usuario: user.nome,
       mensagem: mensagem.trim(),
       data: new Date().toISOString()
@@ -178,7 +178,7 @@ export default function Pedidos({ user }) {
     const { error } = await supabase
       .from("pedidos")
       .update({ status })
-      .eq("id", id)
+      .eq("id", String(id))
 
     if (error) {
       console.log("Erro ao mover pedido:", error)
@@ -193,7 +193,7 @@ export default function Pedidos({ user }) {
     if (!podeEditar) return
     if (!result.destination) return
 
-    const pedidoId = result.draggableId
+    const pedidoId = String(result.draggableId)
     const coluna = result.destination.droppableId
 
     await atualizarStatusKanban(pedidoId, coluna)
@@ -250,8 +250,8 @@ export default function Pedidos({ user }) {
   }
 
   return (
-    <div className="main">
-      <div className="card">
+        <div className="main">
+        <div className="card">
         <div style={{ display: "flex", gap: "10px", marginBottom: "25px" }}>
           <button
             onClick={() => setAba("lista")}

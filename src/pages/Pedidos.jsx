@@ -178,7 +178,7 @@ export default function Pedidos({ user }) {
     const { data, error } = await supabase
       .from("pedidos")
       .update({ status })
-      .eq("id", Number(id))
+      .eq("id", id)
       .select()
 
     if (error) {
@@ -195,7 +195,7 @@ export default function Pedidos({ user }) {
     if (!podeEditar) return
     if (!result.destination) return
 
-    const id = Number(result.draggableId)
+    const id = result.draggableId
     const destinoColuna = result.destination.droppableId
 
     await atualizarStatusKanban(id, destinoColuna)

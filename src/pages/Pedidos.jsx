@@ -7,7 +7,7 @@ export default function Pedidos({ user }) {
   const [titulo,setTitulo] = useState("")
   const [descricao,setDescricao] = useState("")
   const [prioridade,setPrioridade] = useState("Normal")
-  const [responsavel,setResponsavel] = useState("")
+  const [destino,setDestino] = useState("Mídia")
 
   const [usuarios,setUsuarios] = useState([])
   const [pedidos,setPedidos] = useState([])
@@ -93,7 +93,7 @@ export default function Pedidos({ user }) {
         titulo,
         descricao,
         prioridade,
-        responsavel_id: responsavel || null,
+        destino,
         ministerio:user.role,
         criado_por:user.nome,
         status:"Pendente",
@@ -119,7 +119,7 @@ export default function Pedidos({ user }) {
     setTitulo("")
     setDescricao("")
     setPrioridade("Normal")
-    setResponsavel("")
+    setDestino("Mídia")
 
   }
 

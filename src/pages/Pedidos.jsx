@@ -51,8 +51,8 @@ export default function Pedidos({ user }) {
       .select("*")
       .order("data", { ascending: false })
 
-    if (user.role !== "Administrador" && user.role !== "Mídia") {
-      query = query.eq("ministerio", user.role)
+    if (user?.role !== "Administrador" && user?.role !== "Mídia") {
+      query = query.eq("ministerio", user?.role)
     }
 
     const { data, error } = await query
@@ -131,7 +131,7 @@ export default function Pedidos({ user }) {
     if (!mensagem.trim()) return
 
     const payload = {
-      pedido_id: Number(pedidoId),
+      pedido_id: pedidoId,
       usuario: user.nome,
       mensagem: mensagem.trim(),
       data: new Date().toISOString()
@@ -159,7 +159,7 @@ export default function Pedidos({ user }) {
   }
 
   function comentariosDoPedido(pedidoId) {
-    return comentarios.filter(c => Number(c.pedido_id) === Number(pedidoId))
+    return comentarios.filter(c => String(c.pedido_id) === String(pedidoId))
   }
 
   function separar(status) {
@@ -175,19 +175,17 @@ export default function Pedidos({ user }) {
     if (coluna === "PRODUCAO") status = "Em produção"
     if (coluna === "CONCLUIDO") status = "Concluído"
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("pedidos")
       .update({ status })
       .eq("id", id)
-      .select()
 
     if (error) {
-      console.log("Erro ao atualizar status:", error)
-      alert("Erro ao mover pedido: " + error.message)
+      console.log("Erro ao mover pedido:", error)
+      alert("Erro ao mover pedido")
       return
     }
 
-    console.log("Status atualizado:", data)
     await carregarPedidos()
   }
 
@@ -195,10 +193,10 @@ export default function Pedidos({ user }) {
     if (!podeEditar) return
     if (!result.destination) return
 
-    const id = result.draggableId
-    const destinoColuna = result.destination.droppableId
+    const pedidoId = result.draggableId
+    const coluna = result.destination.droppableId
 
-    await atualizarStatusKanban(id, destinoColuna)
+    await atualizarStatusKanban(pedidoId, coluna)
   }
 
   function corPrioridade(p) {
@@ -489,7 +487,7 @@ export default function Pedidos({ user }) {
                           {itens.map((p, index) => (
                             <Draggable
                               key={p.id}
-                              draggableId={p.id.toString()}
+                              draggableId={String(p.id)}
                               index={index}
                               isDragDisabled={!podeEditar}
                             >

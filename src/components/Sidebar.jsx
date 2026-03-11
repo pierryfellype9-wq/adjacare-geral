@@ -1,7 +1,11 @@
-export default function Sidebar({ setPage, open, setOpen }) {
+import { useNavigate } from "react-router-dom"
+
+export default function Sidebar({ open, setOpen }) {
+
+  const navigate = useNavigate()
 
   function navegar(pagina){
-    setPage(pagina)
+    navigate(pagina)
     setOpen(false)
   }
 
@@ -21,35 +25,35 @@ export default function Sidebar({ setPage, open, setOpen }) {
 
       <div
         className="menu-item"
-        onClick={()=>navegar("dashboard")}
+        onClick={()=>navegar("/dashboard")}
       >
         Início
       </div>
 
       <div
         className="menu-item"
-        onClick={()=>navegar("pedidos")}
+        onClick={()=>navegar("/pedidos")}
       >
         Pedidos
       </div>
 
       <div
         className="menu-item"
-        onClick={()=>navegar("agenda")}
+        onClick={()=>navegar("/agenda")}
       >
         Agenda
       </div>
 
       <div
         className="menu-item"
-        onClick={()=>navegar("avisos")}
+        onClick={()=>navegar("/avisos")}
       >
         Avisos
       </div>
 
       <div
         className="menu-item"
-        onClick={()=>navegar("usuarios")}
+        onClick={()=>navegar("/usuarios")}
       >
         Usuários
       </div>

@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { Routes, Route, Navigate } from "react-router-dom"
 
 import Dashboard from "./pages/Dashboard"
 import Pedidos from "./pages/Pedidos"
@@ -19,7 +20,6 @@ export default function App(){
   const [senha,setSenha] = useState("")
   const [user,setUser] = useState(null)
 
-  const [page,setPage] = useState("dashboard")
   const [menuOpen,setMenuOpen] = useState(false)
 
   async function login(e){
@@ -42,14 +42,35 @@ export default function App(){
     }
 
     setUser(data)
+
+    localStorage.setItem("loginTime", Date.now())
   }
-  if(page === "trocarSenha"){
-  return (
-    <TrocarSenha
-      setPage={setPage}
-    />
-  )
-}
+
+  // logout automático após 5 minutos
+  useEffect(()=>{
+
+    const interval = setInterval(()=>{
+
+      const loginTime = localStorage.getItem("loginTime")
+
+      if(!loginTime) return
+
+      const agora = Date.now()
+      const tempo = agora - loginTime
+
+      const cincoMinutos = 5 * 60 * 1000
+
+      if(tempo > cincoMinutos){
+        setUser(null)
+        localStorage.removeItem("loginTime")
+      }
+
+    },10000)
+
+    return ()=>clearInterval(interval)
+
+  },[])
+
 
   if(!user){
     return (
@@ -78,16 +99,8 @@ export default function App(){
             />
 
             <button className="login-btn">
-  Entrar
-</button>
-
-<button
-  type="button"
-  className="forgot-btn"
-  onClick={() => setPage("trocarSenha")}
->
-  Esqueci minha senha
-</button>
+              Entrar
+            </button>
 
           </form>
 
@@ -97,15 +110,8 @@ export default function App(){
     )
   }
 
-  if(page === "trocarSenha"){
-    return (
-      <TrocarSenha
-  setPage={setPage}
-/>
-    )
-  }
-
   return (
+
     <div className="dashboard">
 
       <header className="topbar">
@@ -124,7 +130,10 @@ export default function App(){
           </div>
 
           <button
-            onClick={()=>setUser(null)}
+            onClick={()=>{
+              setUser(null)
+              localStorage.removeItem("loginTime")
+            }}
             className="logout-btn"
           >
             Sair
@@ -135,25 +144,35 @@ export default function App(){
       </header>
 
       <Sidebar
-        setPage={setPage}
         open={menuOpen}
         setOpen={setMenuOpen}
       />
 
-      {page === "dashboard" && <Dashboard user={user}/>}
+      <Routes>
 
-      {page === "pedidos" && <Pedidos user={user}/>}
+        <Route path="/" element={<Dashboard user={user}/>}/>
 
-      {page === "kanban" && <KanbanPedidos user={user}/>}
+        <Route path="/dashboard" element={<Dashboard user={user}/>}/>
 
-      {page === "solicitacoes" && <Solicitacoes/>}
+        <Route path="/pedidos" element={<Pedidos user={user}/>}/>
 
-      {page === "agenda" && <Agenda/>}
+        <Route path="/kanban" element={<KanbanPedidos user={user}/>}/>
 
-      {page === "avisos" && <Avisos/>}
+        <Route path="/solicitacoes" element={<Solicitacoes/>}/>
 
-      {page === "usuarios" && <Usuarios user={user}/>}
+        <Route path="/agenda" element={<Agenda/>}/>
+
+        <Route path="/avisos" element={<Avisos/>}/>
+
+        <Route path="/usuarios" element={<Usuarios user={user}/>}/>
+
+        <Route path="/trocar-senha" element={<TrocarSenha/>}/>
+
+        <Route path="*" element={<Navigate to="/"/>}/>
+
+      </Routes>
 
     </div>
+
   )
 }

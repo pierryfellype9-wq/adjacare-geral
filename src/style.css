@@ -1,6 +1,6 @@
 body{
 margin:0;
-font-family: Inter, Arial;
+font-family:Inter, Arial;
 background:#eef2f7;
 }
 
@@ -42,6 +42,27 @@ object-fit:contain;
 input{
 width:100%;
 padding:12px;
+margin-top:12px;
+border-radius:8px;
+border:1px solid #ddd;
+box-sizing:border-box;
+font-size:14px;
+}
+
+textarea{
+width:100%;
+padding:12px;
+margin-top:12px;
+border-radius:8px;
+border:1px solid #ddd;
+box-sizing:border-box;
+font-size:14px;
+resize:vertical;
+}
+
+select{
+width:100%;
+padding:10px;
 margin-top:12px;
 border-radius:8px;
 border:1px solid #ddd;
@@ -246,6 +267,79 @@ margin-bottom:10px;
 }
 
 /* ========================= */
+/* PEDIDOS */
+/* ========================= */
+
+.pedidos-list{
+display:grid;
+gap:16px;
+margin-top:20px;
+}
+
+.pedido-card{
+background:white;
+border:1px solid #e5e7eb;
+border-radius:12px;
+padding:16px;
+display:flex;
+flex-direction:column;
+gap:16px;
+}
+
+.pedido-header{
+display:flex;
+justify-content:space-between;
+gap:20px;
+flex-wrap:wrap;
+}
+
+.pedido-info{
+flex:1;
+min-width:240px;
+}
+
+.pedido-badges{
+display:flex;
+flex-direction:column;
+gap:8px;
+}
+
+/* COMENTÁRIOS */
+
+.comentarios{
+display:flex;
+flex-direction:column;
+gap:8px;
+margin-top:10px;
+}
+
+.comentario{
+background:#f8fafc;
+border:1px solid #e5e7eb;
+border-radius:8px;
+padding:10px;
+}
+
+.comentario strong{
+font-size:13px;
+}
+
+.comentario p{
+margin:6px 0 0 0;
+font-size:14px;
+}
+
+.comentario-input{
+display:flex;
+gap:8px;
+margin-top:10px;
+}
+
+.comentario-input input{
+margin-top:0;
+}
+
+/* ========================= */
 /* KANBAN */
 /* ========================= */
 
@@ -351,6 +445,8 @@ margin-top:20px;
 .agenda-card iframe{
 border-radius:8px;
 }
+
+/* ESQUECI SENHA */
 
 .forgot-btn{
 margin-top:10px;

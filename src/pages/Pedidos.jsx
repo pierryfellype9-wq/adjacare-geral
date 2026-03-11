@@ -58,7 +58,7 @@ export default function Pedidos({ user }) {
     const { data, error } = await query
 
     if (error) {
-      console.log(error)
+      console.log("Erro ao carregar pedidos:", error)
       return
     }
 
@@ -72,7 +72,7 @@ export default function Pedidos({ user }) {
       .order("data", { ascending: true })
 
     if (error) {
-      console.log(error)
+      console.log("Erro ao carregar comentários:", error)
       return
     }
 
@@ -101,6 +101,7 @@ export default function Pedidos({ user }) {
       }])
 
     if (error) {
+      console.log("Erro ao criar pedido:", error)
       alert("Erro: " + error.message)
       return
     }
@@ -120,6 +121,8 @@ export default function Pedidos({ user }) {
     setDescricao("")
     setPrioridade("Normal")
     setDestino("Mídia")
+
+    await carregarPedidos()
   }
 
   async function enviarComentario(pedidoId) {
@@ -127,25 +130,32 @@ export default function Pedidos({ user }) {
 
     if (!mensagem.trim()) return
 
-    const { error } = await supabase
+    const payload = {
+      pedido_id: Number(pedidoId),
+      usuario: user.nome,
+      mensagem: mensagem.trim(),
+      data: new Date().toISOString()
+    }
+
+    const { data, error } = await supabase
       .from("comentarios_pedidos")
-      .insert([{
-        pedido_id: pedidoId,
-        usuario: user.nome,
-        mensagem,
-        data: new Date().toISOString()
-      }])
+      .insert([payload])
+      .select()
 
     if (error) {
-      console.log(error)
-      alert("Erro ao enviar comentário")
+      console.log("Erro ao enviar comentário:", error)
+      alert("Erro ao enviar comentário: " + error.message)
       return
     }
+
+    console.log("Comentário salvo:", data)
 
     setComentariosInput(prev => ({
       ...prev,
       [pedidoId]: ""
     }))
+
+    await carregarComentarios()
   }
 
   function comentariosDoPedido(pedidoId) {
@@ -165,14 +175,20 @@ export default function Pedidos({ user }) {
     if (coluna === "PRODUCAO") status = "Em produção"
     if (coluna === "CONCLUIDO") status = "Concluído"
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("pedidos")
       .update({ status })
-      .eq("id", id)
+      .eq("id", Number(id))
+      .select()
 
     if (error) {
-      console.log(error)
+      console.log("Erro ao atualizar status:", error)
+      alert("Erro ao mover pedido: " + error.message)
+      return
     }
+
+    console.log("Status atualizado:", data)
+    await carregarPedidos()
   }
 
   async function onDragEnd(result) {
@@ -238,7 +254,6 @@ export default function Pedidos({ user }) {
   return (
     <div className="main">
       <div className="card">
-
         <div style={{ display: "flex", gap: "10px", marginBottom: "25px" }}>
           <button
             onClick={() => setAba("lista")}
@@ -352,16 +367,13 @@ export default function Pedidos({ user }) {
                     background: "white"
                   }}
                 >
-
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
                     <div>
                       <h3 style={{ margin: "0 0 8px 0" }}>{p.titulo}</h3>
                       <p style={{ margin: "0 0 8px 0", color: "#555" }}>{p.descricao}</p>
-
                       <small style={{ display: "block", color: "#666" }}>
                         Ministério: {p.ministerio}
                       </small>
-
                       <small style={{ display: "block", color: "#666" }}>
                         Destino: {p.destino || "-"}
                       </small>
@@ -389,9 +401,7 @@ export default function Pedidos({ user }) {
 
                     <div style={{ display: "grid", gap: "8px", marginBottom: "12px" }}>
                       {comentariosDoPedido(p.id).length === 0 && (
-                        <small style={{ color: "#777" }}>
-                          Nenhum comentário ainda.
-                        </small>
+                        <small style={{ color: "#777" }}>Nenhum comentário ainda.</small>
                       )}
 
                       {comentariosDoPedido(p.id).map(c => (
@@ -405,10 +415,7 @@ export default function Pedidos({ user }) {
                           }}
                         >
                           <strong style={{ fontSize: "13px" }}>{c.usuario}</strong>
-
-                          <p style={{ margin: "6px 0 0 0", fontSize: "14px" }}>
-                            {c.mensagem}
-                          </p>
+                          <p style={{ margin: "6px 0 0 0", fontSize: "14px" }}>{c.mensagem}</p>
                         </div>
                       ))}
                     </div>
@@ -443,7 +450,6 @@ export default function Pedidos({ user }) {
                       </button>
                     </div>
                   </div>
-
                 </div>
               ))}
             </div>
@@ -453,9 +459,7 @@ export default function Pedidos({ user }) {
         {aba === "kanban" && (
           <DragDropContext onDragEnd={onDragEnd}>
             <div className="kanban-board">
-
               {["PENDENTE", "PRODUCAO", "CONCLUIDO"].map(coluna => {
-
                 const statusReal =
                   coluna === "PENDENTE"
                     ? "Pendente"
@@ -473,7 +477,6 @@ export default function Pedidos({ user }) {
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                       >
-
                         <div className="kanban-column-header">
                           <span>{statusReal.toUpperCase()}</span>
 
@@ -513,17 +516,14 @@ export default function Pedidos({ user }) {
 
                           {provided.placeholder}
                         </div>
-
                       </div>
                     )}
                   </Droppable>
                 )
               })}
-
             </div>
           </DragDropContext>
         )}
-
       </div>
     </div>
   )

@@ -316,26 +316,19 @@ export default function Pedidos({ user }) {
             </select>
 
             <select
-              value={responsavel}
-              onChange={e=>setResponsavel(e.target.value)}
-              style={{
-                width:"100%",
-                marginTop:"12px",
-                padding:"10px",
-                borderRadius:"8px",
-                border:"1px solid #ddd"
-              }}
-            >
-
-              <option value="">Responsável da mídia</option>
-
-              {usuarios.map(u=>(
-                <option key={u.id} value={u.id}>
-                  {u.nome}
-                </option>
-              ))}
-
-            </select>
+  value={destino}
+  onChange={e=>setDestino(e.target.value)}
+  style={{
+    width:"100%",
+    marginTop:"12px",
+    padding:"10px",
+    borderRadius:"8px",
+    border:"1px solid #ddd"
+  }}
+>
+  <option value="Mídia">Mídia</option>
+  <option value="Sonoplastia">Sonoplastia</option>
+</select>
 
             <button
               className="login-btn"

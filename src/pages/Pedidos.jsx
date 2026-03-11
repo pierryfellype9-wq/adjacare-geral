@@ -9,7 +9,8 @@ export default function Pedidos({ user }) {
   const [prioridade,setPrioridade] = useState("Normal")
   const [destino,setDestino] = useState("Mídia")
 
-  const [usuarios,setUsuarios] = useState([])
+  const [comentario,setComentario] = useState("")
+
   const [pedidos,setPedidos] = useState([])
   const [aba,setAba] = useState("lista")
 
@@ -20,7 +21,6 @@ export default function Pedidos({ user }) {
   useEffect(()=>{
 
     carregarPedidos()
-    carregarUsuarios()
 
     const channel = supabase
       .channel("realtime-pedidos")
@@ -36,24 +36,6 @@ export default function Pedidos({ user }) {
     }
 
   },[])
-
-
-  async function carregarUsuarios(){
-
-    const { data, error } = await supabase
-      .from("users")
-      .select("id,nome,role")
-      .eq("role","Mídia")
-
-    if(error){
-      console.log(error)
-      return
-    }
-
-    setUsuarios(data || [])
-
-  }
-
 
   async function carregarPedidos(){
 
@@ -74,9 +56,7 @@ export default function Pedidos({ user }) {
     }
 
     setPedidos(data || [])
-
   }
-
 
   async function criarPedido(e){
 
@@ -100,16 +80,16 @@ export default function Pedidos({ user }) {
         data:new Date().toISOString()
       }])
 
-      await fetch("/api/enviar-email",{
-  method:"POST",
-  headers:{
-    "Content-Type":"application/json"
-  },
-  body:JSON.stringify({
-    email:user.email,
-    titulo:titulo
-  })
-})
+    await fetch("/api/enviar-email",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        email:user.email,
+        titulo:titulo
+      })
+    })
 
     if(error){
       alert("Erro: "+error.message)
@@ -120,14 +100,33 @@ export default function Pedidos({ user }) {
     setDescricao("")
     setPrioridade("Normal")
     setDestino("Mídia")
-
   }
 
+  async function enviarComentario(pedidoId){
+
+    if(!comentario.trim()) return
+
+    const { error } = await supabase
+      .from("comentarios_pedidos")
+      .insert([
+        {
+          pedido_id: pedidoId,
+          usuario: user.nome,
+          mensagem: comentario
+        }
+      ])
+
+    if(error){
+      console.log(error)
+      return
+    }
+
+    setComentario("")
+  }
 
   function separar(status){
     return pedidos.filter(p=>p.status===status)
   }
-
 
   async function atualizarStatusKanban(id,coluna){
 
@@ -147,9 +146,7 @@ export default function Pedidos({ user }) {
     if(error){
       console.log(error)
     }
-
   }
-
 
   async function onDragEnd(result){
 
@@ -160,9 +157,7 @@ export default function Pedidos({ user }) {
     const destino = result.destination.droppableId
 
     await atualizarStatusKanban(id,destino)
-
   }
-
 
   function corPrioridade(p){
 
@@ -171,20 +166,7 @@ export default function Pedidos({ user }) {
     if(p==="Baixa") return "#10b981"
 
     return "#999"
-
   }
-
-
-  function corCardPrioridade(p){
-
-    if(p==="Urgente") return "#fee2e2"
-    if(p==="Normal") return "#fef3c7"
-    if(p==="Baixa") return "#d1fae5"
-
-    return "#f3f4f6"
-
-  }
-
 
   function renderStatusBadge(status){
 
@@ -223,278 +205,144 @@ export default function Pedidos({ user }) {
     )
   }
 
-
   return(
 
     <div className="main">
 
       <div className="card">
 
-        <div style={{display:"flex",gap:"10px",marginBottom:"25px"}}>
+        <h2 className="subtitle">Novo Pedido</h2>
 
-          <button
-            onClick={()=>setAba("lista")}
+        <form onSubmit={criarPedido} style={{maxWidth:"500px"}}>
+
+          <input
+            placeholder="Título do pedido"
+            value={titulo}
+            onChange={e=>setTitulo(e.target.value)}
+          />
+
+          <textarea
+            placeholder="Descrição"
+            value={descricao}
+            onChange={e=>setDescricao(e.target.value)}
             style={{
-              padding:"10px 16px",
+              width:"100%",
+              marginTop:"12px",
+              padding:"12px",
               borderRadius:"8px",
-              border:"none",
-              background:aba==="lista"?"#2563eb":"#e5e7eb",
-              color:aba==="lista"?"white":"#333",
-              cursor:"pointer",
-              fontWeight:"600"
+              border:"1px solid #ddd",
+              minHeight:"110px"
+            }}
+          />
+
+          <select
+            value={prioridade}
+            onChange={e=>setPrioridade(e.target.value)}
+            style={{
+              width:"100%",
+              marginTop:"12px",
+              padding:"10px",
+              borderRadius:"8px",
+              border:"1px solid #ddd"
             }}
           >
-            Pedidos
-          </button>
+            <option value="Urgente">🔴 Urgente</option>
+            <option value="Normal">🟡 Normal</option>
+            <option value="Baixa">🟢 Baixa</option>
+          </select>
 
-          {(user.role === "Mídia" || user.role === "Administrador") && (
-
-          <button
-            onClick={()=>setAba("kanban")}
+          <select
+            value={destino}
+            onChange={e=>setDestino(e.target.value)}
             style={{
-              padding:"10px 16px",
+              width:"100%",
+              marginTop:"12px",
+              padding:"10px",
               borderRadius:"8px",
-              border:"none",
-              background:aba==="kanban"?"#2563eb":"#e5e7eb",
-              color:aba==="kanban"?"white":"#333",
-              cursor:"pointer",
-              fontWeight:"600"
+              border:"1px solid #ddd"
             }}
           >
-            Kanban
+            <option value="Mídia">Mídia</option>
+            <option value="Sonoplastia">Sonoplastia</option>
+          </select>
+
+          <button
+            className="login-btn"
+            style={{marginTop:"12px",width:"auto"}}
+          >
+            Criar pedido
           </button>
 
-          )}
+        </form>
 
-        </div>
+        <h2 className="subtitle" style={{marginTop:"35px"}}>
+          Pedidos
+        </h2>
 
+        <table style={{width:"100%",marginTop:"20px"}}>
 
-        {aba==="lista" && (
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Ministério</th>
+              <th>Status</th>
+              <th>Prioridade</th>
+              <th>Comentário</th>
+            </tr>
+          </thead>
 
-          <>
+          <tbody>
 
-          <h2 className="subtitle">Novo Pedido</h2>
+            {pedidos.map(p=>(
 
-          <form onSubmit={criarPedido} style={{maxWidth:"500px"}}>
+              <tr key={p.id}>
 
-            <input
-              placeholder="Título do pedido"
-              value={titulo}
-              onChange={e=>setTitulo(e.target.value)}
-            />
+                <td>{p.titulo}</td>
+                <td>{p.ministerio}</td>
+                <td>{renderStatusBadge(p.status)}</td>
 
-            <textarea
-              placeholder="Descrição"
-              value={descricao}
-              onChange={e=>setDescricao(e.target.value)}
-              style={{
-                width:"100%",
-                marginTop:"12px",
-                padding:"12px",
-                borderRadius:"8px",
-                border:"1px solid #ddd",
-                minHeight:"110px"
-              }}
-            />
+                <td>
+                  <span
+                    style={{
+                      background:corPrioridade(p.prioridade),
+                      color:"white",
+                      padding:"5px 9px",
+                      borderRadius:"6px",
+                      fontSize:"12px"
+                    }}
+                  >
+                    {p.prioridade}
+                  </span>
+                </td>
 
-            <select
-              value={prioridade}
-              onChange={e=>setPrioridade(e.target.value)}
-              style={{
-                width:"100%",
-                marginTop:"12px",
-                padding:"10px",
-                borderRadius:"8px",
-                border:"1px solid #ddd"
-              }}
-            >
+                <td>
 
-              <option value="Urgente">🔴 Urgente</option>
-              <option value="Normal">🟡 Normal</option>
-              <option value="Baixa">🟢 Baixa</option>
+                  <input
+                    placeholder="Comentário..."
+                    value={comentario}
+                    onChange={(e)=>setComentario(e.target.value)}
+                  />
 
-            </select>
+                  <button
+                    style={{marginLeft:"6px"}}
+                    onClick={()=>enviarComentario(p.id)}
+                  >
+                    Enviar
+                  </button>
 
-            <select
-  value={destino}
-  onChange={e=>setDestino(e.target.value)}
-  style={{
-    width:"100%",
-    marginTop:"12px",
-    padding:"10px",
-    borderRadius:"8px",
-    border:"1px solid #ddd"
-  }}
->
-  <option value="Mídia">Mídia</option>
-  <option value="Sonoplastia">Sonoplastia</option>
-</select>
+                </td>
 
-            <button
-              className="login-btn"
-              style={{marginTop:"12px",width:"auto"}}
-            >
-              Criar pedido
-            </button>
-
-          </form>
-
-
-          <h2 className="subtitle" style={{marginTop:"35px"}}>
-            Pedidos
-          </h2>
-
-          <table style={{width:"100%",marginTop:"20px"}}>
-
-            <thead>
-              <tr>
-                <th style={{textAlign:"left"}}>Título</th>
-                <th style={{textAlign:"left"}}>Ministério</th>
-                <th style={{textAlign:"left"}}>Status</th>
-                <th style={{textAlign:"left"}}>Prioridade</th>
               </tr>
-            </thead>
 
-            <tbody>
+            ))}
 
-              {pedidos.map(p=>(
+          </tbody>
 
-                <tr key={p.id}>
-
-                  <td>{p.titulo}</td>
-                  <td>{p.ministerio}</td>
-                  <td>{renderStatusBadge(p.status)}</td>
-
-                  <td>
-
-                    <span
-                      style={{
-                        background:corPrioridade(p.prioridade),
-                        color:"white",
-                        padding:"5px 9px",
-                        borderRadius:"6px",
-                        fontSize:"12px"
-                      }}
-                    >
-                      {p.prioridade}
-                    </span>
-
-                  </td>
-
-                </tr>
-
-              ))}
-
-            </tbody>
-
-          </table>
-
-          </>
-
-        )}
-
-        {aba==="kanban" && (
-
-          <DragDropContext onDragEnd={onDragEnd}>
-
-            <div className="kanban-board">
-
-              {["PENDENTE","PRODUCAO","CONCLUIDO"].map(coluna=>{
-
-                const statusReal =
-                  coluna==="PENDENTE"?"Pendente":
-                  coluna==="PRODUCAO"?"Em produção":
-                  "Concluído"
-
-                const itens = separar(statusReal)
-
-                return(
-
-                  <Droppable key={coluna} droppableId={coluna}>
-
-                    {(provided)=>(
-
-                      <div
-                        className="kanban-column"
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                      >
-
-                        <div className="kanban-column-header">
-
-                          <span>{statusReal.toUpperCase()}</span>
-
-                          <span className="kanban-count">
-                            {itens.length}
-                          </span>
-
-                        </div>
-
-                        <div className="kanban-cards">
-
-                          {itens.map((p,index)=>(
-
-                            <Draggable
-                              key={p.id}
-                              draggableId={p.id.toString()}
-                              index={index}
-                              isDragDisabled={!podeEditar}
-                            >
-
-                              {(provided)=>(
-
-                                <div
-                                  className="kanban-card"
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  style={{
-                                    background:corCardPrioridade(p.prioridade),
-                                    padding:"12px",
-                                    borderRadius:"8px"
-                                  }}
-                                >
-
-                                  <h4>{p.titulo}</h4>
-
-                                  <p>{p.descricao}</p>
-
-                                  <small>
-                                    {p.ministerio}
-                                  </small>
-
-                                </div>
-
-                              )}
-
-                            </Draggable>
-
-                          ))}
-
-                          {provided.placeholder}
-
-                        </div>
-
-                      </div>
-
-                    )}
-
-                  </Droppable>
-
-                )
-
-              })}
-
-            </div>
-
-          </DragDropContext>
-
-        )}
+        </table>
 
       </div>
 
     </div>
 
   )
-
 }

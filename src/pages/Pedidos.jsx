@@ -110,14 +110,28 @@ export default function Pedidos({ user }) {
       return
     }
 
+    // ENVIO DE EMAIL
     await fetch("/api/enviar-email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        email: user.email,
-        titulo: titulo
+        assunto: "Novo pedido de mídia - ADJACARÉ",
+        mensagem: `
+          <h2>Novo pedido enviado</h2>
+
+          <p><b>Título:</b> ${titulo}</p>
+          <p><b>Descrição:</b> ${descricao}</p>
+          <p><b>Prioridade:</b> ${prioridade}</p>
+          <p><b>Destino:</b> ${destino}</p>
+
+          <hr>
+
+          <p><b>Ministério:</b> ${user.role}</p>
+          <p><b>Enviado por:</b> ${user.nome}</p>
+          <p><b>Email:</b> ${user.email}</p>
+        `
       })
     })
 
@@ -252,6 +266,10 @@ export default function Pedidos({ user }) {
       </span>
     )
   }
+
+  return (
+    <div className="main">
+      <div className="card">
 
   return (
     <div className="main">

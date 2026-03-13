@@ -1,6 +1,12 @@
 import { Resend } from "resend"
+import { createClient } from "@supabase/supabase-js"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 export default async function handler(req, res){
 
@@ -8,10 +14,28 @@ export default async function handler(req, res){
 
     const { assunto, mensagem } = req.body
 
+    const { data: midiaUsers, error } = await supabase
+      .from("users")
+      .select("email")
+      .eq("role","Mídia")
+
+    if(error){
+      throw error
+    }
+
+    const emailsMidia = midiaUsers
+      .map(u => u.email)
+      .filter(Boolean)
+
+    const listaEmails = [...new Set([
+      "midia@adjacare.org",
+      ...emailsMidia
+    ])]
+
     await resend.emails.send({
 
       from: "Sistema ADJACARÉ <midia@adjacare.org>",
-      to: ["midia@adjacare.org"],
+      to: listaEmails,
       subject: assunto,
       html: mensagem
 

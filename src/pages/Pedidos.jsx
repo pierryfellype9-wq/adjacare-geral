@@ -15,7 +15,8 @@ export default function Pedidos({ user }) {
 
   const podeEditar =
     user?.role === "Mídia" ||
-    user?.role === "Administrador"
+    user?.role === "Administrador" ||
+    user?.role === "Dirigente"
 
   useEffect(() => {
     carregarPedidos()

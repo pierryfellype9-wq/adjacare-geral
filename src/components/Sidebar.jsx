@@ -1,13 +1,14 @@
-import { useNavigate } from "react-router-dom"
-
-export default function Sidebar({ open, setOpen }) {
-
-  const navigate = useNavigate()
+export default function Sidebar({ setPage, open, setOpen, user }) {
 
   function navegar(pagina){
-    navigate(pagina)
+    setPage(pagina)
     setOpen(false)
   }
+
+  const podeVerEscala =
+    user?.role === "Administrador" ||
+    user?.role === "Dirigente" ||
+    user?.role === "Mídia"
 
   return (
     <div className={`sidebar ${open ? "open" : ""}`}>
@@ -25,35 +26,44 @@ export default function Sidebar({ open, setOpen }) {
 
       <div
         className="menu-item"
-        onClick={()=>navegar("/dashboard")}
+        onClick={()=>navegar("dashboard")}
       >
         Início
       </div>
 
       <div
         className="menu-item"
-        onClick={()=>navegar("/pedidos")}
+        onClick={()=>navegar("pedidos")}
       >
         Pedidos
       </div>
 
+      {podeVerEscala && (
+        <div
+          className="menu-item"
+          onClick={()=>navegar("escalaMidia")}
+        >
+          Escala da Mídia
+        </div>
+      )}
+
       <div
         className="menu-item"
-        onClick={()=>navegar("/agenda")}
+        onClick={()=>navegar("agenda")}
       >
         Agenda
       </div>
 
       <div
         className="menu-item"
-        onClick={()=>navegar("/avisos")}
+        onClick={()=>navegar("avisos")}
       >
         Avisos
       </div>
 
       <div
         className="menu-item"
-        onClick={()=>navegar("/usuarios")}
+        onClick={()=>navegar("usuarios")}
       >
         Usuários
       </div>

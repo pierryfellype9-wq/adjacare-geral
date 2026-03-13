@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase"
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
 
 export default function Pedidos({ user }) {
+
   const [titulo, setTitulo] = useState("")
   const [descricao, setDescricao] = useState("")
   const [prioridade, setPrioridade] = useState("Normal")
@@ -18,6 +19,7 @@ export default function Pedidos({ user }) {
     user?.role === "Administrador"
 
   useEffect(() => {
+
     carregarPedidos()
     carregarComentarios()
 
@@ -43,9 +45,11 @@ export default function Pedidos({ user }) {
       supabase.removeChannel(channelPedidos)
       supabase.removeChannel(channelComentarios)
     }
+
   }, [])
 
   async function carregarPedidos() {
+
     let query = supabase
       .from("pedidos")
       .select("*")
@@ -70,6 +74,7 @@ export default function Pedidos({ user }) {
   }
 
   async function carregarComentarios() {
+
     const { data, error } = await supabase
       .from("comentarios_pedidos")
       .select("*")
@@ -84,6 +89,7 @@ export default function Pedidos({ user }) {
   }
 
   async function criarPedido(e) {
+
     e.preventDefault()
 
     if (!titulo.trim()) {
@@ -140,7 +146,9 @@ export default function Pedidos({ user }) {
   }
 
   async function enviarComentario(pedidoId) {
+
     const mensagem = comentariosInput[pedidoId] || ""
+
     if (!mensagem.trim()) return
 
     const payload = {
@@ -176,6 +184,7 @@ export default function Pedidos({ user }) {
   }
 
   async function atualizarStatusKanban(id, coluna) {
+
     if (!podeEditar) return
 
     let status = ""
@@ -193,6 +202,7 @@ export default function Pedidos({ user }) {
   }
 
   async function onDragEnd(result) {
+
     if (!podeEditar) return
     if (!result.destination) return
 
@@ -216,11 +226,49 @@ export default function Pedidos({ user }) {
     return "#f3f4f6"
   }
 
+  function renderStatusBadge(status) {
+
+    let bg = "#f3f4f6"
+    let color = "#374151"
+
+    if (status === "Pendente") {
+      bg = "#fef3c7"
+      color = "#92400e"
+    }
+
+    if (status === "Em produção") {
+      bg = "#dbeafe"
+      color = "#1d4ed8"
+    }
+
+    if (status === "Concluído") {
+      bg = "#dcfce7"
+      color = "#166534"
+    }
+
+    return (
+      <span
+        style={{
+          display: "inline-block",
+          padding: "6px 10px",
+          borderRadius: "999px",
+          fontSize: "12px",
+          fontWeight: "600",
+          background: bg,
+          color: color
+        }}
+      >
+        {status}
+      </span>
+    )
+  }
+
   return (
     <div className="main">
       <div className="card">
 
         <div style={{ display: "flex", gap: "10px", marginBottom: "25px" }}>
+
           <button
             onClick={() => setAba("lista")}
             style={{
@@ -237,6 +285,7 @@ export default function Pedidos({ user }) {
           </button>
 
           {(user.role === "Mídia" || user.role === "Administrador") && (
+
             <button
               onClick={() => setAba("kanban")}
               style={{
@@ -251,14 +300,18 @@ export default function Pedidos({ user }) {
             >
               Kanban
             </button>
+
           )}
+
         </div>
 
         {aba === "lista" && (
+
           <>
             <h2 className="subtitle">Novo Pedido</h2>
 
             <form onSubmit={criarPedido} style={{ maxWidth: "500px" }}>
+
               <input
                 placeholder="Título do pedido"
                 value={titulo}
@@ -316,6 +369,7 @@ export default function Pedidos({ user }) {
               >
                 Criar pedido
               </button>
+
             </form>
 
             <h2 className="subtitle" style={{ marginTop: "35px" }}>
@@ -323,7 +377,9 @@ export default function Pedidos({ user }) {
             </h2>
 
             <div style={{ marginTop: "20px", display: "grid", gap: "16px" }}>
+
               {pedidos.map(p => (
+
                 <div
                   key={p.id}
                   style={{
@@ -333,19 +389,29 @@ export default function Pedidos({ user }) {
                     background: "white"
                   }}
                 >
+
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+
                     <div>
+
                       <h3 style={{ margin: "0 0 8px 0" }}>{p.titulo}</h3>
-                      <p style={{ margin: "0 0 8px 0", color: "#555" }}>{p.descricao}</p>
+
+                      <p style={{ margin: "0 0 8px 0", color: "#555" }}>
+                        {p.descricao}
+                      </p>
+
                       <small style={{ display: "block", color: "#666" }}>
                         Ministério: {p.ministerio}
                       </small>
+
                       <small style={{ display: "block", color: "#666" }}>
                         Destino: {p.destino || "-"}
                       </small>
+
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-start" }}>
+
                       {renderStatusBadge(p.status)}
 
                       <span
@@ -359,18 +425,27 @@ export default function Pedidos({ user }) {
                       >
                         {p.prioridade}
                       </span>
+
                     </div>
+
                   </div>
 
                   <div style={{ marginTop: "16px" }}>
-                    <h4 style={{ margin: "0 0 10px 0", fontSize: "15px" }}>Comentários</h4>
+
+                    <h4 style={{ margin: "0 0 10px 0", fontSize: "15px" }}>
+                      Comentários
+                    </h4>
 
                     <div style={{ display: "grid", gap: "8px", marginBottom: "12px" }}>
+
                       {comentariosDoPedido(p.id).length === 0 && (
-                        <small style={{ color: "#777" }}>Nenhum comentário ainda.</small>
+                        <small style={{ color: "#777" }}>
+                          Nenhum comentário ainda.
+                        </small>
                       )}
 
                       {comentariosDoPedido(p.id).map(c => (
+
                         <div
                           key={c.id}
                           style={{
@@ -380,15 +455,24 @@ export default function Pedidos({ user }) {
                             padding: "10px"
                           }}
                         >
-                          <strong style={{ fontSize: "13px" }}>{c.usuario}</strong>
-                          <p style={{ margin: "6px 0 0 0", fontSize: "14px" }}>{c.mensagem}</p>
+
+                          <strong style={{ fontSize: "13px" }}>
+                            {c.usuario}
+                          </strong>
+
+                          <p style={{ margin: "6px 0 0 0", fontSize: "14px" }}>
+                            {c.mensagem}
+                          </p>
+
                         </div>
+
                       ))}
+
                     </div>
 
                     <div style={{ display: "flex", gap: "8px" }}>
+
                       <input
-                        key={"comentario-" + p.id}
                         placeholder="Escrever comentário..."
                         value={comentariosInput[p.id] ?? ""}
                         onChange={e =>
@@ -397,7 +481,6 @@ export default function Pedidos({ user }) {
                             [p.id]: e.target.value
                           }))
                         }
-                        style={{ marginTop: 0 }}
                       />
 
                       <button
@@ -414,18 +497,29 @@ export default function Pedidos({ user }) {
                       >
                         Enviar
                       </button>
+
                     </div>
+
                   </div>
+
                 </div>
+
               ))}
+
             </div>
+
           </>
+
         )}
 
         {aba === "kanban" && (
+
           <DragDropContext onDragEnd={onDragEnd}>
+
             <div className="kanban-board">
+
               {["PENDENTE", "PRODUCAO", "CONCLUIDO"].map(coluna => {
+
                 const statusReal =
                   coluna === "PENDENTE"
                     ? "Pendente"
@@ -436,30 +530,40 @@ export default function Pedidos({ user }) {
                 const itens = separar(statusReal)
 
                 return (
+
                   <Droppable key={coluna} droppableId={coluna}>
+
                     {provided => (
+
                       <div
                         className="kanban-column"
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                       >
+
                         <div className="kanban-column-header">
+
                           <span>{statusReal.toUpperCase()}</span>
 
                           <span className="kanban-count">
                             {itens.length}
                           </span>
+
                         </div>
 
                         <div className="kanban-cards">
+
                           {itens.map((p, index) => (
+
                             <Draggable
                               key={p.id}
                               draggableId={String(p.id)}
                               index={index}
                               isDragDisabled={!podeEditar}
                             >
+
                               {provided => (
+
                                 <div
                                   className="kanban-card"
                                   ref={provided.innerRef}
@@ -472,25 +576,43 @@ export default function Pedidos({ user }) {
                                     borderRadius: "8px"
                                   }}
                                 >
+
                                   <h4>{p.titulo}</h4>
+
                                   <p>{p.descricao}</p>
+
                                   <small>{p.ministerio}</small>
+
                                 </div>
+
                               )}
+
                             </Draggable>
+
                           ))}
 
                           {provided.placeholder}
+
                         </div>
+
                       </div>
+
                     )}
+
                   </Droppable>
+
                 )
+
               })}
+
             </div>
+
           </DragDropContext>
+
         )}
+
       </div>
     </div>
   )
+
 }

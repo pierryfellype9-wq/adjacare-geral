@@ -42,31 +42,31 @@ export default function Usuarios({ user }) {
 
   const usuarioAtual = user || obterUsuarioLocalStorage()
 
-const roleUsuario =
-  usuarioAtual?.role ||
-  usuarioAtual?.departamento ||
-  usuarioAtual?.tipo ||
-  ""
+  const roleUsuario =
+    usuarioAtual?.role ||
+    usuarioAtual?.departamento ||
+    usuarioAtual?.tipo ||
+    ""
 
-const isAdmin = ["administrador", "admin"].includes(
-  normalizarTexto(roleUsuario)
-)
+  const isAdmin = ["administrador", "admin"].includes(
+    normalizarTexto(roleUsuario)
+  )
 
   const departamentos = [
-  "Administrador",
-  "Dirigente",
-  "Mídia",
-  "Recepção",
-  "Secretaria",
-  "Sonoplastia",
-  "Infantil",
-  "Adolescentes",
-  "Jovens",
-  "EBD",
-  "Cofemp",
-  "Além-mar",
-  "Orquestra e coral",
-]
+    "Administrador",
+    "Dirigente",
+    "Mídia",
+    "Recepção",
+    "Secretaria",
+    "Sonoplastia",
+    "Infantil",
+    "Adolescentes",
+    "Jovens",
+    "EBD",
+    "Cofemp",
+    "Além-mar",
+    "Orquestra e coral",
+  ]
 
   useEffect(() => {
     carregarUsuarios()
@@ -123,6 +123,52 @@ const isAdmin = ["administrador", "admin"].includes(
       console.log(error)
       return
     }
+
+    // ENVIO DE EMAIL PARA O USUÁRIO
+    await fetch("/api/enviar-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        para: email,
+        assunto: "Acesso ao Sistema Interno ADJACARÉ",
+        mensagem: `
+        <p>Olá!</p>
+
+        <p>O Sistema Interno ADJACARÉ já está disponível!</p>
+
+        <p><strong>Acesse pelo link:</strong><br>
+        https://sistema.adjacare.org/</p>
+
+        <p>No sistema você poderá:</p>
+
+        <ul>
+        <li>Criar pedidos solicitados via WhatsApp para equipe de mídia (artes, vídeos, materiais, etc.)</li>
+        <li>Acompanhar o andamento dos pedidos e atualizar status</li>
+        <li>Visualizar avisos e informações importantes</li>
+        <li>Consultar e alterar a agenda da igreja</li>
+        <li>Consultar escalas</li>
+        </ul>
+
+        <p><strong>Seus dados de acesso são:</strong></p>
+
+        <p>
+        E-mail: ${email}<br>
+        Senha: ${senha}
+        </p>
+
+        <p><strong>OBS.:</strong> O site ainda está em construção, porém algumas funções já estão disponíveis e novas melhorias serão adicionadas em breve.</p>
+
+        <p>Caso tenha dúvidas ou deseje alterar sua senha, basta responder este e-mail (midia@adjacare.org) solicitando o suporte.</p>
+
+        <br>
+
+        <p>Atenciosamente,<br>
+        ADJACARÉ</p>
+        `
+      })
+    })
 
     limparFormulario()
     carregarUsuarios()
@@ -204,62 +250,62 @@ const isAdmin = ["administrador", "admin"].includes(
   }
 
   function corBadge(departamento) {
-  const valor = normalizarTexto(departamento)
+    const valor = normalizarTexto(departamento)
 
-  if (valor === "administrador" || valor === "admin") {
-    return { background: "#ede9fe", color: "#6d28d9" }
-  }
+    if (valor === "administrador" || valor === "admin") {
+      return { background: "#ede9fe", color: "#6d28d9" }
+    }
 
-  if (valor === "dirigente") {
-    return { background: "#fee2e2", color: "#b91c1c" }
-  }
+    if (valor === "dirigente") {
+      return { background: "#fee2e2", color: "#b91c1c" }
+    }
 
-  if (valor === "midia") {
-    return { background: "#dbeafe", color: "#1d4ed8" }
-  }
+    if (valor === "midia") {
+      return { background: "#dbeafe", color: "#1d4ed8" }
+    }
 
-  if (valor === "recepcao") {
-    return { background: "#cffafe", color: "#0f766e" }
-  }
+    if (valor === "recepcao") {
+      return { background: "#cffafe", color: "#0f766e" }
+    }
 
-  if (valor === "secretaria") {
-    return { background: "#fef3c7", color: "#92400e" }
-  }
+    if (valor === "secretaria") {
+      return { background: "#fef3c7", color: "#92400e" }
+    }
 
-  if (valor === "sonoplastia") {
+    if (valor === "sonoplastia") {
+      return { background: "#f3f4f6", color: "#374151" }
+    }
+
+    if (valor === "infantil") {
+      return { background: "#fce7f3", color: "#be185d" }
+    }
+
+    if (valor === "adolescentes") {
+      return { background: "#e0e7ff", color: "#4338ca" }
+    }
+
+    if (valor === "jovens") {
+      return { background: "#dcfce7", color: "#166534" }
+    }
+
+    if (valor === "ebd") {
+      return { background: "#fde68a", color: "#92400e" }
+    }
+
+    if (valor === "cofemp") {
+      return { background: "#d1fae5", color: "#065f46" }
+    }
+
+    if (valor === "alem-mar" || valor === "alemmar") {
+      return { background: "#fbcfe8", color: "#9d174d" }
+    }
+
+    if (valor === "orquestra e coral") {
+      return { background: "#e9d5ff", color: "#6b21a8" }
+    }
+
     return { background: "#f3f4f6", color: "#374151" }
   }
-
-  if (valor === "infantil") {
-    return { background: "#fce7f3", color: "#be185d" }
-  }
-
-  if (valor === "adolescentes") {
-    return { background: "#e0e7ff", color: "#4338ca" }
-  }
-
-  if (valor === "jovens") {
-    return { background: "#dcfce7", color: "#166534" }
-  }
-
-  if (valor === "ebd") {
-    return { background: "#fde68a", color: "#92400e" }
-  }
-
-  if (valor === "cofemp") {
-    return { background: "#d1fae5", color: "#065f46" }
-  }
-
-  if (valor === "alem-mar" || valor === "alemmar") {
-    return { background: "#fbcfe8", color: "#9d174d" }
-  }
-
-  if (valor === "orquestra e coral") {
-    return { background: "#e9d5ff", color: "#6b21a8" }
-  }
-
-  return { background: "#f3f4f6", color: "#374151" }
-}
 
   return (
     <div className="main">

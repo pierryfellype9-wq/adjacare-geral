@@ -110,7 +110,6 @@ export default function Pedidos({ user }) {
       return
     }
 
-    // ENVIO DE EMAIL
     await fetch("/api/enviar-email", {
       method: "POST",
       headers: {
@@ -120,14 +119,11 @@ export default function Pedidos({ user }) {
         assunto: "Novo pedido de mídia - ADJACARÉ",
         mensagem: `
           <h2>Novo pedido enviado</h2>
-
           <p><b>Título:</b> ${titulo}</p>
           <p><b>Descrição:</b> ${descricao}</p>
           <p><b>Prioridade:</b> ${prioridade}</p>
           <p><b>Destino:</b> ${destino}</p>
-
           <hr>
-
           <p><b>Ministério:</b> ${user.role}</p>
           <p><b>Enviado por:</b> ${user.nome}</p>
           <p><b>Email:</b> ${user.email}</p>
@@ -145,7 +141,6 @@ export default function Pedidos({ user }) {
 
   async function enviarComentario(pedidoId) {
     const mensagem = comentariosInput[pedidoId] || ""
-
     if (!mensagem.trim()) return
 
     const payload = {
@@ -155,18 +150,14 @@ export default function Pedidos({ user }) {
       data: new Date().toISOString()
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("comentarios_pedidos")
       .insert([payload])
-      .select()
 
     if (error) {
       console.log("Erro ao enviar comentário:", error)
-      alert("Erro ao enviar comentário: " + error.message)
       return
     }
-
-    console.log("Comentário salvo:", data)
 
     setComentariosInput(prev => ({
       ...prev,
@@ -193,16 +184,10 @@ export default function Pedidos({ user }) {
     if (coluna === "PRODUCAO") status = "Em produção"
     if (coluna === "CONCLUIDO") status = "Concluído"
 
-    const { error } = await supabase
+    await supabase
       .from("pedidos")
       .update({ status })
       .eq("id", String(id))
-
-    if (error) {
-      console.log("Erro ao mover pedido:", error)
-      alert("Erro ao mover pedido")
-      return
-    }
 
     await carregarPedidos()
   }
@@ -231,49 +216,10 @@ export default function Pedidos({ user }) {
     return "#f3f4f6"
   }
 
-  function renderStatusBadge(status) {
-    let bg = "#f3f4f6"
-    let color = "#374151"
-
-    if (status === "Pendente") {
-      bg = "#fef3c7"
-      color = "#92400e"
-    }
-
-    if (status === "Em produção") {
-      bg = "#dbeafe"
-      color = "#1d4ed8"
-    }
-
-    if (status === "Concluído") {
-      bg = "#dcfce7"
-      color = "#166534"
-    }
-
-    return (
-      <span
-        style={{
-          display: "inline-block",
-          padding: "6px 10px",
-          borderRadius: "999px",
-          fontSize: "12px",
-          fontWeight: "600",
-          background: bg,
-          color: color
-        }}
-      >
-        {status}
-      </span>
-    )
-  }
-
   return (
     <div className="main">
       <div className="card">
 
-  return (
-    <div className="main">
-      <div className="card">
         <div style={{ display: "flex", gap: "10px", marginBottom: "25px" }}>
           <button
             onClick={() => setAba("lista")}

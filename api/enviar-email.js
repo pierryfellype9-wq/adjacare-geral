@@ -12,25 +12,38 @@ export default async function handler(req, res){
 
   try{
 
-    const { assunto, mensagem } = req.body
+    const { assunto, mensagem, para } = req.body
 
-    const { data: midiaUsers, error } = await supabase
-      .from("users")
-      .select("email")
-      .eq("role","Mídia")
+    let listaEmails = []
 
-    if(error){
-      throw error
+    // CASO TENHA EMAIL ESPECÍFICO → ENVIA PARA ELE
+    if(para){
+
+      listaEmails = [para]
+
+    }else{
+
+      // CASO NÃO TENHA → ENVIA PARA MÍDIA
+
+      const { data: midiaUsers, error } = await supabase
+        .from("users")
+        .select("email")
+        .eq("role","Mídia")
+
+      if(error){
+        throw error
+      }
+
+      const emailsMidia = midiaUsers
+        .map(u => u.email)
+        .filter(Boolean)
+
+      listaEmails = [...new Set([
+        "midia@adjacare.org",
+        ...emailsMidia
+      ])]
+
     }
-
-    const emailsMidia = midiaUsers
-      .map(u => u.email)
-      .filter(Boolean)
-
-    const listaEmails = [...new Set([
-      "midia@adjacare.org",
-      ...emailsMidia
-    ])]
 
     await resend.emails.send({
 

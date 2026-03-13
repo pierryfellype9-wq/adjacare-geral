@@ -43,7 +43,6 @@ export default function App(){
     }
 
     setUser(data)
-
     localStorage.setItem("loginTime", Date.now())
   }
 
@@ -71,11 +70,14 @@ export default function App(){
 
   },[])
 
+  const podeVerEscala =
+    user?.role === "Administrador" ||
+    user?.role === "Dirigente" ||
+    user?.role === "Mídia"
 
   if(!user){
     return (
       <div className="login-page">
-
         <div className="login-card">
 
           <div className="logo-title">
@@ -84,7 +86,6 @@ export default function App(){
           </div>
 
           <form onSubmit={login}>
-
             <input
               placeholder="Email"
               value={email}
@@ -101,17 +102,14 @@ export default function App(){
             <button className="login-btn">
               Entrar
             </button>
-
           </form>
 
         </div>
-
       </div>
     )
   }
 
   return (
-
     <div className="dashboard">
 
       <header className="topbar">
@@ -144,12 +142,12 @@ export default function App(){
       </header>
 
       <Sidebar
+        user={user}
         open={menuOpen}
         setOpen={setMenuOpen}
       />
 
       <Routes>
-
         <Route path="/" element={<Dashboard user={user}/>}/>
         <Route path="/dashboard" element={<Dashboard user={user}/>}/>
         <Route path="/pedidos" element={<Pedidos user={user}/>}/>
@@ -160,14 +158,18 @@ export default function App(){
         <Route path="/usuarios" element={<Usuarios user={user}/>}/>
         <Route path="/trocar-senha" element={<TrocarSenha/>}/>
 
-        {/* NOVA PÁGINA */}
-        <Route path="/escala-midia" element={<EscalaMidia user={user}/>}/>
+        <Route
+          path="/escala-midia"
+          element={
+            podeVerEscala
+              ? <EscalaMidia user={user}/>
+              : <Navigate to="/dashboard" replace />
+          }
+        />
 
-        <Route path="*" element={<Navigate to="/"/>}/>
-
+        <Route path="*" element={<Navigate to="/dashboard" replace />}/>
       </Routes>
 
     </div>
-
   )
 }

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom"
 
-export default function Sidebar({ open, setOpen }) {
+export default function Sidebar({ open, setOpen, user }) {
 
   const navigate = useNavigate()
 
@@ -9,8 +9,12 @@ export default function Sidebar({ open, setOpen }) {
     setOpen(false)
   }
 
-  return (
+  const podeVerEscala =
+    user?.role === "Administrador" ||
+    user?.role === "Dirigente" ||
+    user?.role === "Mídia"
 
+  return (
     <div className={`sidebar ${open ? "open" : ""}`}>
 
       <div className="sidebar-header">
@@ -32,9 +36,11 @@ export default function Sidebar({ open, setOpen }) {
         Pedidos
       </div>
 
-      <div className="menu-item" onClick={()=>navegar("/escala-midia")}>
-        Escala da Mídia
-      </div>
+      {podeVerEscala && (
+        <div className="menu-item" onClick={()=>navegar("/escala-midia")}>
+          Escala da Mídia
+        </div>
+      )}
 
       <div className="menu-item" onClick={()=>navegar("/agenda")}>
         Agenda
@@ -49,6 +55,5 @@ export default function Sidebar({ open, setOpen }) {
       </div>
 
     </div>
-
   )
 }

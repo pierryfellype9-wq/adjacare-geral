@@ -69,6 +69,36 @@ export default function EscalaMidia({ user }) {
 
       }])
 
+    // ENVIO DE EMAIL
+    await fetch("/api/enviar-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        assunto: "Nova escala da mídia - ADJACARÉ",
+        mensagem: `
+          <h2>Nova escala publicada</h2>
+
+          <p><b>Data:</b> ${data}</p>
+          <p><b>Evento:</b> ${evento || "Culto"}</p>
+
+          <hr>
+
+          <p><b>Projeção:</b> ${projecao || "-"}</p>
+          <p><b>Vídeo:</b> ${video || "-"}</p>
+          <p><b>Story Making:</b> ${story || "-"}</p>
+          <p><b>Fotos:</b> ${fotos || "-"}</p>
+
+          ${observacao ? `<p><b>Observação:</b> ${observacao}</p>` : ""}
+
+          <br>
+
+          <p>Escala cadastrada por: ${user.nome}</p>
+        `
+      })
+    })
+
     setData("")
     setEvento("")
     setProjecao("")

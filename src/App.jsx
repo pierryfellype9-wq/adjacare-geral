@@ -9,6 +9,7 @@ import Avisos from "./pages/Avisos"
 import TrocarSenha from "./pages/trocarSenha"
 import Usuarios from "./pages/Usuarios"
 import KanbanPedidos from "./pages/KanbanPedidos"
+import EscalaMidia from "./pages/EscalaMidia"
 
 import Sidebar from "./components/Sidebar"
 
@@ -46,7 +47,6 @@ export default function App(){
     localStorage.setItem("loginTime", Date.now())
   }
 
-  // logout automático após 5 minutos
   useEffect(()=>{
 
     const interval = setInterval(()=>{
@@ -151,22 +151,17 @@ export default function App(){
       <Routes>
 
         <Route path="/" element={<Dashboard user={user}/>}/>
-
         <Route path="/dashboard" element={<Dashboard user={user}/>}/>
-
         <Route path="/pedidos" element={<Pedidos user={user}/>}/>
-
         <Route path="/kanban" element={<KanbanPedidos user={user}/>}/>
-
         <Route path="/solicitacoes" element={<Solicitacoes/>}/>
-
         <Route path="/agenda" element={<Agenda/>}/>
-
         <Route path="/avisos" element={<Avisos/>}/>
-
         <Route path="/usuarios" element={<Usuarios user={user}/>}/>
-
         <Route path="/trocar-senha" element={<TrocarSenha/>}/>
+
+        {/* NOVA PÁGINA */}
+        <Route path="/escala-midia" element={<EscalaMidia user={user}/>}/>
 
         <Route path="*" element={<Navigate to="/"/>}/>
 

@@ -18,8 +18,8 @@ export default async function handler(req, res) {
   const leadId = body["leads[status][0][id]"]
   const statusId = body["leads[status][0][status_id]"]
 
-  console.log("Lead:", leadId)
-  console.log("Status:", statusId)
+  console.log("Lead recebido:", leadId)
+  console.log("Status recebido:", statusId)
 
   const STATUS_PEDIDO_REALIZADO = "93433903"
 

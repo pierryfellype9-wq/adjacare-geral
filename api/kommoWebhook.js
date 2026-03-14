@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   }
 
   const statusId = body["lead[STATUS]"]
-  const leadId = body["ID"]
+  const leadId = body["leadID"]
 
   console.log("Status recebido:", statusId)
   console.log("Lead recebido:", leadId)

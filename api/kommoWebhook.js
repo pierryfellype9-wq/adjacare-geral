@@ -7,50 +7,58 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
 
-  if (req.method !== "POST") {
-    return res.status(200).json({ ok: true })
-  }
+  try {
 
-  const body = req.body
+    const body = req.body
 
-  console.log("Webhook recebido:", body)
+    const leadId = body["leads[status][0][id]"]
 
-  const leadId = body["leads[status][0][id]"]
-  const statusId = body["leads[status][0][status_id]"]
+    if (!leadId) {
+      return res.status(200).json({ ok: true })
+    }
 
-  console.log("Lead recebido:", leadId)
-  console.log("Status recebido:", statusId)
-
-  const STATUS_PEDIDO_REALIZADO = "93433903"
-
-  if (!leadId) {
-    return res.status(200).json({ ok: true })
-  }
-
-  if (statusId !== STATUS_PEDIDO_REALIZADO) {
-    return res.status(200).json({ ok: true })
-  }
-
-  const { error } = await supabase
-    .from("pedidos")
-    .insert([
+    // BUSCAR LEAD NO KOMMO
+    const response = await fetch(
+      `https://adjacare.kommo.com/api/v4/leads/${leadId}?with=contacts`,
       {
-        titulo: "Pedido via WhatsApp",
-        descricao: `Kommo Lead ${leadId}`,
-        prioridade: "Normal",
-        destino: "Mídia",
-        ministerio: "WhatsApp",
-        criado_por: "WhatsApp",
-        status: "Pendente",
-        data: new Date().toISOString()
+        headers: {
+          Authorization: `Bearer ${process.env.KOMMO_TOKEN}`
+        }
       }
-    ])
+    )
 
-  if (error) {
-    console.log("Erro ao salvar:", error)
-  } else {
-    console.log("Pedido criado com sucesso")
+    const lead = await response.json()
+
+    const campos = lead.custom_fields_values || []
+
+    function pegarCampo(nome) {
+      const campo = campos.find(c => c.field_name === nome)
+      return campo ? campo.values[0].value : null
+    }
+
+    const nome = lead._embedded.contacts?.[0]?.name || "Sem nome"
+
+    const ministerio = pegarCampo("Ministério")
+    const descricao = pegarCampo("Descrição")
+    const prazo = pegarCampo("Prazo")
+
+    await supabase
+      .from("pedidos")
+      .insert({
+        nome,
+        ministerio,
+        descricao,
+        prazo,
+        status: "Pendente"
+      })
+
+    return res.status(200).json({ ok: true })
+
+  } catch (err) {
+
+    console.error(err)
+
+    return res.status(500).json({ error: "Erro no webhook" })
+
   }
-
-  return res.status(200).json({ ok: true })
 }

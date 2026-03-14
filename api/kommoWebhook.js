@@ -15,25 +15,19 @@ export default async function handler(req, res) {
 
   console.log("Webhook recebido:", body)
 
-  const mensagem = body["message[add][0][text]"]
-  const leadId = body["message[add][0][entity_id]"]
+  const leadId = body["leads[status][0][id]"]
+  const statusId = body["leads[status][0][status_id]"]
 
-  console.log("Mensagem:", mensagem)
   console.log("Lead:", leadId)
+  console.log("Status:", statusId)
+
+  const STATUS_PEDIDO_REALIZADO = "93433903"
 
   if (!leadId) {
     return res.status(200).json({ ok: true })
   }
 
-  // evitar duplicação
-  const { data: existe } = await supabase
-    .from("pedidos")
-    .select("id")
-    .eq("descricao", `Kommo Lead ${leadId}`)
-    .limit(1)
-
-  if (existe && existe.length > 0) {
-    console.log("Pedido já existe")
+  if (statusId !== STATUS_PEDIDO_REALIZADO) {
     return res.status(200).json({ ok: true })
   }
 
@@ -42,7 +36,7 @@ export default async function handler(req, res) {
     .insert([
       {
         titulo: "Pedido via WhatsApp",
-        descricao: mensagem || `Kommo Lead ${leadId}`,
+        descricao: `Kommo Lead ${leadId}`,
         prioridade: "Normal",
         destino: "Mídia",
         ministerio: "WhatsApp",

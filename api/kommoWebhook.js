@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   const statusId = lead.status_id
 
   // ID do status "Pedido realizado"
-  const STATUS_PEDIDO_REALIZADO = 12345678
+  const STATUS_PEDIDO_REALIZADO = 93433903
 
   if (statusId !== STATUS_PEDIDO_REALIZADO) {
     return res.status(200).json({ ok: true })

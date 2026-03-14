@@ -7,6 +7,10 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
 
+  if (req.method !== "POST") {
+  return res.status(200).json({ ok: true })
+}
+  
   try {
 
     const body = req.body

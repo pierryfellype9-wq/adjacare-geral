@@ -32,20 +32,28 @@ export default async function handler(req, res) {
 
     const lead = await response.json()
 
-    const campos = lead.custom_fields_values || []
+   const campos = lead.custom_fields_values || []
 
-    function campo(nome){
-      const c = campos.find(c => c.field_name === nome)
-      return c ? c.values[0].value : null
-    }
+function campo(nome){
+  const c = campos.find(c => c.field_name === nome)
+  return c ? c.values[0].value : null
+}
 
-    const nome =
-      lead._embedded?.contacts?.[0]?.name ||
-      "Cliente WhatsApp"
+const origem = campo("Origem Pedido")
 
-    const ministerio = campo("Ministério")
-    const descricao = campo("Descrição")
-    const prazo = campo("Prazo")
+// se não veio do WhatsApp, ignora
+if (origem !== "WhatsApp") {
+  return res.status(200).json({ ok: true })
+}
+
+const nome =
+  lead._embedded?.contacts?.[0]?.name ||
+  "Cliente WhatsApp"
+
+const ministerio = campo("Ministério")
+const descricao = campo("Descrição")
+const prazo = campo("Prazo")
+
 
     await supabase
       .from("pedidos")

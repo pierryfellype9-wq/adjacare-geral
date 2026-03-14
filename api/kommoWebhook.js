@@ -12,12 +12,15 @@ export default async function handler(req, res) {
     const body = req.body
 
     const leadId = body["leads[status][0][id]"]
+    const statusId = body["leads[status][0][status_id]"]
 
-    if (!leadId) {
+    const STATUS_PEDIDO_REALIZADO = "93433903"
+
+    if (!leadId || statusId !== STATUS_PEDIDO_REALIZADO) {
       return res.status(200).json({ ok: true })
     }
 
-    // BUSCAR LEAD NO KOMMO
+    // buscar dados do lead no Kommo
     const response = await fetch(
       `https://adjacare.kommo.com/api/v4/leads/${leadId}?with=contacts`,
       {
@@ -31,34 +34,43 @@ export default async function handler(req, res) {
 
     const campos = lead.custom_fields_values || []
 
-    function pegarCampo(nome) {
-      const campo = campos.find(c => c.field_name === nome)
-      return campo ? campo.values[0].value : null
+    function campo(nome){
+      const c = campos.find(c => c.field_name === nome)
+      return c ? c.values[0].value : null
     }
 
-    const nome = lead._embedded.contacts?.[0]?.name || "Sem nome"
+    const nome =
+      lead._embedded?.contacts?.[0]?.name ||
+      "Cliente WhatsApp"
 
-    const ministerio = pegarCampo("Ministério")
-    const descricao = pegarCampo("Descrição")
-    const prazo = pegarCampo("Prazo")
+    const ministerio = campo("Ministério")
+    const descricao = campo("Descrição")
+    const prazo = campo("Prazo")
 
     await supabase
       .from("pedidos")
-      .insert({
-        nome,
-        ministerio,
-        descricao,
-        prazo,
-        status: "Pendente"
-      })
+      .insert([
+        {
+          titulo: `Pedido WhatsApp - ${nome}`,
+          nome,
+          ministerio,
+          descricao,
+          prazo,
+          prioridade: "Normal",
+          destino: "Mídia",
+          status: "Pendente",
+          criado_por: "WhatsApp",
+          data: new Date().toISOString()
+        }
+      ])
 
     return res.status(200).json({ ok: true })
 
   } catch (err) {
 
-    console.error(err)
+    console.error("Erro webhook:", err)
 
-    return res.status(500).json({ error: "Erro no webhook" })
-
+    return res.status(200).json({ ok: true })
   }
+
 }

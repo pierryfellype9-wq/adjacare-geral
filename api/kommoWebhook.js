@@ -1,5 +1,11 @@
 import { createClient } from "@supabase/supabase-js"
 
+export const config = {
+  api: {
+    bodyParser: true
+  }
+}
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -9,7 +15,9 @@ export default async function handler(req, res) {
 
   try {
 
-    const body = req.body
+    const body = req.body || {}
+
+    console.log("Webhook recebido:", body)
 
     const leadId = body["leads[status][0][id]"]
     const statusId = body["leads[status][0][status_id]"]
@@ -22,7 +30,7 @@ export default async function handler(req, res) {
 
     // buscar dados do lead no Kommo
     const response = await fetch(
-      `https://adjacare.kommo.com/api/v4/leads/${leadId}?with=contacts`,
+      `https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/leads/${leadId}?with=contacts`,
       {
         headers: {
           Authorization: `Bearer ${process.env.KOMMO_TOKEN}`
@@ -63,6 +71,8 @@ export default async function handler(req, res) {
           data: new Date().toISOString()
         }
       ])
+
+    console.log("Pedido criado com sucesso")
 
     return res.status(200).json({ ok: true })
 

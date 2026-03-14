@@ -7,37 +7,67 @@ const supabase = createClient(
 
 export default async function handler(req, res) {
 
-  console.log("Webhook recebido:", req.body)
+  console.log("Webhook recebido")
 
   if (req.method !== "POST") {
     return res.status(200).json({ ok: true })
   }
 
-  const body = req.body
+  let body = req.body
 
-  // Só continuar se for evento de LEAD
+  // alguns webhooks chegam como string
+  if (typeof body === "string") {
+    try {
+      body = JSON.parse(body)
+    } catch (e) {
+      console.log("Erro ao converter body")
+      return res.status(200).json({ ok: true })
+    }
+  }
+
+  console.log("Body:", body)
+
+  // só continuar se for update de lead
   if (!body?.leads?.update) {
     return res.status(200).json({ ok: true })
   }
 
   const lead = body.leads.update[0]
 
-  // status do pipeline
+  if (!lead) {
+    return res.status(200).json({ ok: true })
+  }
+
   const statusId = lead.status_id
 
-  // ID do status "Pedido realizado"
+  // status do pipeline que representa pedido finalizado
   const STATUS_PEDIDO_REALIZADO = 93433903
 
+  // se não for esse status, ignora
   if (statusId !== STATUS_PEDIDO_REALIZADO) {
     return res.status(200).json({ ok: true })
   }
 
-  await supabase
+  console.log("Lead válido recebido:", lead.id)
+
+  // evita duplicar pedidos
+  const { data: existente } = await supabase
+    .from("pedidos")
+    .select("id")
+    .eq("descricao", `Kommo Lead ${lead.id}`)
+    .limit(1)
+
+  if (existente && existente.length > 0) {
+    console.log("Pedido já existe")
+    return res.status(200).json({ ok: true })
+  }
+
+  const { error } = await supabase
     .from("pedidos")
     .insert([
       {
         titulo: "Pedido via WhatsApp",
-        descricao: lead.name || "Pedido vindo da Kommo",
+        descricao: `Kommo Lead ${lead.id}`,
         prioridade: "Normal",
         destino: "Mídia",
         ministerio: "WhatsApp",
@@ -47,6 +77,11 @@ export default async function handler(req, res) {
       }
     ])
 
-  res.status(200).json({ ok: true })
+  if (error) {
+    console.log("Erro ao inserir pedido:", error)
+  } else {
+    console.log("Pedido criado com sucesso")
+  }
 
+  return res.status(200).json({ ok: true })
 }

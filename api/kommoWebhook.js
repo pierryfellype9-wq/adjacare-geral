@@ -15,18 +15,29 @@ export default async function handler(req, res) {
 
   const body = req.body
 
-  if (!body["message[add][0][text]"]) {
+  // Só continuar se for evento de LEAD
+  if (!body?.leads?.update) {
     return res.status(200).json({ ok: true })
   }
 
-  const mensagem = body["message[add][0][text]"]
+  const lead = body.leads.update[0]
+
+  // status do pipeline
+  const statusId = lead.status_id
+
+  // ID do status "Pedido realizado"
+  const STATUS_PEDIDO_REALIZADO = 12345678
+
+  if (statusId !== STATUS_PEDIDO_REALIZADO) {
+    return res.status(200).json({ ok: true })
+  }
 
   await supabase
     .from("pedidos")
     .insert([
       {
         titulo: "Pedido via WhatsApp",
-        descricao: mensagem,
+        descricao: lead.name || "Pedido vindo da Kommo",
         prioridade: "Normal",
         destino: "Mídia",
         ministerio: "WhatsApp",

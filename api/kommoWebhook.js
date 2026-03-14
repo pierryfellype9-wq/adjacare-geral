@@ -1,56 +1,61 @@
 import { createClient } from "@supabase/supabase-js"
 
 const supabase = createClient(
- process.env.SUPABASE_URL,
- process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req,res){
+export default async function handler(req, res) {
 
- try{
+  try {
 
-  const lead = req.body.leads?.add?.[0]
+    const body = req.body
 
-  if(!lead){
-   return res.status(200).json({ok:true})
+    console.log("Webhook recebido:", JSON.stringify(body))
+
+    if (!body?.leads) {
+      return res.status(200).json({ ok: true, message: "Sem leads" })
+    }
+
+    const leads = body.leads.add || body.leads.update
+
+    if (!leads || leads.length === 0) {
+      return res.status(200).json({ ok: true, message: "Nenhum lead" })
+    }
+
+    const lead = leads[0]
+
+    const titulo = "Pedido via WhatsApp"
+
+    const descricao = lead.name || "Pedido enviado pelo WhatsApp"
+
+    const { error } = await supabase
+      .from("pedidos")
+      .insert([
+        {
+          titulo: titulo,
+          descricao: descricao,
+          prioridade: "Normal",
+          destino: "Mídia",
+          ministerio: "WhatsApp",
+          criado_por: "WhatsApp",
+          status: "Pendente",
+          data: new Date().toISOString()
+        }
+      ])
+
+    if (error) {
+      console.log("Erro ao salvar:", error)
+    }
+
+    res.status(200).json({ ok: true })
+
+  } catch (err) {
+
+    console.log("Erro webhook:", err)
+
+    res.status(200).json({ ok: false })
+
   }
-
-  const nome = lead.name || "WhatsApp"
-
-  const telefone = lead._embedded?.contacts?.[0]?.custom_fields_values?.[0]?.values?.[0]?.value || ""
-
-  const leadId = lead.id
-
-  const { data:existente } = await supabase
-  .from("pedidos")
-  .select("id")
-  .eq("kommo_lead_id",leadId)
-  .maybeSingle()
-
-  if(existente){
-   return res.status(200).json({ok:true})
-  }
-
-  await supabase
-  .from("pedidos")
-  .insert({
-   titulo:"Pedido via WhatsApp",
-   descricao:"Mensagem recebida pelo WhatsApp",
-   solicitante:nome,
-   telefone,
-   origem:"whatsapp",
-   canal:"whatsapp",
-   status:"Pendente",
-   kommo_lead_id:leadId
-  })
-
-  res.status(200).json({ok:true})
-
- }catch(e){
-
-  res.status(500).json({erro:e.message})
-
- }
 
 }
-

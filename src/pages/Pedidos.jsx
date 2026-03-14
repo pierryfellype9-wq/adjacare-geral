@@ -97,18 +97,30 @@ export default function Pedidos({ user }) {
       return
     }
 
-    const { error } = await supabase
-      .from("pedidos")
-      .insert([{
-        titulo,
-        descricao,
-        prioridade,
-        destino,
-        ministerio: user.role,
-        criado_por: user.nome,
-        status: "Pendente",
-        data: new Date().toISOString()
-      }])
+    const resposta = await fetch("/api/criarPedido", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    titulo,
+    descricao,
+    prioridade,
+    destino,
+    ministerio: user.role,
+    criado_por: user.nome,
+    email: user.email,
+    telefone: user.telefone || ""
+  })
+})
+
+const data = await resposta.json()
+
+if (!resposta.ok) {
+  alert("Erro ao criar pedido")
+  console.log(data)
+  return
+}
 
     if (error) {
       console.log("Erro ao criar pedido:", error)
@@ -407,6 +419,10 @@ export default function Pedidos({ user }) {
                       <small style={{ display: "block", color: "#666" }}>
                         Destino: {p.destino || "-"}
                       </small>
+
+                      <small style={{ display: "block", color: "#666" }}>
+  Origem: {p.origem || "site"}
+</small>
 
                     </div>
 

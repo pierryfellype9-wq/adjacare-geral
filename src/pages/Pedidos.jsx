@@ -3,7 +3,6 @@ import { supabase } from "../lib/supabase"
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
 
 export default function Pedidos({ user }) {
-
   const [titulo, setTitulo] = useState("")
   const [descricao, setDescricao] = useState("")
   const [prioridade, setPrioridade] = useState("Normal")
@@ -13,13 +12,13 @@ export default function Pedidos({ user }) {
   const [comentarios, setComentarios] = useState([])
   const [comentariosInput, setComentariosInput] = useState({})
   const [aba, setAba] = useState("lista")
+  const [enviando, setEnviando] = useState(false)
 
   const podeEditar =
     user?.role === "Mídia" ||
     user?.role === "Administrador"
 
   useEffect(() => {
-
     carregarPedidos()
     carregarComentarios()
 
@@ -45,11 +44,9 @@ export default function Pedidos({ user }) {
       supabase.removeChannel(channelPedidos)
       supabase.removeChannel(channelComentarios)
     }
-
   }, [])
 
   async function carregarPedidos() {
-
     let query = supabase
       .from("pedidos")
       .select("*")
@@ -74,7 +71,6 @@ export default function Pedidos({ user }) {
   }
 
   async function carregarComentarios() {
-
     const { data, error } = await supabase
       .from("comentarios_pedidos")
       .select("*")
@@ -89,76 +85,86 @@ export default function Pedidos({ user }) {
   }
 
   async function criarPedido(e) {
-
     e.preventDefault()
+
+    if (enviando) return
 
     if (!titulo.trim()) {
       alert("Digite um título")
       return
     }
 
-    const resposta = await fetch("/api/criarPedido", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    titulo,
-    descricao,
-    prioridade,
-    destino,
-    ministerio: user.role,
-    criado_por: user.nome,
-    email: user.email,
-    telefone: user.telefone || ""
-  })
-})
+    setEnviando(true)
 
-const data = await resposta.json()
-
-if (!resposta.ok) {
-  alert("Erro ao criar pedido")
-  console.log(data)
-  return
-}
-
-    if (error) {
-      console.log("Erro ao criar pedido:", error)
-      alert("Erro: " + error.message)
-      return
-    }
-
-    await fetch("/api/enviar-email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        assunto: "Novo pedido de mídia - ADJACARÉ",
-        mensagem: `
-          <h2>Novo pedido enviado</h2>
-          <p><b>Título:</b> ${titulo}</p>
-          <p><b>Descrição:</b> ${descricao}</p>
-          <p><b>Prioridade:</b> ${prioridade}</p>
-          <p><b>Destino:</b> ${destino}</p>
-          <hr>
-          <p><b>Ministério:</b> ${user.role}</p>
-          <p><b>Enviado por:</b> ${user.nome}</p>
-          <p><b>Email:</b> ${user.email}</p>
-        `
+    try {
+      const resposta = await fetch("/api/criarPedido", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          titulo,
+          descricao,
+          prioridade,
+          destino,
+          ministerio: user.role,
+          criado_por: user.nome,
+          email: user.email,
+          telefone: user.telefone || ""
+        })
       })
-    })
 
-    setTitulo("")
-    setDescricao("")
-    setPrioridade("Normal")
-    setDestino("Mídia")
+      const data = await resposta.json()
 
-    await carregarPedidos()
+      if (!resposta.ok) {
+        console.log("Erro ao criar pedido:", data)
+        alert("Erro ao criar pedido")
+        return
+      }
+
+      const respostaEmail = await fetch("/api/enviar-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          assunto: "Novo pedido de mídia - ADJACARÉ",
+          mensagem: `
+            <h2>Novo pedido enviado</h2>
+            <p><b>Título:</b> ${titulo}</p>
+            <p><b>Descrição:</b> ${descricao || "-"}</p>
+            <p><b>Prioridade:</b> ${prioridade}</p>
+            <p><b>Destino:</b> ${destino}</p>
+            <hr>
+            <p><b>Ministério:</b> ${user.role}</p>
+            <p><b>Enviado por:</b> ${user.nome}</p>
+            <p><b>Email:</b> ${user.email || "-"}</p>
+          `
+        })
+      })
+
+      if (!respostaEmail.ok) {
+        const erroEmail = await respostaEmail.json().catch(() => ({}))
+        console.log("Erro ao enviar e-mail:", erroEmail)
+      }
+
+      setTitulo("")
+      setDescricao("")
+      setPrioridade("Normal")
+      setDestino("Mídia")
+
+      await carregarPedidos()
+
+      alert("Pedido enviado com sucesso!")
+    } catch (error) {
+      console.log("Erro ao criar pedido:", error)
+      alert("Erro ao enviar pedido")
+    } finally {
+      setEnviando(false)
+    }
   }
 
   async function enviarComentario(pedidoId) {
-
     const mensagem = comentariosInput[pedidoId] || ""
 
     if (!mensagem.trim()) return
@@ -196,7 +202,6 @@ if (!resposta.ok) {
   }
 
   async function atualizarStatusKanban(id, coluna) {
-
     if (!podeEditar) return
 
     let status = ""
@@ -214,7 +219,6 @@ if (!resposta.ok) {
   }
 
   async function onDragEnd(result) {
-
     if (!podeEditar) return
     if (!result.destination) return
 
@@ -239,7 +243,6 @@ if (!resposta.ok) {
   }
 
   function renderStatusBadge(status) {
-
     let bg = "#f3f4f6"
     let color = "#374151"
 
@@ -278,9 +281,7 @@ if (!resposta.ok) {
   return (
     <div className="main">
       <div className="card">
-
         <div style={{ display: "flex", gap: "10px", marginBottom: "25px" }}>
-
           <button
             onClick={() => setAba("lista")}
             style={{
@@ -297,7 +298,6 @@ if (!resposta.ok) {
           </button>
 
           {(user.role === "Mídia" || user.role === "Administrador") && (
-
             <button
               onClick={() => setAba("kanban")}
               style={{
@@ -312,18 +312,14 @@ if (!resposta.ok) {
             >
               Kanban
             </button>
-
           )}
-
         </div>
 
         {aba === "lista" && (
-
           <>
             <h2 className="subtitle">Novo Pedido</h2>
 
             <form onSubmit={criarPedido} style={{ maxWidth: "500px" }}>
-
               <input
                 placeholder="Título do pedido"
                 value={titulo}
@@ -377,11 +373,17 @@ if (!resposta.ok) {
 
               <button
                 className="login-btn"
-                style={{ marginTop: "12px", width: "auto" }}
+                type="submit"
+                disabled={enviando}
+                style={{
+                  marginTop: "12px",
+                  width: "auto",
+                  opacity: enviando ? 0.7 : 1,
+                  cursor: enviando ? "not-allowed" : "pointer"
+                }}
               >
-                Criar pedido
+                {enviando ? "Enviando..." : "Criar pedido"}
               </button>
-
             </form>
 
             <h2 className="subtitle" style={{ marginTop: "35px" }}>
@@ -389,9 +391,7 @@ if (!resposta.ok) {
             </h2>
 
             <div style={{ marginTop: "20px", display: "grid", gap: "16px" }}>
-
               {pedidos.map(p => (
-
                 <div
                   key={p.id}
                   style={{
@@ -401,11 +401,8 @@ if (!resposta.ok) {
                     background: "white"
                   }}
                 >
-
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
-
                     <div>
-
                       <h3 style={{ margin: "0 0 8px 0" }}>{p.titulo}</h3>
 
                       <p style={{ margin: "0 0 8px 0", color: "#555" }}>
@@ -421,13 +418,11 @@ if (!resposta.ok) {
                       </small>
 
                       <small style={{ display: "block", color: "#666" }}>
-  Origem: {p.origem || "site"}
-</small>
-
+                        Origem: {p.origem || "site"}
+                      </small>
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-start" }}>
-
                       {renderStatusBadge(p.status)}
 
                       <span
@@ -441,19 +436,15 @@ if (!resposta.ok) {
                       >
                         {p.prioridade}
                       </span>
-
                     </div>
-
                   </div>
 
                   <div style={{ marginTop: "16px" }}>
-
                     <h4 style={{ margin: "0 0 10px 0", fontSize: "15px" }}>
                       Comentários
                     </h4>
 
                     <div style={{ display: "grid", gap: "8px", marginBottom: "12px" }}>
-
                       {comentariosDoPedido(p.id).length === 0 && (
                         <small style={{ color: "#777" }}>
                           Nenhum comentário ainda.
@@ -461,7 +452,6 @@ if (!resposta.ok) {
                       )}
 
                       {comentariosDoPedido(p.id).map(c => (
-
                         <div
                           key={c.id}
                           style={{
@@ -471,7 +461,6 @@ if (!resposta.ok) {
                             padding: "10px"
                           }}
                         >
-
                           <strong style={{ fontSize: "13px" }}>
                             {c.usuario}
                           </strong>
@@ -479,15 +468,11 @@ if (!resposta.ok) {
                           <p style={{ margin: "6px 0 0 0", fontSize: "14px" }}>
                             {c.mensagem}
                           </p>
-
                         </div>
-
                       ))}
-
                     </div>
 
                     <div style={{ display: "flex", gap: "8px" }}>
-
                       <input
                         placeholder="Escrever comentário..."
                         value={comentariosInput[p.id] ?? ""}
@@ -513,29 +498,18 @@ if (!resposta.ok) {
                       >
                         Enviar
                       </button>
-
                     </div>
-
                   </div>
-
                 </div>
-
               ))}
-
             </div>
-
           </>
-
         )}
 
         {aba === "kanban" && (
-
           <DragDropContext onDragEnd={onDragEnd}>
-
             <div className="kanban-board">
-
               {["PENDENTE", "PRODUCAO", "CONCLUIDO"].map(coluna => {
-
                 const statusReal =
                   coluna === "PENDENTE"
                     ? "Pendente"
@@ -546,40 +520,30 @@ if (!resposta.ok) {
                 const itens = separar(statusReal)
 
                 return (
-
                   <Droppable key={coluna} droppableId={coluna}>
-
                     {provided => (
-
                       <div
                         className="kanban-column"
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                       >
-
                         <div className="kanban-column-header">
-
                           <span>{statusReal.toUpperCase()}</span>
 
                           <span className="kanban-count">
                             {itens.length}
                           </span>
-
                         </div>
 
                         <div className="kanban-cards">
-
                           {itens.map((p, index) => (
-
                             <Draggable
                               key={p.id}
                               draggableId={String(p.id)}
                               index={index}
                               isDragDisabled={!podeEditar}
                             >
-
                               {provided => (
-
                                 <div
                                   className="kanban-card"
                                   ref={provided.innerRef}
@@ -592,43 +556,25 @@ if (!resposta.ok) {
                                     borderRadius: "8px"
                                   }}
                                 >
-
                                   <h4>{p.titulo}</h4>
-
                                   <p>{p.descricao}</p>
-
                                   <small>{p.ministerio}</small>
-
                                 </div>
-
                               )}
-
                             </Draggable>
-
                           ))}
 
                           {provided.placeholder}
-
                         </div>
-
                       </div>
-
                     )}
-
                   </Droppable>
-
                 )
-
               })}
-
             </div>
-
           </DragDropContext>
-
         )}
-
       </div>
     </div>
   )
-
 }

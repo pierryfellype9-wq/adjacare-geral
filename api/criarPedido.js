@@ -33,7 +33,6 @@ export default async function handler(req,res){
    destino,
    ministerio,
    criado_por,
-   solicitante:criado_por,
    telefone,
    origem:"site",
    canal:"site",

@@ -8,33 +8,27 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-export default async function handler(req, res){
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método não permitido" })
+  }
 
-  try{
-
+  try {
     const { assunto, mensagem, para } = req.body
 
     let listaEmails = []
 
-    // CASO TENHA EMAIL ESPECÍFICO → ENVIA PARA ELE
-    if(para){
-
+    if (para) {
       listaEmails = [para]
-
-    }else{
-
-      // CASO NÃO TENHA → ENVIA PARA MÍDIA
-
+    } else {
       const { data: midiaUsers, error } = await supabase
         .from("users")
         .select("email")
-        .eq("role","Mídia")
+        .eq("role", "Mídia")
 
-      if(error){
-        throw error
-      }
+      if (error) throw error
 
-      const emailsMidia = midiaUsers
+      const emailsMidia = (midiaUsers || [])
         .map(u => u.email)
         .filter(Boolean)
 
@@ -42,24 +36,20 @@ export default async function handler(req, res){
         "midia@adjacare.org",
         ...emailsMidia
       ])]
-
     }
 
-    await resend.emails.send({
-
+    const resposta = await resend.emails.send({
       from: "Sistema ADJACARÉ <midia@adjacare.org>",
       to: listaEmails,
       subject: assunto,
       html: mensagem
-
     })
 
-    res.status(200).json({ ok:true })
+    console.log("Email enviado:", resposta)
 
-  }catch(err){
-
-    res.status(500).json({ error:err.message })
-
+    return res.status(200).json({ ok: true })
+  } catch (err) {
+    console.log("Erro ao enviar email:", err)
+    return res.status(500).json({ error: err.message })
   }
-
 }

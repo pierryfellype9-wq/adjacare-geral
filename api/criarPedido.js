@@ -13,24 +13,39 @@ export default async function handler(req,res){
 
  try{
 
-  const { nome, telefone, descricao, titulo } = req.body
+  const {
+   titulo,
+   descricao,
+   prioridade,
+   destino,
+   ministerio,
+   criado_por,
+   email,
+   telefone
+  } = req.body
 
   const { data, error } = await supabase
   .from("pedidos")
   .insert({
    titulo,
    descricao,
-   solicitante:nome,
+   prioridade,
+   destino,
+   ministerio,
+   criado_por,
+   solicitante:criado_por,
    telefone,
    origem:"site",
    canal:"site",
-   status:"Pendente"
+   status:"Pendente",
+   data:new Date().toISOString()
   })
   .select()
   .single()
 
   if(error) throw error
 
+  // criar lead no Kommo
   const lead = await fetch(`https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/leads/complex`,{
    method:"POST",
    headers:{
@@ -38,7 +53,7 @@ export default async function handler(req,res){
     "Authorization":"Bearer "+process.env.KOMMO_TOKEN
    },
    body:JSON.stringify([{
-    name:"Pedido de mídia",
+    name:titulo,
     custom_fields_values:[
      {
       field_name:"Descrição",
@@ -48,11 +63,15 @@ export default async function handler(req,res){
     _embedded:{
      contacts:[
       {
-       name:nome,
+       name:criado_por,
        custom_fields_values:[
         {
          field_code:"PHONE",
          values:[{value:telefone}]
+        },
+        {
+         field_code:"EMAIL",
+         values:[{value:email}]
         }
        ]
       }
@@ -78,9 +97,10 @@ export default async function handler(req,res){
 
  }catch(e){
 
+  console.log("Erro criarPedido:",e)
+
   res.status(500).json({erro:e.message})
 
  }
 
 }
-

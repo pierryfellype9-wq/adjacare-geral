@@ -50,7 +50,7 @@ export default function EscalaMidia({ user }) {
       return
     }
 
-    await supabase
+    const { error } = await supabase
       .from("escala_midia")
       .insert([{
 
@@ -69,35 +69,55 @@ export default function EscalaMidia({ user }) {
 
       }])
 
+    if(error){
+      console.log("Erro salvar escala:",error)
+      alert("Erro ao salvar escala")
+      return
+    }
+
     // ENVIO DE EMAIL
-    await fetch("/api/enviar-email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        assunto: "Nova escala da mídia - ADJACARÉ",
-        mensagem: `
-          <h2>Nova escala publicada</h2>
+    try {
 
-          <p><b>Data:</b> ${data}</p>
-          <p><b>Evento:</b> ${evento || "Culto"}</p>
+      const resp = await fetch("/api/enviar-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          assunto: "Nova escala da mídia - ADJACARÉ",
+          mensagem: `
+            <h2>Nova escala publicada</h2>
 
-          <hr>
+            <p><b>Data:</b> ${data}</p>
+            <p><b>Evento:</b> ${evento || "Culto"}</p>
 
-          <p><b>Projeção:</b> ${projecao || "-"}</p>
-          <p><b>Vídeo:</b> ${video || "-"}</p>
-          <p><b>Story Making:</b> ${story || "-"}</p>
-          <p><b>Fotos:</b> ${fotos || "-"}</p>
+            <hr>
 
-          ${observacao ? `<p><b>Observação:</b> ${observacao}</p>` : ""}
+            <p><b>Projeção:</b> ${projecao || "-"}</p>
+            <p><b>Vídeo:</b> ${video || "-"}</p>
+            <p><b>Story Making:</b> ${story || "-"}</p>
+            <p><b>Fotos:</b> ${fotos || "-"}</p>
 
-          <br>
+            ${observacao ? `<p><b>Observação:</b> ${observacao}</p>` : ""}
 
-          <p>Escala cadastrada por: ${user.nome}</p>
-        `
+            <br>
+
+            <p>Escala cadastrada por: ${user.nome}</p>
+          `
+        })
       })
-    })
+
+      const result = await resp.json()
+
+      if(!resp.ok){
+        console.log("Erro envio email:", result)
+      }
+
+    }catch(err){
+      console.log("Erro envio email:", err)
+    }
+
+    alert("Escala salva com sucesso!")
 
     setData("")
     setEvento("")

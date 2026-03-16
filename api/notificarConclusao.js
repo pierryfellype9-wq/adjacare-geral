@@ -92,15 +92,14 @@ export default async function handler(req,res){
 if(pedido.telefone && pedido.kommo_conversation_id){
 
 
- await fetch(`https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/messages`,{
-  method:"POST",
-  headers:{
-   "Content-Type":"application/json",
-   "Authorization":"Bearer "+process.env.KOMMO_TOKEN
-  },
-  body:JSON.stringify({
-   conversation_id: pedido.kommo_conversation_id,
-   text:`Pedido concluído ✅
+ await fetch(`https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/conversations/${pedido.kommo_conversation_id}/messages`,{
+ method:"POST",
+ headers:{
+  "Content-Type":"application/json",
+  "Authorization":"Bearer "+process.env.KOMMO_TOKEN
+ },
+ body:JSON.stringify({
+  text:`Pedido concluído ✅
 
 
 ${pedido.titulo}
@@ -108,8 +107,8 @@ ${pedido.titulo}
 
 Arquivos:
 ${pedido.link_drive}`
-  })
  })
+})
 
 
 }

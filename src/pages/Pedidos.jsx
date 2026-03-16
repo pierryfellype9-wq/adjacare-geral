@@ -87,6 +87,8 @@ export default function Pedidos({ user }) {
   async function criarPedido(e) {
     e.preventDefault()
 
+    console.log(user)
+    
     if (enviando) return
 
     if (!titulo.trim()) {

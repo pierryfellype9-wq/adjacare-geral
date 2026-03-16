@@ -90,33 +90,32 @@ export default async function handler(req,res){
 
 
   // WHATSAPP
-  if(pedido.telefone && pedido.kommo_lead_id){
+  if(pedido.telefone){
 
 
-   await fetch(`https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/leads/${pedido.kommo_lead_id}/notes`,{
-    method:"POST",
-    headers:{
-     "Content-Type":"application/json",
-     "Authorization":"Bearer "+process.env.KOMMO_TOKEN
-    },
-    body:JSON.stringify([{
-     note_type:"common",
-     params:{
-      text:`Pedido concluído ✅
+ await fetch(`https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/messages`,{
+  method:"POST",
+  headers:{
+   "Content-Type":"application/json",
+   "Authorization":"Bearer "+process.env.KOMMO_TOKEN
+  },
+  body:JSON.stringify({
+   message:{
+    text:`Pedido concluído ✅
 
 
 ${pedido.titulo}
 
 
 Arquivos:
-${linkDrive}`
-     }
-    }])
-   })
+${pedido.link_drive}`
+   },
+   phone:pedido.telefone
+  })
+ })
 
 
-  }
-
+}
 
   return res.status(200).json({ok:true})
 

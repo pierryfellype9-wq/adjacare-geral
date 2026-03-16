@@ -52,14 +52,14 @@ Visibilidade: ${publico ? "Público" : "Interno"}
    requestBody:{
     summary: titulo,
     description: descricaoFinal,
-    start:{
-     dateTime: data,
-     timeZone:"America/Sao_Paulo"
-    },
-    end:{
-     dateTime: data,
-     timeZone:"America/Sao_Paulo"
-    }
+   start:{
+ dateTime: new Date(data).toISOString(),
+ timeZone:"America/Sao_Paulo"
+},
+end:{
+ dateTime: new Date(new Date(data).getTime() + 60*60*1000).toISOString(),
+ timeZone:"America/Sao_Paulo"
+}
    }
   })
 

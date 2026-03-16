@@ -8,27 +8,34 @@ const [mensagem,setMensagem] = useState("")
 const [destino,setDestino] = useState("Todos")
 const [avisos,setAvisos] = useState([])
 
-/* SEGURANÇA: user pode não existir */
+/* PERMISSÃO */
 
-const role = (user?.role ?? "").toLowerCase()
+const role = (user?.role ?? "").toLowerCase().trim()
 
-const podeCriar =
-role === "administrador" ||
-role === "secretaria" ||
-role === "secretária" ||
-role === "dirigente”
+const podeCriar = [
+"administrador",
+"secretaria",
+"secretária",
+"dirigente"
+].includes(role)
 
+/* CARREGAR AVISOS */
 
-useEffect(()=>{
+useEffect(() => {
 carregarAvisos()
-},[])
+}, [])
 
 async function carregarAvisos(){
 
-const { data } = await supabase
+const { data, error } = await supabase
 .from("avisos")
 .select("*")
 .order("data",{ascending:false})
+
+if(error){
+console.log("Erro avisos:",error)
+return
+}
 
 setAvisos(data || [])
 
@@ -116,7 +123,7 @@ Enviar aviso
 
 )}
 
-{/* AVISOS */}
+{/* LISTA */}
 
 <div>
 

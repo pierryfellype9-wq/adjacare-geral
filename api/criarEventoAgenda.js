@@ -12,7 +12,14 @@ export default async function handler(req,res){
  try{
 
 
-  const { titulo, descricao, data } = req.body
+  const {
+   titulo,
+   descricao,
+   ministerio,
+   solicitante,
+   data,
+   publico
+  } = req.body
 
 
   const auth = new google.auth.GoogleAuth({
@@ -30,11 +37,21 @@ export default async function handler(req,res){
   })
 
 
+  const descricaoFinal = `
+${descricao}
+
+
+Ministério: ${ministerio}
+Solicitado por: ${solicitante}
+Visibilidade: ${publico ? "Público" : "Interno"}
+`
+
+
   await calendar.events.insert({
    calendarId:"midia@adjacare.org",
    requestBody:{
     summary: titulo,
-    description: descricao,
+    description: descricaoFinal,
     start:{
      dateTime: data,
      timeZone:"America/Sao_Paulo"

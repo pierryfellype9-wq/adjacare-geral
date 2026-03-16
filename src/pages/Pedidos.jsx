@@ -574,11 +574,15 @@ export default function Pedidos({ user }) {
                             >
                               {provided => (
                                <div
+  <div
   className="kanban-card"
   ref={provided.innerRef}
   {...provided.draggableProps}
   {...provided.dragHandleProps}
-  onClick={() => setPedidoAberto(p)}
+  onClick={(e) => {
+    e.stopPropagation()
+    setPedidoAberto(p)
+  }}
                                   style={{
                                     ...provided.draggableProps.style,
                                     background: corCardPrioridade(p.prioridade),

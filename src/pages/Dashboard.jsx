@@ -1,6 +1,9 @@
 import "./dashboard.css"
+import { useNavigate } from "react-router-dom"
 
 export default function Dashboard({user}){
+
+  const navigate = useNavigate()
 
   return(
 
@@ -28,17 +31,29 @@ export default function Dashboard({user}){
 
       <div className="dashboard-cards">
 
-        <div className="dashboard-card">
+        <div 
+          className="dashboard-card"
+          onClick={() => navigate("/pedidos")}
+          style={{cursor:"pointer"}}
+        >
           <h3>Pedidos de Arte</h3>
           <p>Visualizar e gerenciar pedidos enviados.</p>
         </div>
 
-        <div className="dashboard-card">
+        <div 
+          className="dashboard-card"
+          onClick={() => navigate("/agenda")}
+          style={{cursor:"pointer"}}
+        >
           <h3>Agenda da Igreja</h3>
           <p>Eventos e atividades programadas.</p>
         </div>
 
-        <div className="dashboard-card">
+        <div 
+          className="dashboard-card"
+          onClick={() => navigate("/avisos")}
+          style={{cursor:"pointer"}}
+        >
           <h3>Avisos Internos</h3>
           <p>Comunicados importantes para os ministérios.</p>
         </div>

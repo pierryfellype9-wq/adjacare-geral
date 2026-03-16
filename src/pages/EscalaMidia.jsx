@@ -13,6 +13,8 @@ export default function EscalaMidia({ user }) {
 
   const [observacao,setObservacao] = useState("")
 
+  const [editandoId,setEditandoId] = useState(null)
+
   const [escalas,setEscalas] = useState([])
 
   useEffect(()=>{
@@ -24,6 +26,7 @@ export default function EscalaMidia({ user }) {
     const { data } = await supabase
       .from("escala_midia")
       .select("*")
+      .eq("arquivado",false)
       .order("data",{ascending:true})
 
     setEscalas(data || [])
@@ -39,85 +42,60 @@ export default function EscalaMidia({ user }) {
       return
     }
 
-    const { data:existente } = await supabase
-      .from("escala_midia")
-      .select("id")
-      .eq("data",data)
-      .single()
+    if(editandoId){
 
-    if(existente){
-      alert("Já existe uma escala para essa data.")
-      return
-    }
-
-    const { error } = await supabase
-      .from("escala_midia")
-      .insert([{
-
-        data,
-        evento,
-
-        projecao,
-        video,
-        story,
-        fotos,
-
-        observacao,
-
-        criado_por:user.nome,
-        departamento:user.role
-
-      }])
-
-    if(error){
-      console.log("Erro salvar escala:",error)
-      alert("Erro ao salvar escala")
-      return
-    }
-
-    // ENVIO DE EMAIL
-    try {
-
-      const resp = await fetch("/api/enviar-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          assunto: "Nova escala da mídia - ADJACARÉ",
-          mensagem: `
-            <h2>Nova escala publicada</h2>
-
-            <p><b>Data:</b> ${data}</p>
-            <p><b>Evento:</b> ${evento || "Culto"}</p>
-
-            <hr>
-
-            <p><b>Projeção:</b> ${projecao || "-"}</p>
-            <p><b>Vídeo:</b> ${video || "-"}</p>
-            <p><b>Story Making:</b> ${story || "-"}</p>
-            <p><b>Fotos:</b> ${fotos || "-"}</p>
-
-            ${observacao ? `<p><b>Observação:</b> ${observacao}</p>` : ""}
-
-            <br>
-
-            <p>Escala cadastrada por: ${user.nome}</p>
-          `
+      await supabase
+        .from("escala_midia")
+        .update({
+          data,
+          evento,
+          projecao,
+          video,
+          story,
+          fotos,
+          observacao
         })
-      })
+        .eq("id",editandoId)
 
-      const result = await resp.json()
+      setEditandoId(null)
 
-      if(!resp.ok){
-        console.log("Erro envio email:", result)
+      alert("Escala atualizada!")
+
+    }else{
+
+      const { data:existente } = await supabase
+        .from("escala_midia")
+        .select("id")
+        .eq("data",data)
+        .single()
+
+      if(existente){
+        alert("Já existe uma escala para essa data.")
+        return
       }
 
-    }catch(err){
-      console.log("Erro envio email:", err)
-    }
+      await supabase
+        .from("escala_midia")
+        .insert([{
 
-    alert("Escala salva com sucesso!")
+          data,
+          evento,
+
+          projecao,
+          video,
+          story,
+          fotos,
+
+          observacao,
+
+          criado_por:user.nome,
+          departamento:user.role
+
+        }])
+
+      alert("Escala salva com sucesso!")
+
+    }
 
     setData("")
     setEvento("")
@@ -131,13 +109,29 @@ export default function EscalaMidia({ user }) {
 
   }
 
-  async function excluir(id){
+  function editar(e){
 
-    if(!confirm("Deseja excluir esta escala?")) return
+    setEditandoId(e.id)
+
+    setData(e.data)
+    setEvento(e.evento || "")
+    setProjecao(e.projecao || "")
+    setVideo(e.video || "")
+    setStory(e.story || "")
+    setFotos(e.fotos || "")
+    setObservacao(e.observacao || "")
+
+    window.scrollTo({top:0,behavior:"smooth"})
+
+  }
+
+  async function arquivar(id){
+
+    if(!confirm("Arquivar esta escala?")) return
 
     await supabase
       .from("escala_midia")
-      .delete()
+      .update({arquivado:true})
       .eq("id",id)
 
     carregarEscalas()
@@ -163,7 +157,7 @@ export default function EscalaMidia({ user }) {
           />
 
           <input
-            placeholder="Evento (Culto noite, Jovens, Santa Ceia...)"
+            placeholder="Evento"
             value={evento}
             onChange={e=>setEvento(e.target.value)}
           />
@@ -209,7 +203,7 @@ export default function EscalaMidia({ user }) {
             className="login-btn"
             style={{marginTop:"12px",width:"auto"}}
           >
-            Salvar escala
+            {editandoId ? "Atualizar escala" : "Salvar escala"}
           </button>
 
         </form>
@@ -256,20 +250,34 @@ export default function EscalaMidia({ user }) {
                   Criado por: {e.criado_por} • {e.departamento}
                 </small>
 
-                <div style={{marginTop:"10px"}}>
+                <div style={{marginTop:"12px",display:"flex",gap:"10px"}}>
 
                   <button
-                    onClick={()=>excluir(e.id)}
+                    onClick={()=>editar(e)}
                     style={{
                       border:"none",
-                      background:"#ef4444",
+                      background:"#2563eb",
                       color:"white",
                       padding:"8px 12px",
                       borderRadius:"6px",
                       cursor:"pointer"
                     }}
                   >
-                    Excluir
+                    Editar
+                  </button>
+
+                  <button
+                    onClick={()=>arquivar(e.id)}
+                    style={{
+                      border:"none",
+                      background:"#6b7280",
+                      color:"white",
+                      padding:"8px 12px",
+                      borderRadius:"6px",
+                      cursor:"pointer"
+                    }}
+                  >
+                    Arquivar
                   </button>
 
                 </div>

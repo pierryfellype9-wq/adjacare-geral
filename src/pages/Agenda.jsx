@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { supabase } from "../lib/supabase"
 
 
 export default function Agenda() {
@@ -8,8 +9,35 @@ export default function Agenda() {
  const [descricao,setDescricao] = useState("")
  const [ministerio,setMinisterio] = useState("")
  const [solicitante,setSolicitante] = useState("")
- const [data,setData] = useState("")
+ const [inicio,setInicio] = useState("")
+ const [fim,setFim] = useState("")
  const [publico,setPublico] = useState(true)
+
+
+ const [ministerios,setMinisterios] = useState([])
+
+
+ useEffect(()=>{
+  carregarMinisterios()
+ },[])
+
+
+ async function carregarMinisterios(){
+
+
+  const { data } = await supabase
+   .from("users")
+   .select("role")
+
+
+  if(!data) return
+
+
+  const lista = [...new Set(data.map(u => u.role))]
+  setMinisterios(lista)
+
+
+ }
 
 
  async function criarEvento(e){
@@ -31,17 +59,14 @@ export default function Agenda() {
      descricao,
      ministerio,
      solicitante,
-     data,
+     inicio,
+     fim,
      publico
     })
    })
 
 
-   const retorno = await resposta.json()
-
-
    if(!resposta.ok){
-    console.log("Erro:",retorno)
     alert("Erro ao criar evento")
     return
    }
@@ -54,15 +79,15 @@ export default function Agenda() {
    setDescricao("")
    setMinisterio("")
    setSolicitante("")
-   setData("")
-   setPublico(true)
+   setInicio("")
+   setFim("")
 
 
   }catch(err){
 
 
-   console.log("Erro criar evento:",err)
-   alert("Erro ao conectar com o servidor")
+   console.log(err)
+   alert("Erro no servidor")
 
 
   }
@@ -112,12 +137,16 @@ export default function Agenda() {
       onChange={e=>setMinisterio(e.target.value)}
       required
      >
-      <option value="">Ministério</option>
-      <option value="Jovens">Jovens</option>
-      <option value="Infantil">Infantil</option>
-      <option value="Música">Música</option>
-      <option value="Mídia">Mídia</option>
-      <option value="Sonoplastia">Sonoplastia</option>
+
+
+      <option value="">Selecione o ministério</option>
+
+
+      {ministerios.map(m => (
+       <option key={m} value={m}>{m}</option>
+      ))}
+
+
      </select>
 
 
@@ -129,16 +158,30 @@ export default function Agenda() {
      />
 
 
+     <label>Início do evento</label>
+
+
      <input
       type="datetime-local"
-      value={data}
-      onChange={e=>setData(e.target.value)}
+      value={inicio}
+      onChange={e=>setInicio(e.target.value)}
+      required
+     />
+
+
+     <label>Fim do evento</label>
+
+
+     <input
+      type="datetime-local"
+      value={fim}
+      onChange={e=>setFim(e.target.value)}
       required
      />
 
 
      <select
-      value={publico ? "true" : "false"}
+      value={publico ? "true":"false"}
       onChange={e=>setPublico(e.target.value === "true")}
      >
       <option value="true">Evento público</option>

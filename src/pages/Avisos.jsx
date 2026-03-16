@@ -6,6 +6,11 @@ export default function Avisos() {
 const [titulo,setTitulo] = useState("")
 const [mensagem,setMensagem] = useState("")
 const [destino,setDestino] = useState("Todos")
+
+const [fixado,setFixado] = useState(false)
+const [urgente,setUrgente] = useState(false)
+const [expira,setExpira] = useState("")
+
 const [avisos,setAvisos] = useState([])
 
 useEffect(() => {
@@ -17,6 +22,7 @@ async function carregarAvisos(){
 const { data, error } = await supabase
 .from("avisos")
 .select("*")
+.order("fixado",{ascending:false})
 .order("data",{ascending:false})
 
 if(error){
@@ -24,7 +30,14 @@ console.log("Erro avisos:", error)
 return
 }
 
-setAvisos(data || [])
+const agora = new Date()
+
+const filtrados = (data || []).filter(a=>{
+if(!a.expira_em) return true
+return new Date(a.expira_em) > agora
+})
+
+setAvisos(filtrados)
 
 }
 
@@ -45,13 +58,19 @@ headers:{
 body:JSON.stringify({
 titulo,
 mensagem,
-destino
+destino,
+fixado,
+urgente,
+expira_em: expira || null
 })
 })
 
 setTitulo("")
 setMensagem("")
 setDestino("Todos")
+setFixado(false)
+setUrgente(false)
+setExpira("")
 
 await carregarAvisos()
 
@@ -98,6 +117,31 @@ onChange={e=>setDestino(e.target.value)}
 
 </select>
 
+<label style={{display:"block",marginTop:"10px"}}>
+<input
+type="checkbox"
+checked={fixado}
+onChange={e=>setFixado(e.target.checked)}
+/>
+ Fixar aviso
+</label>
+
+<label style={{display:"block"}}>
+<input
+type="checkbox"
+checked={urgente}
+onChange={e=>setUrgente(e.target.checked)}
+/>
+ Aviso urgente
+</label>
+
+<input
+type="datetime-local"
+value={expira}
+onChange={e=>setExpira(e.target.value)}
+style={{marginTop:"10px"}}
+/>
+
 <button className="login-btn">
 Enviar aviso
 </button>
@@ -117,6 +161,34 @@ Enviar aviso
 {avisos.map(a => (
 
 <div key={a.id} className="card">
+
+<div style={{display:"flex",gap:"10px",marginBottom:"8px"}}>
+
+{a.fixado && (
+<span style={{
+background:"#2563eb",
+color:"white",
+padding:"3px 8px",
+borderRadius:"6px",
+fontSize:"12px"
+}}>
+📌 FIXADO
+</span>
+)}
+
+{a.urgente && (
+<span style={{
+background:"#ef4444",
+color:"white",
+padding:"3px 8px",
+borderRadius:"6px",
+fontSize:"12px"
+}}>
+🔴 URGENTE
+</span>
+)}
+
+</div>
 
 <h3>{a.titulo}</h3>
 

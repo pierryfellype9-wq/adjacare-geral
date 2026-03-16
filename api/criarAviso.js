@@ -26,9 +26,13 @@ const { data:usuarios } = await supabase
 .from("users")
 .select("email,role")
 
-const emails = usuarios
+const emails = (usuarios || [])
 .filter(u => destino === "Todos" || u.role === destino)
 .map(u => u.email)
+
+/* CORREÇÃO PARA QUEBRA DE LINHA */
+
+const mensagemFormatada = mensagem.replace(/\n/g,"<br>")
 
 await resend.emails.send({
 
@@ -40,7 +44,7 @@ html:`
 
 <h2>${titulo}</h2>
 
-<p>${mensagem}</p>
+<p>${mensagemFormatada}</p>
 
 <p><b>Destino:</b> ${destino}</p>
 

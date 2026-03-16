@@ -5,7 +5,7 @@ export default async function handler(req,res){
 
 
  if(req.method !== "POST"){
-  return res.status(405).json({erro:"Método não permitido"})
+  return res.status(405).json({ erro:"Método não permitido" })
  }
 
 
@@ -21,6 +21,17 @@ export default async function handler(req,res){
    fim,
    publico
   } = req.body
+
+
+  // validação básica
+  if(!titulo || !inicio || !fim){
+   return res.status(400).json({ erro:"Dados incompletos" })
+  }
+
+
+  if(!process.env.GOOGLE_SERVICE_KEY){
+   return res.status(500).json({ erro:"GOOGLE_SERVICE_KEY não configurado" })
+  }
 
 
   const auth = new google.auth.GoogleAuth({
@@ -39,11 +50,11 @@ export default async function handler(req,res){
 
 
   const descricaoFinal = `
-${descricao}
+${descricao || ""}
 
 
-Ministério: ${ministerio}
-Solicitado por: ${solicitante}
+Ministério: ${ministerio || "-"}
+Solicitado por: ${solicitante || "-"}
 Visibilidade: ${publico ? "Público" : "Interno"}
 `
 
@@ -71,16 +82,19 @@ Visibilidade: ${publico ? "Público" : "Interno"}
   })
 
 
-  res.status(200).json({ok:true})
+  return res.status(200).json({ ok:true })
 
 
  }catch(e){
 
 
-  console.log("Erro criar evento:",e)
+  console.error("Erro criar evento:", e)
 
 
-  res.status(500).json({erro:e.message})
+  return res.status(500).json({
+   erro:"Erro ao criar evento",
+   detalhe:e.message
+  })
 
 
  }

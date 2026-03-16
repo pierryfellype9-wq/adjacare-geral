@@ -9,9 +9,8 @@ const [destino,setDestino] = useState("Todos")
 const [avisos,setAvisos] = useState([])
 
 const podeCriar =
-user?.role === "Administrador" ||
-user?.role === "Secretaria" ||
-user?.role === "Dirigente"
+["administrador","secretaria","secretária","dirigente"]
+.includes(user?.role?.toLowerCase())
 
 useEffect(()=>{
 carregarAvisos()

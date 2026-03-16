@@ -11,8 +11,8 @@ export default function Agenda() {
 
       <div className="agenda-card">
 
-        <iframe
-          src="https://calendar.google.com/calendar/embed?src=midia%40adjacare.org&ctz=America%2FSao_Paulo"
+        <iframe 
+          src="https://calendar.google.com/calendar/embed?src=midia%40adjacare.org&ctz=America%2FSao_Paulo">
           width="100%"
           height="650"
           style={{ border: 0 }}

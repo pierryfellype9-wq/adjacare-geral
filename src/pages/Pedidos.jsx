@@ -573,11 +573,12 @@ export default function Pedidos({ user }) {
                               isDragDisabled={!podeEditar}
                             >
                               {provided => (
-                                <div
-                                  className="kanban-card"
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
+                               <div
+  className="kanban-card"
+  ref={provided.innerRef}
+  {...provided.draggableProps}
+  {...provided.dragHandleProps}
+  onClick={() => setPedidoAberto(p)}
                                   style={{
                                     ...provided.draggableProps.style,
                                     background: corCardPrioridade(p.prioridade),
@@ -614,6 +615,58 @@ export default function Pedidos({ user }) {
           </DragDropContext>
         )}
       </div>
+      {pedidoAberto && (
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      background: "rgba(0,0,0,0.5)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 2000
+    }}
+    onClick={() => setPedidoAberto(null)}
+  >
+    <div
+      style={{
+        background: "white",
+        padding: "30px",
+        borderRadius: "12px",
+        width: "600px",
+        maxWidth: "90%"
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h2>{pedidoAberto.titulo}</h2>
+
+      <p>{pedidoAberto.descricao}</p>
+
+      <p><b>Ministério:</b> {pedidoAberto.ministerio}</p>
+      <p><b>Prioridade:</b> {pedidoAberto.prioridade}</p>
+      <p><b>Status:</b> {pedidoAberto.status}</p>
+
+      {pedidoAberto.link_drive && (
+        <p>
+          <a href={pedidoAberto.link_drive} target="_blank">
+            📁 Abrir pasta no Drive
+          </a>
+        </p>
+      )}
+
+      <button
+        className="login-btn"
+        onClick={() => setPedidoAberto(null)}
+        style={{ marginTop: "20px", width: "auto" }}
+      >
+        Fechar
+      </button>
+    </div>
+  </div>
+)}
     </div>
   )
 }

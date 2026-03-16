@@ -32,62 +32,90 @@ export default async function handler(req,res){
   }
 
 
-  if(!pedido.email){
-   return res.status(200).json({ok:true})
-  }
-
-
   const linkDrive = pedido.link_drive || ""
 
 
-  await resend.emails.send({
+  // EMAIL
+  if(pedido.email){
 
 
-   from:"Sistema ADJACARÉ <midia@adjacare.org>",
-   to:pedido.email,
-   subject:"Seu pedido de mídia foi concluído",
+   await resend.emails.send({
 
 
-   html:`
+    from:"Sistema ADJACARÉ <midia@adjacare.org>",
+    to:pedido.email,
+    subject:"Seu pedido de mídia foi concluído",
 
 
-   <h2>Seu pedido foi finalizado 🎉</h2>
+    html:`
 
 
-   <p><b>Título:</b> ${pedido.titulo}</p>
+    <h2>Seu pedido foi finalizado 🎉</h2>
 
 
-   <p>A equipe de mídia concluiu seu pedido.</p>
+    <p><b>Título:</b> ${pedido.titulo}</p>
 
 
-   ${linkDrive ? `
-   <p>
-   <a href="${linkDrive}" 
-   style="
-   background:#2563eb;
-   color:white;
-   padding:12px 18px;
-   border-radius:8px;
-   text-decoration:none;
-   font-weight:600;
-   ">
-   Acessar arquivos
-   </a>
-   </p>
-   ` : ""}
+    <p>A equipe de mídia concluiu seu pedido.</p>
 
 
-   <br>
+    ${linkDrive ? `
+    <p>
+    <a href="${linkDrive}" 
+    style="
+    background:#2563eb;
+    color:white;
+    padding:12px 18px;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:600;">
+    Acessar arquivos
+    </a>
+    </p>
+    ` : ""}
 
 
-   <p>Equipe de Mídia</p>
-   <p>ADJACARÉ</p>
+    <br>
 
 
-   `
+    <p>Equipe de Mídia</p>
+    <p>ADJACARÉ</p>
 
 
-  })
+    `
+   })
+
+
+  }
+
+
+  // WHATSAPP
+  if(pedido.telefone && pedido.kommo_lead_id){
+
+
+   await fetch(`https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/leads/${pedido.kommo_lead_id}/notes`,{
+    method:"POST",
+    headers:{
+     "Content-Type":"application/json",
+     "Authorization":"Bearer "+process.env.KOMMO_TOKEN
+    },
+    body:JSON.stringify([{
+     note_type:"common",
+     params:{
+      text:`Pedido concluído ✅
+
+
+${pedido.titulo}
+
+
+Arquivos:
+${linkDrive}`
+     }
+    }])
+   })
+
+
+  }
 
 
   return res.status(200).json({ok:true})
@@ -96,7 +124,7 @@ export default async function handler(req,res){
  }catch(err){
 
 
-  console.log("Erro email conclusão:",err)
+  console.log("Erro notificação:",err)
 
 
   return res.status(500).json({erro:err.message})

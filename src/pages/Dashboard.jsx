@@ -99,7 +99,9 @@ export default function Dashboard({ user }){
 
               </strong>
 
-              <p>{a.mensagem}</p>
+              <p style={{whiteSpace:"pre-line"}}>
+                {a.mensagem}
+              </p>
 
             </div>
 

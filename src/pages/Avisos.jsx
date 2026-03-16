@@ -82,48 +82,68 @@ return(
 
 <main className="main">
 
-<h2>Avisos da Igreja</h2>
+<h1 style={{marginBottom:"10px"}}>
+Avisos da Igreja
+</h1>
+
+<p style={{marginBottom:"25px",color:"#6b7280"}}>
+Aqui você pode publicar comunicados importantes para os ministérios da igreja.
+</p>
 
 {/* FORMULÁRIO */}
 
-<div className="card" style={{marginBottom:"25px"}}>
+<div className="card" style={{marginBottom:"35px"}}>
 
-<h3>Novo Aviso</h3>
+<h2 style={{marginBottom:"15px"}}>
+Novo Aviso
+</h2>
 
-<form onSubmit={criarAviso}>
+<form onSubmit={criarAviso} style={{display:"grid",gap:"12px"}}>
 
 <input
-placeholder="Título"
+placeholder="Título do aviso"
 value={titulo}
 onChange={e=>setTitulo(e.target.value)}
 />
 
 <textarea
-placeholder="Mensagem"
+placeholder="Mensagem do aviso"
 value={mensagem}
 onChange={e=>setMensagem(e.target.value)}
+style={{minHeight:"100px"}}
 />
 
 <select
 value={destino}
 onChange={e=>setDestino(e.target.value)}
 >
-
-<option value="Todos">Todos</option>
+<option value="Todos">Todos os ministérios</option>
 <option value="Mídia">Mídia</option>
 <option value="Música">Música</option>
 <option value="Infantil">Infantil</option>
 <option value="Jovens">Jovens</option>
-
 </select>
 
-<label style={{display:"block",marginTop:"10px"}}>
+{/* OPÇÕES */}
+
+<div style={{
+background:"#f9fafb",
+padding:"15px",
+borderRadius:"10px",
+border:"1px solid #e5e7eb"
+}}>
+
+<strong style={{display:"block",marginBottom:"10px"}}>
+Opções do aviso
+</strong>
+
+<label style={{display:"block",marginBottom:"6px"}}>
 <input
 type="checkbox"
 checked={fixado}
 onChange={e=>setFixado(e.target.checked)}
 />
- Fixar aviso
+ Fixar aviso no topo
 </label>
 
 <label style={{display:"block"}}>
@@ -132,18 +152,37 @@ type="checkbox"
 checked={urgente}
 onChange={e=>setUrgente(e.target.checked)}
 />
- Aviso urgente
+ Marcar como aviso urgente
 </label>
+
+</div>
+
+{/* EXPIRAÇÃO */}
+
+<div>
+
+<label style={{fontWeight:"600"}}>
+Data de expiração do aviso
+</label>
+
+<p style={{
+fontSize:"13px",
+color:"#6b7280",
+marginBottom:"6px"
+}}>
+Defina uma data para que o aviso seja removido automaticamente após esse período.
+</p>
 
 <input
 type="datetime-local"
 value={expira}
 onChange={e=>setExpira(e.target.value)}
-style={{marginTop:"10px"}}
 />
 
-<button className="login-btn">
-Enviar aviso
+</div>
+
+<button className="login-btn" style={{marginTop:"10px"}}>
+Publicar aviso
 </button>
 
 </form>
@@ -152,27 +191,33 @@ Enviar aviso
 
 {/* LISTA DE AVISOS */}
 
-<div>
+<h2 style={{marginBottom:"15px"}}>
+Avisos publicados
+</h2>
+
+<div style={{display:"grid",gap:"16px"}}>
 
 {avisos.length === 0 && (
-<p>Nenhum aviso publicado.</p>
+<div className="card">
+Nenhum aviso publicado no momento.
+</div>
 )}
 
 {avisos.map(a => (
 
 <div key={a.id} className="card">
 
-<div style={{display:"flex",gap:"10px",marginBottom:"8px"}}>
+<div style={{display:"flex",gap:"8px",marginBottom:"8px"}}>
 
 {a.fixado && (
 <span style={{
 background:"#2563eb",
 color:"white",
-padding:"3px 8px",
+padding:"4px 8px",
 borderRadius:"6px",
 fontSize:"12px"
 }}>
-📌 FIXADO
+📌 Fixado
 </span>
 )}
 
@@ -180,21 +225,25 @@ fontSize:"12px"
 <span style={{
 background:"#ef4444",
 color:"white",
-padding:"3px 8px",
+padding:"4px 8px",
 borderRadius:"6px",
 fontSize:"12px"
 }}>
-🔴 URGENTE
+🔴 Urgente
 </span>
 )}
 
 </div>
 
-<h3>{a.titulo}</h3>
+<h3 style={{marginBottom:"5px"}}>
+{a.titulo}
+</h3>
 
-<p>{a.mensagem}</p>
+<p style={{marginBottom:"8px"}}>
+{a.mensagem}
+</p>
 
-<small>
+<small style={{color:"#6b7280"}}>
 Destino: {a.destino}
 </small>
 

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { criarPastaDrive } from "../lib/googleDrive"
 
 const supabase = createClient(
  process.env.SUPABASE_URL,
@@ -24,6 +25,7 @@ export default async function handler(req,res){
    telefone
   } = req.body
 
+  // CRIA PEDIDO NO BANCO
   const { data, error } = await supabase
   .from("pedidos")
   .insert({
@@ -44,7 +46,31 @@ export default async function handler(req,res){
 
   if(error) throw error
 
-  // criar lead no Kommo
+
+  // CRIA PASTA NO GOOGLE DRIVE
+  let linkDrive = null
+
+  try{
+
+   const pastaId = await criarPastaDrive(titulo)
+
+   linkDrive = `https://drive.google.com/drive/folders/${pastaId}`
+
+   await supabase
+   .from("pedidos")
+   .update({
+    link_drive: linkDrive
+   })
+   .eq("id", data.id)
+
+  }catch(e){
+
+   console.log("Erro criar pasta Drive:", e)
+
+  }
+
+
+  // CRIAR LEAD NO KOMMO
   const lead = await fetch(`https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/leads/complex`,{
    method:"POST",
    headers:{
@@ -86,13 +112,16 @@ export default async function handler(req,res){
    await supabase
    .from("pedidos")
    .update({
-    kommo_lead_id:leadData[0].id
+    kommo_lead_id: leadData[0].id
    })
-   .eq("id",data.id)
+   .eq("id", data.id)
 
   }
 
-  res.status(200).json({ok:true})
+  res.status(200).json({
+   ok:true,
+   drive: linkDrive
+  })
 
  }catch(e){
 

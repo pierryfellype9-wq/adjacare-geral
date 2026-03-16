@@ -1,15 +1,15 @@
 import { google } from "googleapis"
 
 
-export default async function handler(req,res){
+export default async function handler(req, res) {
 
 
- if(req.method !== "POST"){
-  return res.status(405).json({ erro:"Método não permitido" })
+ if (req.method !== "POST") {
+  return res.status(405).json({ erro: "Método não permitido" })
  }
 
 
- try{
+ try {
 
 
   const {
@@ -23,20 +23,14 @@ export default async function handler(req,res){
   } = req.body
 
 
-  // validação básica
-  if(!titulo || !inicio || !fim){
-   return res.status(400).json({ erro:"Dados incompletos" })
-  }
-
-
-  if(!process.env.GOOGLE_SERVICE_KEY){
-   return res.status(500).json({ erro:"GOOGLE_SERVICE_KEY não configurado" })
+  if (!titulo || !inicio || !fim) {
+   return res.status(400).json({ erro: "Dados incompletos" })
   }
 
 
   const auth = new google.auth.GoogleAuth({
    credentials: JSON.parse(process.env.GOOGLE_SERVICE_KEY),
-   scopes:["https://www.googleapis.com/auth/calendar"]
+   scopes: ["https://www.googleapis.com/auth/calendar"]
   })
 
 
@@ -44,8 +38,8 @@ export default async function handler(req,res){
 
 
   const calendar = google.calendar({
-   version:"v3",
-   auth:client
+   version: "v3",
+   auth: client
   })
 
 
@@ -60,23 +54,21 @@ Visibilidade: ${publico ? "Público" : "Interno"}
 
 
   await calendar.events.insert({
-   calendarId:"midia@adjacare.org",
-   requestBody:{
+   calendarId: "midia@adjacare.org",
+   requestBody: {
     summary: titulo,
     description: descricaoFinal,
 
 
-    start:{
- dateTime: `${inicio}:00`,
- timeZone:"America/Sao_Paulo"
-},
+    start: {
+     dateTime: `${inicio}:00`,
+     timeZone: "America/Sao_Paulo"
+    },
 
 
-end:{
- dateTime: `${fim}:00`,
- timeZone:"America/Sao_Paulo"
-}
-
+    end: {
+     dateTime: `${fim}:00`,
+     timeZone: "America/Sao_Paulo"
     }
 
 
@@ -84,18 +76,18 @@ end:{
   })
 
 
-  return res.status(200).json({ ok:true })
+  return res.status(200).json({ ok: true })
 
 
- }catch(e){
+ } catch (e) {
 
 
   console.error("Erro criar evento:", e)
 
 
   return res.status(500).json({
-   erro:"Erro ao criar evento",
-   detalhe:e.message
+   erro: "Erro ao criar evento",
+   detalhe: e.message
   })
 
 

@@ -8,9 +8,12 @@ const [mensagem,setMensagem] = useState("")
 const [destino,setDestino] = useState("Todos")
 const [avisos,setAvisos] = useState([])
 
+const role = user?.role?.toLowerCase() || ""
+
 const podeCriar =
-["administrador","secretaria","secretária","dirigente"]
-.includes(user?.role?.trim().toLowerCase())
+role.includes("admin") ||
+role.includes("secret") ||
+role.includes("dirig")
 
 useEffect(()=>{
 carregarAvisos()

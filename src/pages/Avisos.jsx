@@ -8,10 +8,9 @@ const [mensagem,setMensagem] = useState("")
 const [destino,setDestino] = useState("Todos")
 const [avisos,setAvisos] = useState([])
 
-/* VERIFICA PERMISSÃO */
+/* SEGURANÇA: user pode não existir */
 
-const role = String(user?.role || "")
-.trim()
+const role = (user && user.role ? user.role : "")
 .toLowerCase()
 
 const podeCriar =
@@ -39,7 +38,7 @@ async function criarAviso(e){
 e.preventDefault()
 
 if(!titulo.trim() || !mensagem.trim()){
-alert("Preencha o título e a mensagem")
+alert("Preencha título e mensagem")
 return
 }
 
@@ -69,10 +68,7 @@ return(
 
 <main className="main">
 
-<div className="page-header">
 <h2>Avisos da Igreja</h2>
-<p>Comunicados internos dos ministérios</p>
-</div>
 
 {/* FORMULÁRIO */}
 
@@ -85,13 +81,13 @@ return(
 <form onSubmit={criarAviso}>
 
 <input
-placeholder="Título do aviso"
+placeholder="Título"
 value={titulo}
 onChange={e=>setTitulo(e.target.value)}
 />
 
 <textarea
-placeholder="Mensagem do aviso"
+placeholder="Mensagem"
 value={mensagem}
 onChange={e=>setMensagem(e.target.value)}
 />
@@ -101,13 +97,11 @@ value={destino}
 onChange={e=>setDestino(e.target.value)}
 >
 
-<option value="Todos">Todos os ministérios</option>
+<option value="Todos">Todos</option>
 <option value="Mídia">Mídia</option>
 <option value="Música">Música</option>
 <option value="Infantil">Infantil</option>
 <option value="Jovens">Jovens</option>
-<option value="Adolescentes">Adolescentes</option>
-<option value="Sonoplastia">Sonoplastia</option>
 
 </select>
 
@@ -121,37 +115,25 @@ Enviar aviso
 
 )}
 
-{/* LISTA DE AVISOS */}
+{/* AVISOS */}
 
-<div style={{marginTop:"20px"}}>
+<div>
 
 {avisos.length === 0 && (
-<div className="card">
-<p style={{color:"#6b7280"}}>
-Nenhum aviso publicado no momento.
-</p>
-</div>
+<p>Nenhum aviso publicado.</p>
 )}
 
-{avisos.map(a=>(
+{avisos.map(a => (
 
-<div key={a.id} className="aviso-card">
+<div key={a.id} className="card">
 
 <h3>{a.titulo}</h3>
 
 <p>{a.mensagem}</p>
 
-<div className="aviso-footer">
-
-<span className="aviso-destino">
-{a.destino}
-</span>
-
-<span className="aviso-data">
-{new Date(a.data).toLocaleDateString("pt-BR")}
-</span>
-
-</div>
+<small>
+Destino: {a.destino}
+</small>
 
 </div>
 

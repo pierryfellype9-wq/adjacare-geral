@@ -420,6 +420,14 @@ export default function Pedidos({ user }) {
                       <small style={{ display: "block", color: "#666" }}>
                         Origem: {p.origem || "site"}
                       </small>
+
+                      {p.link_drive && (
+                        <small style={{ display: "block", marginTop: "6px" }}>
+                          📁 <a href={p.link_drive} target="_blank" rel="noreferrer">
+                            Abrir pasta da arte
+                          </a>
+                        </small>
+                      )}
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-start" }}>
@@ -559,6 +567,16 @@ export default function Pedidos({ user }) {
                                   <h4>{p.titulo}</h4>
                                   <p>{p.descricao}</p>
                                   <small>{p.ministerio}</small>
+                                  {p.link_drive && (
+                                    <>
+                                      <br />
+                                      <small>
+                                        📁 <a href={p.link_drive} target="_blank" rel="noreferrer">
+                                          Abrir pasta
+                                        </a>
+                                      </small>
+                                    </>
+                                  )}
                                 </div>
                               )}
                             </Draggable>

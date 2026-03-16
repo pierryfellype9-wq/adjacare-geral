@@ -87,10 +87,9 @@ export default async function handler(req,res){
 
 
   }
-
-
+  
   // WHATSAPP
-  if(pedido.telefone){
+if(pedido.telefone && pedido.kommo_conversation_id){
 
 
  await fetch(`https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/messages`,{
@@ -100,8 +99,8 @@ export default async function handler(req,res){
    "Authorization":"Bearer "+process.env.KOMMO_TOKEN
   },
   body:JSON.stringify({
-   message:{
-    text:`Pedido concluído ✅
+   conversation_id: pedido.kommo_conversation_id,
+   text:`Pedido concluído ✅
 
 
 ${pedido.titulo}
@@ -109,8 +108,6 @@ ${pedido.titulo}
 
 Arquivos:
 ${pedido.link_drive}`
-   },
-   phone:pedido.telefone
   })
  })
 

@@ -67,13 +67,13 @@ Visibilidade: ${publico ? "Público" : "Interno"}
 
 
     start:{
- dateTime: new Date(inicio).toISOString(),
+ dateTime: `${inicio}:00`,
  timeZone:"America/Sao_Paulo"
 },
 
 
 end:{
- dateTime: new Date(fim).toISOString(),
+ dateTime: `${fim}:00`,
  timeZone:"America/Sao_Paulo"
 }
 

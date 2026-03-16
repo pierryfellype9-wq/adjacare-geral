@@ -1,25 +1,12 @@
 import { useState, useEffect } from "react"
 import { supabase } from "../lib/supabase"
 
-export default function Avisos({ user }) {
+export default function Avisos() {
 
 const [titulo,setTitulo] = useState("")
 const [mensagem,setMensagem] = useState("")
 const [destino,setDestino] = useState("Todos")
 const [avisos,setAvisos] = useState([])
-
-/* PERMISSÃO */
-
-const role = (user?.role ?? "").toLowerCase().trim()
-
-const podeCriar = [
-"administrador",
-"secretaria",
-"secretária",
-"dirigente"
-].includes(role)
-
-/* CARREGAR AVISOS */
 
 useEffect(() => {
 carregarAvisos()
@@ -33,7 +20,7 @@ const { data, error } = await supabase
 .order("data",{ascending:false})
 
 if(error){
-console.log("Erro avisos:",error)
+console.log("Erro avisos:", error)
 return
 }
 
@@ -80,8 +67,6 @@ return(
 
 {/* FORMULÁRIO */}
 
-{podeCriar && (
-
 <div className="card" style={{marginBottom:"25px"}}>
 
 <h3>Novo Aviso</h3>
@@ -121,9 +106,7 @@ Enviar aviso
 
 </div>
 
-)}
-
-{/* LISTA */}
+{/* LISTA DE AVISOS */}
 
 <div>
 

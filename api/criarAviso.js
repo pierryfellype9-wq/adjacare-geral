@@ -2,66 +2,69 @@ import { createClient } from "@supabase/supabase-js"
 import { Resend } from "resend"
 
 const supabase = createClient(
-process.env.SUPABASE_URL,
-process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-export default async function handler(req,res){
+export default async function handler(req, res) {
+  try {
+    const {
+      titulo,
+      mensagem,
+      destino,
+      fixado,
+      urgente,
+      expira_em
+    } = req.body
 
-try{
+    await supabase
+      .from("avisos")
+      .insert({
+        titulo,
+        mensagem,
+        destino,
+        fixado: !!fixado,
+        urgente: !!urgente,
+        expira_em: expira_em || null
+      })
 
-const { titulo,mensagem,destino } = req.body
+    const { data: usuarios } = await supabase
+      .from("users")
+      .select("email,role")
 
-await supabase
-.from("avisos")
-.insert({
-titulo,
-mensagem,
-destino
-})
+    const emails = (usuarios || [])
+      .filter(u => destino === "Todos" || u.role === destino)
+      .map(u => u.email)
+      .filter(Boolean)
 
-const { data:usuarios } = await supabase
-.from("users")
-.select("email,role")
+    const mensagemFormatada = (mensagem || "").replace(/\n/g, "<br>")
 
-const emails = (usuarios || [])
-.filter(u => destino === "Todos" || u.role === destino)
-.map(u => u.email)
+    if (emails.length > 0) {
+      await resend.emails.send({
+        from: "Sistema ADJACARÉ <midia@adjacare.org>",
+        to: emails,
+        subject: `Novo aviso: ${titulo}`,
+        html: `
+          <h2>${titulo}</h2>
 
-/* CORREÇÃO PARA QUEBRA DE LINHA */
+          <p>${mensagemFormatada}</p>
 
-const mensagemFormatada = mensagem.replace(/\n/g,"<br>")
+          <p><b>Destino:</b> ${destino}</p>
+          ${fixado ? `<p><b>Fixado:</b> Sim</p>` : ""}
+          ${urgente ? `<p><b>Urgente:</b> Sim</p>` : ""}
+          ${expira_em ? `<p><b>Expira em:</b> ${expira_em}</p>` : ""}
 
-await resend.emails.send({
+          <p>Sistema ADJACARÉ</p>
+        `
+      })
+    }
 
-from:"Sistema ADJACARÉ <midia@adjacare.org>",
-to:emails,
-subject:`Novo aviso: ${titulo}`,
+    return res.status(200).json({ ok: true })
 
-html:`
-
-<h2>${titulo}</h2>
-
-<p>${mensagemFormatada}</p>
-
-<p><b>Destino:</b> ${destino}</p>
-
-<p>Sistema ADJACARÉ</p>
-
-`
-
-})
-
-res.status(200).json({ok:true})
-
-}catch(e){
-
-console.log(e)
-
-res.status(500).json({erro:e.message})
-
-}
-
+  } catch (e) {
+    console.log(e)
+    return res.status(500).json({ erro: e.message })
+  }
 }

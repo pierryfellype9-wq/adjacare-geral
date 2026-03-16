@@ -10,7 +10,7 @@ const [avisos,setAvisos] = useState([])
 
 const podeCriar =
 ["administrador","secretaria","secretária","dirigente"]
-.includes(user?.role?.toLowerCase())
+.includes(user?.role?.trim().toLowerCase())
 
 useEffect(()=>{
 carregarAvisos()

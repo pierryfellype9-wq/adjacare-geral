@@ -579,9 +579,8 @@ export default function Pedidos({ user }) {
   ref={provided.innerRef}
   {...provided.draggableProps}
   {...provided.dragHandleProps}
-  onClick={(e) => {
-    e.stopPropagation()
-    setPedidoAberto(p)}
+  onClick={() => setPedidoAberto(p)}
+
                                   style={{
                                     ...provided.draggableProps.style,
                                     background: corCardPrioridade(p.prioridade),

@@ -3,12 +3,18 @@ import { supabase } from "../lib/supabase"
 
 export default function Avisos({ user }) {
 
+if(!user) return null
+
 const [titulo,setTitulo] = useState("")
 const [mensagem,setMensagem] = useState("")
 const [destino,setDestino] = useState("Todos")
 const [avisos,setAvisos] = useState([])
 
-const role = user?.role?.toLowerCase() || ""
+/* VERIFICA PERMISSÃO */
+
+const role = String(user.role || "")
+.trim()
+.toLowerCase()
 
 const podeCriar =
 role.includes("admin") ||
@@ -33,6 +39,11 @@ setAvisos(data || [])
 async function criarAviso(e){
 
 e.preventDefault()
+
+if(!titulo.trim() || !mensagem.trim()){
+alert("Preencha o título e a mensagem")
+return
+}
 
 await fetch("/api/criarAviso",{
 method:"POST",
@@ -76,13 +87,13 @@ return(
 <form onSubmit={criarAviso}>
 
 <input
-placeholder="Título"
+placeholder="Título do aviso"
 value={titulo}
 onChange={e=>setTitulo(e.target.value)}
 />
 
 <textarea
-placeholder="Mensagem"
+placeholder="Mensagem do aviso"
 value={mensagem}
 onChange={e=>setMensagem(e.target.value)}
 />

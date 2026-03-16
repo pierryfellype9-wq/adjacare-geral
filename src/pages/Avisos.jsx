@@ -3,7 +3,13 @@ import { supabase } from "../lib/supabase"
 
 export default function Avisos({ user }) {
 
-if(!user) return null
+if(!user){
+return(
+<main className="main">
+<p>Carregando...</p>
+</main>
+)
+}
 
 const [titulo,setTitulo] = useState("")
 const [mensagem,setMensagem] = useState("")

@@ -3,35 +3,57 @@ import { useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { supabase } from "../lib/supabase"
 
-export default function Dashboard({ user }) {
+export default function Dashboard({ user }){
 
   const navigate = useNavigate()
 
-  const [avisos, setAvisos] = useState([])
+  const [avisos,setAvisos] = useState([])
 
-  useEffect(() => {
-    carregarAvisos()
-  }, [])
+  useEffect(()=>{
+    if(user){
+      carregarAvisos()
+    }
+  },[user])
 
-  async function carregarAvisos() {
+  async function carregarAvisos(){
 
     const { data, error } = await supabase
       .from("avisos")
       .select("*")
-      .order("fixado", { ascending: false })
-      .order("data", { ascending: false })
-      .limit(3)
+      .order("fixado",{ascending:false})
+      .order("data",{ascending:false})
+      .limit(5)
 
-    if (error) {
-      console.log("Erro ao carregar avisos:", error)
+    if(error){
+      console.log(error)
       return
     }
 
-    setAvisos(data || [])
+    const agora = new Date()
+
+    const filtrados = (data || [])
+      .filter(a => {
+
+        const destino = (a.destino || "").toLowerCase()
+        const ministerioUsuario = (user?.role || "").toLowerCase()
+
+        const permitido =
+          destino === "todos" ||
+          destino === ministerioUsuario
+
+        const naoExpirado =
+          !a.expira_em ||
+          new Date(a.expira_em) > agora
+
+        return permitido && naoExpirado
+
+      })
+
+    setAvisos(filtrados)
 
   }
 
-  return (
+  return(
 
     <main className="main">
 
@@ -43,34 +65,29 @@ export default function Dashboard({ user }) {
         da Assembleia de Deus – Bairro Jacaré
       </h2>
 
-      <hr className="divider" />
+      <hr className="divider"/>
 
       {/* AVISOS */}
 
       {avisos.length > 0 && (
 
         <div style={{
-          background: "#fef3c7",
-          border: "1px solid #f59e0b",
-          borderRadius: "10px",
-          padding: "18px",
-          marginBottom: "25px"
+          background:"#fef3c7",
+          border:"1px solid #f59e0b",
+          borderRadius:"10px",
+          padding:"18px",
+          marginBottom:"25px"
         }}>
 
-          <h3 style={{
-            marginBottom: "10px",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px"
-          }}>
+          <h3 style={{marginBottom:"10px"}}>
             📢 Avisos da Igreja
           </h3>
 
           {avisos.map(a => (
 
             <div key={a.id} style={{
-              padding: "10px 0",
-              borderTop: "1px solid #fde68a"
+              padding:"10px 0",
+              borderTop:"1px solid #fde68a"
             }}>
 
               <strong>
@@ -82,9 +99,7 @@ export default function Dashboard({ user }) {
 
               </strong>
 
-              <p style={{ marginTop: "4px" }}>
-                {a.mensagem}
-              </p>
+              <p>{a.mensagem}</p>
 
             </div>
 
@@ -98,7 +113,7 @@ export default function Dashboard({ user }) {
         Para iniciar, abra o <span className="menu-highlight">Menu</span> localizado no canto superior esquerdo e escolha a opção desejada.
       </p>
 
-      <hr className="divider" />
+      <hr className="divider"/>
 
       <h2 className="section-title">
         Solicitações
@@ -106,28 +121,28 @@ export default function Dashboard({ user }) {
 
       <div className="dashboard-cards">
 
-        <div
+        <div 
           className="dashboard-card"
           onClick={() => navigate("/pedidos")}
-          style={{ cursor: "pointer" }}
+          style={{cursor:"pointer"}}
         >
           <h3>Pedidos de Arte</h3>
           <p>Visualizar e gerenciar pedidos enviados.</p>
         </div>
 
-        <div
+        <div 
           className="dashboard-card"
           onClick={() => navigate("/agenda")}
-          style={{ cursor: "pointer" }}
+          style={{cursor:"pointer"}}
         >
           <h3>Agenda da Igreja</h3>
           <p>Eventos e atividades programadas.</p>
         </div>
 
-        <div
+        <div 
           className="dashboard-card"
           onClick={() => navigate("/avisos")}
-          style={{ cursor: "pointer" }}
+          style={{cursor:"pointer"}}
         >
           <h3>Avisos Internos</h3>
           <p>Comunicados importantes para os ministérios.</p>

@@ -7,6 +7,7 @@ export default function Pedidos({ user }) {
   const [descricao, setDescricao] = useState("")
   const [prioridade, setPrioridade] = useState("Normal")
   const [destino, setDestino] = useState("Mídia")
+  const [pedidoAberto, setPedidoAberto] = useState(null)
 
   const [pedidos, setPedidos] = useState([])
   const [comentarios, setComentarios] = useState([])

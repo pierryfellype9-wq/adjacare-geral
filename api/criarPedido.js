@@ -58,19 +58,20 @@ export default async function handler(req,res){
   const { data, error } = await supabase
   .from("pedidos")
   .insert({
-   titulo,
-   descricao,
-   prioridade,
-   destino,
-   ministerio,
-   criado_por,
-   telefone,
-   origem:"site",
-   canal:"site",
-   link_drive:linkDrive,
-   status:"Pendente",
-   data:new Date().toISOString()
-  })
+ titulo,
+ descricao,
+ prioridade,
+ destino,
+ ministerio,
+ criado_por,
+ email,
+ telefone,
+ origem:"site",
+ canal:"site",
+ link_drive:linkDrive,
+ status:"Pendente",
+ data:new Date().toISOString()
+})
   .select()
   .single()
 

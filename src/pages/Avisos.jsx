@@ -3,14 +3,6 @@ import { supabase } from "../lib/supabase"
 
 export default function Avisos({ user }) {
 
-if(!user){
-return(
-<main className="main">
-<p>Carregando...</p>
-</main>
-)
-}
-
 const [titulo,setTitulo] = useState("")
 const [mensagem,setMensagem] = useState("")
 const [destino,setDestino] = useState("Todos")
@@ -18,7 +10,7 @@ const [avisos,setAvisos] = useState([])
 
 /* VERIFICA PERMISSÃO */
 
-const role = String(user.role || "")
+const role = String(user?.role || "")
 .trim()
 .toLowerCase()
 

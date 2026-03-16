@@ -16,20 +16,62 @@ export default function EscalaMidia({ user }) {
   const [editandoId,setEditandoId] = useState(null)
 
   const [escalas,setEscalas] = useState([])
+  const [aba,setAba] = useState("ativas")
 
   useEffect(()=>{
     carregarEscalas()
-  },[])
+  },[aba])
 
   async function carregarEscalas(){
+
+    const arquivado = aba === "arquivadas"
 
     const { data } = await supabase
       .from("escala_midia")
       .select("*")
-      .eq("arquivado",false)
+      .eq("arquivado",arquivado)
       .order("data",{ascending:true})
 
     setEscalas(data || [])
+
+  }
+
+  async function enviarEmailEscala(){
+
+    try{
+
+      await fetch("/api/enviar-email",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          assunto:"Atualização de escala da mídia - ADJACARÉ",
+          mensagem:`
+            <h2>Escala da mídia atualizada</h2>
+
+            <p><b>Data:</b> ${data}</p>
+            <p><b>Evento:</b> ${evento || "Culto"}</p>
+
+            <hr>
+
+            <p><b>Projeção:</b> ${projecao || "-"}</p>
+            <p><b>Vídeo:</b> ${video || "-"}</p>
+            <p><b>Story Making:</b> ${story || "-"}</p>
+            <p><b>Fotos:</b> ${fotos || "-"}</p>
+
+            ${observacao ? `<p><b>Observação:</b> ${observacao}</p>` : ""}
+
+            <br>
+
+            <p>Atualizado por: ${user.nome}</p>
+          `
+        })
+      })
+
+    }catch(err){
+      console.log("Erro envio email:",err)
+    }
 
   }
 
@@ -59,6 +101,8 @@ export default function EscalaMidia({ user }) {
 
       setEditandoId(null)
 
+      await enviarEmailEscala()
+
       alert("Escala atualizada!")
 
     }else{
@@ -80,18 +124,17 @@ export default function EscalaMidia({ user }) {
 
           data,
           evento,
-
           projecao,
           video,
           story,
           fotos,
-
           observacao,
-
           criado_por:user.nome,
           departamento:user.role
 
         }])
+
+      await enviarEmailEscala()
 
       alert("Escala salva com sucesso!")
 
@@ -132,6 +175,17 @@ export default function EscalaMidia({ user }) {
     await supabase
       .from("escala_midia")
       .update({arquivado:true})
+      .eq("id",id)
+
+    carregarEscalas()
+
+  }
+
+  async function restaurar(id){
+
+    await supabase
+      .from("escala_midia")
+      .update({arquivado:false})
       .eq("id",id)
 
     carregarEscalas()
@@ -207,6 +261,7 @@ export default function EscalaMidia({ user }) {
           </button>
 
         </form>
+
 
         <h2 className="subtitle" style={{marginTop:"40px"}}>
           Escalas cadastradas

@@ -12,9 +12,11 @@ const [urgente,setUrgente] = useState(false)
 const [expira,setExpira] = useState("")
 
 const [avisos,setAvisos] = useState([])
+const [ministerios,setMinisterios] = useState([])
 
 useEffect(() => {
 carregarAvisos()
+carregarMinisterios()
 }, [])
 
 async function carregarAvisos(){
@@ -38,6 +40,25 @@ return new Date(a.expira_em) > agora
 })
 
 setAvisos(filtrados)
+
+}
+
+async function carregarMinisterios(){
+
+const { data, error } = await supabase
+.from("users")
+.select("role")
+
+if(error){
+console.log("Erro ministérios:", error)
+return
+}
+
+const lista = [...new Set(
+(data || []).map(u => u.role).filter(Boolean)
+)]
+
+setMinisterios(lista)
 
 }
 
@@ -117,11 +138,15 @@ style={{minHeight:"100px"}}
 value={destino}
 onChange={e=>setDestino(e.target.value)}
 >
+
 <option value="Todos">Todos os ministérios</option>
-<option value="Mídia">Mídia</option>
-<option value="Música">Música</option>
-<option value="Infantil">Infantil</option>
-<option value="Jovens">Jovens</option>
+
+{ministerios.map(m => (
+<option key={m} value={m}>
+{m}
+</option>
+))}
+
 </select>
 
 {/* OPÇÕES */}

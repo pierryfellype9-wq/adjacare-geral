@@ -18,30 +18,56 @@ export default function Agenda() {
   e.preventDefault()
 
 
-  await fetch("/api/criarEventoAgenda",{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json"
-   },
-   body:JSON.stringify({
-    titulo,
-    descricao,
-    ministerio,
-    solicitante,
-    data,
-    publico
+  try{
+
+
+   const resposta = await fetch("/api/criarEventoAgenda",{
+    method:"POST",
+    headers:{
+     "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+     titulo,
+     descricao,
+     ministerio,
+     solicitante,
+     data,
+     publico
+    })
    })
-  })
 
 
-  alert("Evento criado na agenda!")
+   const retorno = await resposta.json()
 
 
-  setTitulo("")
-  setDescricao("")
-  setMinisterio("")
-  setSolicitante("")
-  setData("")
+   if(!resposta.ok){
+    console.log("Erro:",retorno)
+    alert("Erro ao criar evento")
+    return
+   }
+
+
+   alert("Evento criado na agenda!")
+
+
+   setTitulo("")
+   setDescricao("")
+   setMinisterio("")
+   setSolicitante("")
+   setData("")
+   setPublico(true)
+
+
+  }catch(err){
+
+
+   console.log("Erro criar evento:",err)
+   alert("Erro ao conectar com o servidor")
+
+
+  }
+
+
  }
 
 
@@ -70,6 +96,7 @@ export default function Agenda() {
       placeholder="Título do evento"
       value={titulo}
       onChange={e=>setTitulo(e.target.value)}
+      required
      />
 
 
@@ -83,17 +110,14 @@ export default function Agenda() {
      <select
       value={ministerio}
       onChange={e=>setMinisterio(e.target.value)}
+      required
      >
-
-
       <option value="">Ministério</option>
       <option value="Jovens">Jovens</option>
       <option value="Infantil">Infantil</option>
       <option value="Música">Música</option>
       <option value="Mídia">Mídia</option>
       <option value="Sonoplastia">Sonoplastia</option>
-
-
      </select>
 
 
@@ -101,6 +125,7 @@ export default function Agenda() {
       placeholder="Solicitado por"
       value={solicitante}
       onChange={e=>setSolicitante(e.target.value)}
+      required
      />
 
 
@@ -108,19 +133,16 @@ export default function Agenda() {
       type="datetime-local"
       value={data}
       onChange={e=>setData(e.target.value)}
+      required
      />
 
 
      <select
-      value={publico}
+      value={publico ? "true" : "false"}
       onChange={e=>setPublico(e.target.value === "true")}
      >
-
-
       <option value="true">Evento público</option>
       <option value="false">Evento interno</option>
-
-
      </select>
 
 
@@ -155,4 +177,6 @@ export default function Agenda() {
 
 
  )
+
+
 }

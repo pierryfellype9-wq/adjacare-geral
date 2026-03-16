@@ -62,6 +62,8 @@ return(
 <p>Comunicados internos dos ministérios</p>
 </div>
 
+{/* FORMULÁRIO */}
+
 {podeCriar && (
 
 <div className="card" style={{marginBottom:"25px"}}>
@@ -107,19 +109,37 @@ Enviar aviso
 
 )}
 
-<div className="pedidos-list">
+{/* LISTA DE AVISOS */}
+
+<div style={{marginTop:"20px"}}>
+
+{avisos.length === 0 && (
+<div className="card">
+<p style={{color:"#6b7280"}}>
+Nenhum aviso publicado no momento.
+</p>
+</div>
+)}
 
 {avisos.map(a=>(
 
-<div key={a.id} className="pedido-card">
+<div key={a.id} className="aviso-card">
 
 <h3>{a.titulo}</h3>
 
 <p>{a.mensagem}</p>
 
-<small>
-Destino: {a.destino}
-</small>
+<div className="aviso-footer">
+
+<span className="aviso-destino">
+{a.destino}
+</span>
+
+<span className="aviso-data">
+{new Date(a.data).toLocaleDateString("pt-BR")}
+</span>
+
+</div>
 
 </div>
 

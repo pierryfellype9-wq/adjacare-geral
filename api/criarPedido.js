@@ -1,10 +1,37 @@
 import { createClient } from "@supabase/supabase-js"
-import { criarPastaDrive } from "../lib/googleDrive"
+import { google } from "googleapis"
 
 const supabase = createClient(
  process.env.SUPABASE_URL,
  process.env.SUPABASE_SERVICE_ROLE_KEY
 )
+
+async function criarPastaDrive(nomePasta){
+
+ const auth = new google.auth.GoogleAuth({
+  credentials: JSON.parse(process.env.GOOGLE_SERVICE_KEY),
+  scopes: ["https://www.googleapis.com/auth/drive"]
+ })
+
+ const drive = google.drive({
+  version: "v3",
+  auth
+ })
+
+ const pasta = await drive.files.create({
+  requestBody:{
+   name:nomePasta,
+   mimeType:"application/vnd.google-apps.folder",
+   parents:[process.env.DRIVE_PASTA_PEDIDOS]
+  },
+  fields:"id"
+ })
+
+ const pastaId = pasta.data.id
+
+ return `https://drive.google.com/drive/folders/${pastaId}`
+
+}
 
 export default async function handler(req,res){
 
@@ -25,7 +52,9 @@ export default async function handler(req,res){
    telefone
   } = req.body
 
-  // CRIA PEDIDO NO BANCO
+  // cria pasta no drive
+  const linkDrive = await criarPastaDrive(titulo)
+
   const { data, error } = await supabase
   .from("pedidos")
   .insert({
@@ -38,6 +67,7 @@ export default async function handler(req,res){
    telefone,
    origem:"site",
    canal:"site",
+   link_drive:linkDrive,
    status:"Pendente",
    data:new Date().toISOString()
   })
@@ -46,82 +76,7 @@ export default async function handler(req,res){
 
   if(error) throw error
 
-
-  // CRIA PASTA NO GOOGLE DRIVE
-  let linkDrive = null
-
-  try{
-
-   const pastaId = await criarPastaDrive(titulo)
-
-   linkDrive = `https://drive.google.com/drive/folders/${pastaId}`
-
-   await supabase
-   .from("pedidos")
-   .update({
-    link_drive: linkDrive
-   })
-   .eq("id", data.id)
-
-  }catch(e){
-
-   console.log("Erro criar pasta Drive:", e)
-
-  }
-
-
-  // CRIAR LEAD NO KOMMO
-  const lead = await fetch(`https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/leads/complex`,{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "Authorization":"Bearer "+process.env.KOMMO_TOKEN
-   },
-   body:JSON.stringify([{
-    name:titulo,
-    custom_fields_values:[
-     {
-      field_name:"Descrição",
-      values:[{value:descricao}]
-     }
-    ],
-    _embedded:{
-     contacts:[
-      {
-       name:criado_por,
-       custom_fields_values:[
-        {
-         field_code:"PHONE",
-         values:[{value:telefone}]
-        },
-        {
-         field_code:"EMAIL",
-         values:[{value:email}]
-        }
-       ]
-      }
-     ]
-    }
-   }])
-  })
-
-  const leadData = await lead.json()
-
-  if(leadData && leadData[0]?.id){
-
-   await supabase
-   .from("pedidos")
-   .update({
-    kommo_lead_id: leadData[0].id
-   })
-   .eq("id", data.id)
-
-  }
-
-  res.status(200).json({
-   ok:true,
-   drive: linkDrive
-  })
+  res.status(200).json({ok:true})
 
  }catch(e){
 
@@ -132,3 +87,4 @@ export default async function handler(req,res){
  }
 
 }
+

@@ -195,6 +195,15 @@ font-size:16px;
 background:rgba(255,255,255,0.15);
 }
 
+.sidebar{
+background:#1f3c74;
+}
+
+.menu-item.active{
+background:rgba(255,255,255,0.2);
+font-weight:600;
+}
+
 /* LINHA DIVISÓRIA */
 
 .divider{

@@ -10,13 +10,14 @@ const [avisos,setAvisos] = useState([])
 
 /* SEGURANÇA: user pode não existir */
 
-const role = (user && user.role ? user.role : "")
-.toLowerCase()
+const role = (user?.role ?? "").toLowerCase()
 
 const podeCriar =
-role.includes("admin") ||
-role.includes("secret") ||
-role.includes("dirig")
+role === "administrador" ||
+role === "secretaria" ||
+role === "secretária" ||
+role === "dirigente”
+
 
 useEffect(()=>{
 carregarAvisos()

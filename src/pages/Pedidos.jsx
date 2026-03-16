@@ -581,8 +581,7 @@ export default function Pedidos({ user }) {
   {...provided.dragHandleProps}
   onClick={(e) => {
     e.stopPropagation()
-    setPedidoAberto(p)
-  }}
+    setPedidoAberto(p)}
                                   style={{
                                     ...provided.draggableProps.style,
                                     background: corCardPrioridade(p.prioridade),

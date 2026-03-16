@@ -91,15 +91,15 @@ export default async function handler(req,res){
   // WHATSAPP
 if(pedido.telefone && pedido.kommo_conversation_id){
 
-
- await fetch(`https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/conversations/${pedido.kommo_conversation_id}/messages`,{
+await fetch(`https://${process.env.KOMMO_SUBDOMAIN}.kommo.com/api/v4/conversations/${pedido.kommo_conversation_id}/messages`,{
  method:"POST",
  headers:{
   "Content-Type":"application/json",
   "Authorization":"Bearer "+process.env.KOMMO_TOKEN
  },
  body:JSON.stringify({
-  text:`Pedido concluído ✅
+  message:{
+   text:`Pedido concluído ✅
 
 
 ${pedido.titulo}
@@ -107,9 +107,9 @@ ${pedido.titulo}
 
 Arquivos:
 ${pedido.link_drive}`
+  }
  })
 })
-
 
 }
 

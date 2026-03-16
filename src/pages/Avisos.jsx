@@ -13,6 +13,7 @@ const [expira,setExpira] = useState("")
 
 const [avisos,setAvisos] = useState([])
 const [ministerios,setMinisterios] = useState([])
+const [avisoAberto,setAvisoAberto] = useState(null)
 
 useEffect(() => {
 carregarAvisos()
@@ -111,8 +112,6 @@ Avisos da Igreja
 Aqui você pode publicar comunicados importantes para os ministérios da igreja.
 </p>
 
-{/* FORMULÁRIO */}
-
 <div className="card" style={{marginBottom:"35px"}}>
 
 <h2 style={{marginBottom:"15px"}}>
@@ -149,8 +148,6 @@ onChange={e=>setDestino(e.target.value)}
 
 </select>
 
-{/* OPÇÕES */}
-
 <div style={{
 background:"#f9fafb",
 padding:"15px",
@@ -182,8 +179,6 @@ onChange={e=>setUrgente(e.target.checked)}
 
 </div>
 
-{/* EXPIRAÇÃO */}
-
 <div>
 
 <label style={{fontWeight:"600"}}>
@@ -214,8 +209,6 @@ Publicar aviso
 
 </div>
 
-{/* LISTA DE AVISOS */}
-
 <h2 style={{marginBottom:"15px"}}>
 Avisos publicados
 </h2>
@@ -230,7 +223,12 @@ Nenhum aviso publicado no momento.
 
 {avisos.map(a => (
 
-<div key={a.id} className="card">
+<div
+key={a.id}
+className="card"
+onClick={()=>setAvisoAberto(a)}
+style={{cursor:"pointer"}}
+>
 
 <div style={{display:"flex",gap:"8px",marginBottom:"8px"}}>
 
@@ -264,7 +262,7 @@ fontSize:"12px"
 {a.titulo}
 </h3>
 
-<p style={{marginBottom:"8px"}}>
+<p style={{marginBottom:"8px",whiteSpace:"pre-line"}}>
 {a.mensagem}
 </p>
 
@@ -277,6 +275,89 @@ Destino: {a.destino}
 ))}
 
 </div>
+
+{avisoAberto && (
+
+<div
+style={{
+position:"fixed",
+top:0,
+left:0,
+width:"100%",
+height:"100%",
+background:"rgba(0,0,0,0.5)",
+display:"flex",
+justifyContent:"center",
+alignItems:"center",
+zIndex:2000
+}}
+onClick={()=>setAvisoAberto(null)}
+>
+
+<div
+style={{
+background:"white",
+padding:"30px",
+borderRadius:"12px",
+width:"600px",
+maxWidth:"90%"
+}}
+onClick={(e)=>e.stopPropagation()}
+>
+
+<div style={{display:"flex",gap:"8px",marginBottom:"10px"}}>
+
+{avisoAberto.fixado && (
+<span style={{
+background:"#2563eb",
+color:"white",
+padding:"4px 10px",
+borderRadius:"6px",
+fontSize:"12px"
+}}>
+📌 Fixado
+</span>
+)}
+
+{avisoAberto.urgente && (
+<span style={{
+background:"#ef4444",
+color:"white",
+padding:"4px 10px",
+borderRadius:"6px",
+fontSize:"12px"
+}}>
+🔴 Urgente
+</span>
+)}
+
+</div>
+
+<h2 style={{marginBottom:"10px"}}>
+{avisoAberto.titulo}
+</h2>
+
+<p style={{marginBottom:"15px",whiteSpace:"pre-line"}}>
+{avisoAberto.mensagem}
+</p>
+
+<p style={{color:"#6b7280"}}>
+Destino: {avisoAberto.destino}
+</p>
+
+<button
+className="login-btn"
+style={{marginTop:"20px",width:"auto"}}
+onClick={()=>setAvisoAberto(null)}
+>
+Fechar
+</button>
+
+</div>
+
+</div>
+
+)}
 
 </main>
 

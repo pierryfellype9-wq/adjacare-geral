@@ -573,7 +573,6 @@ export default function Pedidos({ user }) {
                               isDragDisabled={!podeEditar}
                             >
                               {provided => (
-                               <div
   <div
   className="kanban-card"
   ref={provided.innerRef}

@@ -201,21 +201,39 @@ export default function Pedidos({ user }) {
     return pedidos.filter(p => p.status === status)
   }
 
-  async function atualizarStatusKanban(id, coluna) {
-    if (!podeEditar) return
+ async function atualizarStatusKanban(id, coluna) {
+  if (!podeEditar) return
 
-    let status = ""
 
-    if (coluna === "PENDENTE") status = "Pendente"
-    if (coluna === "PRODUCAO") status = "Em produção"
-    if (coluna === "CONCLUIDO") status = "Concluído"
+  let status = ""
 
-    await supabase
-      .from("pedidos")
-      .update({ status })
-      .eq("id", String(id))
 
-    await carregarPedidos()
+  if (coluna === "PENDENTE") status = "Pendente"
+  if (coluna === "PRODUCAO") status = "Em produção"
+  if (coluna === "CONCLUIDO") status = "Concluído"
+
+
+  await supabase
+    .from("pedidos")
+    .update({ status })
+    .eq("id", String(id))
+
+
+  // ENVIA EMAIL SE CONCLUÍDO
+  if (status === "Concluído") {
+    await fetch("/api/notificarConclusao", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id
+      })
+    })
+  }
+
+
+  await carregarPedidos()
   }
 
   async function onDragEnd(result) {

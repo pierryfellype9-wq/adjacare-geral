@@ -40,7 +40,7 @@ export default async function handler(req, res) {
 
     const resposta = await resend.emails.send({
       from: "Sistema ADJACARÉ <midia@adjacare.org>",
-      to: listaEmails,
+      to: ["pierryfellype9@gmail.com"],
       subject: assunto,
       html: mensagem
     })

@@ -14,16 +14,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { assunto, mensagem, para } = req.body
+    const { assunto, mensagem, para, departamento } = req.body
 
     let listaEmails = []
 
     if (para) {
       listaEmails = Array.isArray(para) ? para : [para]
-    } else {
+    } else if (departamento) {
       const { data: users, error } = await supabase
         .from("users")
         .select("email")
+        .eq("role", departamento)
         .not("email", "is", null)
 
       if (error) throw error
@@ -33,9 +34,20 @@ export default async function handler(req, res) {
           .map((u) => u.email?.trim())
           .filter(Boolean)
       )]
+    } else {
+      return res.status(400).json({
+        error: "Nenhum destinatário informado. Envie 'para' ou 'departamento'."
+      })
+    }
+
+    if (!listaEmails.length) {
+      return res.status(400).json({
+        error: "Nenhum e-mail encontrado para envio."
+      })
     }
 
     console.log("para recebido:", para)
+    console.log("departamento recebido:", departamento)
     console.log("lista final:", listaEmails)
 
     const resposta = await resend.emails.send({
@@ -54,6 +66,8 @@ export default async function handler(req, res) {
     })
   } catch (err) {
     console.log("Erro ao enviar email:", err)
-    return res.status(500).json({ error: err.message })
+    return res.status(500).json({
+      error: err.message || "Erro interno ao enviar e-mail"
+    })
   }
 }

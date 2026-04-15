@@ -10,6 +10,7 @@ import TrocarSenha from "./pages/trocarSenha"
 import Usuarios from "./pages/Usuarios"
 import KanbanPedidos from "./pages/KanbanPedidos"
 import EscalaMidia from "./pages/EscalaMidia"
+import SenhasAplicativos from "./pages/SenhasAplicativos"
 
 import Sidebar from "./components/Sidebar"
 
@@ -73,6 +74,10 @@ export default function App(){
   const podeVerEscala =
     user?.role === "Administrador" ||
     user?.role === "Dirigente" ||
+    user?.role === "Mídia"
+
+  const podeVerSenhas =
+    user?.role === "Administrador" ||
     user?.role === "Mídia"
 
   if(!user){
@@ -163,6 +168,15 @@ export default function App(){
           element={
             podeVerEscala
               ? <EscalaMidia user={user}/>
+              : <Navigate to="/dashboard" replace />
+          }
+        />
+
+        <Route
+          path="/senhas-aplicativos"
+          element={
+            podeVerSenhas
+              ? <SenhasAplicativos />
               : <Navigate to="/dashboard" replace />
           }
         />

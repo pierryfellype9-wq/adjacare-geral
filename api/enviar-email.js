@@ -19,35 +19,39 @@ export default async function handler(req, res) {
     let listaEmails = []
 
     if (para) {
-      listaEmails = [para]
+      listaEmails = Array.isArray(para) ? para : [para]
     } else {
-      const { data: midiaUsers, error } = await supabase
+      const { data: users, error } = await supabase
         .from("users")
         .select("email")
-        .eq("role", "Mídia")
+        .not("email", "is", null)
 
       if (error) throw error
 
-      const emailsMidia = (midiaUsers || [])
-        .map(u => u.email)
-        .filter(Boolean)
-
-      listaEmails = [...new Set([
-        "midia@adjacare.org",
-        ...emailsMidia
-      ])]
+      listaEmails = [...new Set(
+        (users || [])
+          .map((u) => u.email?.trim())
+          .filter(Boolean)
+      )]
     }
+
+    console.log("para recebido:", para)
+    console.log("lista final:", listaEmails)
 
     const resposta = await resend.emails.send({
       from: "Sistema ADJACARÉ <midia@adjacare.org>",
-      to: ["pierryfellype9@gmail.com"],
+      to: listaEmails,
       subject: assunto,
       html: mensagem
     })
 
-    console.log("Email enviado:", resposta)
+    console.log("Resposta Resend:", resposta)
 
-    return res.status(200).json({ ok: true })
+    return res.status(200).json({
+      ok: true,
+      listaEmails,
+      resposta
+    })
   } catch (err) {
     console.log("Erro ao enviar email:", err)
     return res.status(500).json({ error: err.message })

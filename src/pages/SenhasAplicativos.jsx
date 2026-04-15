@@ -1,23 +1,16 @@
 import { useEffect, useMemo, useState } from "react"
 
-export default function SenhasAplicativos() {
-  const usuario = useMemo(() => {
-    try {
-      return (
-        JSON.parse(localStorage.getItem("usuarioLogado")) ||
-        JSON.parse(localStorage.getItem("usuario")) ||
-        {}
-      )
-    } catch {
-      return {}
-    }
-  }, [])
+  export default function SenhasAplicativos({ user }) {
+  const role = user?.role || ""
+  const nomeUsuario = user?.nome || "Usuário"
 
-  const role = usuario?.role || ""
-  const nomeUsuario = usuario?.nome || "Usuário"
+  const podeEntrar =
+    role === "Administrador" ||
+    role === "Mídia"
 
-  const podeEntrar = role === "Administrador" || role === "Mídia"
-  const podeEditar = role === "Administrador" || role === "Mídia"
+  const podeEditar =
+    role === "Administrador" ||
+    role === "Mídia"
 
   const [itens, setItens] = useState([])
   const [loading, setLoading] = useState(true)

@@ -173,13 +173,13 @@ export default function App(){
         />
 
         <Route
-          path="/senhas-aplicativos"
-          element={
-            podeVerSenhas
-              ? <SenhasAplicativos />
-              : <Navigate to="/dashboard" replace />
-          }
-        />
+  path="/senhas-aplicativos"
+  element={
+    podeVerSenhas
+      ? <SenhasAplicativos user={user} />
+      : <Navigate to="/dashboard" replace />
+  }
+/>
 
         <Route path="*" element={<Navigate to="/dashboard" replace />}/>
       </Routes>

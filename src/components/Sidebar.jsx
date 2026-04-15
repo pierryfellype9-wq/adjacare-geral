@@ -14,6 +14,10 @@ export default function Sidebar({ open, setOpen, user }) {
     user?.role === "Dirigente" ||
     user?.role === "Mídia"
 
+  const podeVerSenhas =
+    user?.role === "Administrador" ||
+    user?.role === "Mídia"
+
   return (
     <div className={`sidebar ${open ? "open" : ""}`}>
 
@@ -53,6 +57,12 @@ export default function Sidebar({ open, setOpen, user }) {
       <div className="menu-item" onClick={()=>navegar("/usuarios")}>
         Usuários
       </div>
+
+      {podeVerSenhas && (
+        <div className="menu-item" onClick={()=>navegar("/senhas-aplicativos")}>
+          Senhas Aplicativos e Softwares
+        </div>
+      )}
 
     </div>
   )

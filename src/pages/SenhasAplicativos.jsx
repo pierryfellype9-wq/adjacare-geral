@@ -9,8 +9,7 @@ import { useEffect, useMemo, useState } from "react"
     role === "Mídia"
 
   const podeEditar =
-    role === "Administrador" ||
-    role === "Mídia"
+    role === "Administrador"
 
   const [itens, setItens] = useState([])
   const [loading, setLoading] = useState(true)

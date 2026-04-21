@@ -77,7 +77,8 @@ export default function App() {
 
   const podeVerCustosFixos =
     user?.role === "Administrador" ||
-    user?.role === "Mídia"
+    user?.role === "Mídia" ||
+    user?.role === "Dirigente"
 
   if (!user) {
     return (

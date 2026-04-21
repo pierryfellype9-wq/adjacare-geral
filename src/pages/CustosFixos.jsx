@@ -10,7 +10,8 @@ function formatarMoeda(valor) {
 
 function formatarData(data) {
   if (!data) return "-"
-  const dt = new Date(data + "T00:00:00")
+  const [ano, mes, dia] = data.split("-").map(Number)
+  const dt = new Date(ano, mes - 1, dia)
   return dt.toLocaleDateString("pt-BR")
 }
 
@@ -21,7 +22,8 @@ function calcularStatus(item) {
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)
 
-  const vencimento = new Date(item.data_proximo_pagamento + "T00:00:00")
+  const [ano, mes, dia] = item.data_proximo_pagamento.split("-").map(Number)
+  const vencimento = new Date(ano, mes - 1, dia)
   vencimento.setHours(0, 0, 0, 0)
 
   const diff = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24))
@@ -74,7 +76,8 @@ function corStatus(status) {
 function calcularProximaData(dataAtual, frequencia) {
   if (!dataAtual) return null
 
-  const base = new Date(dataAtual + "T00:00:00")
+  const [ano, mes, dia] = dataAtual.split("-").map(Number)
+  const base = new Date(ano, mes - 1, dia)
 
   if (frequencia === "mensal") {
     base.setMonth(base.getMonth() + 1)
@@ -84,11 +87,11 @@ function calcularProximaData(dataAtual, frequencia) {
     return null
   }
 
-  const ano = base.getFullYear()
-  const mes = String(base.getMonth() + 1).padStart(2, "0")
-  const dia = String(base.getDate()).padStart(2, "0")
+  const novoAno = base.getFullYear()
+  const novoMes = String(base.getMonth() + 1).padStart(2, "0")
+  const novoDia = String(base.getDate()).padStart(2, "0")
 
-  return `${ano}-${mes}-${dia}`
+  return `${novoAno}-${novoMes}-${novoDia}`
 }
 
 export default function CustosFixos({ user }) {
@@ -259,7 +262,16 @@ export default function CustosFixos({ user }) {
 
       if (erroUpdate) throw erroUpdate
 
-      await carregarCustos()
+      setCustos((prev) =>
+        prev.map((custo) =>
+          custo.id === item.id
+            ? {
+                ...custo,
+                ...payload,
+              }
+            : custo
+        )
+      )
     } catch (error) {
       console.error("Erro ao marcar como pago:", error)
       alert("Erro ao marcar como pago.")

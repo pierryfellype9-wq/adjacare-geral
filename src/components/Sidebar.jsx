@@ -65,13 +65,13 @@ export default function Sidebar({ open, setOpen, user }) {
 
       {podeVerSenhas && (
         <div className="menu-item" onClick={()=>navegar("/senhas-aplicativos")}>
-          Senhas Aplicativos e Softwares
+          Senhas de Aplicativos e Softwares
         </div>
       )}
 
       {podeVerCustosFixos && (
         <div className="menu-item" onClick={()=>navegar("/custos-fixos")}>
-          Custos Fixos
+          Assinaturas e Pagamentos Mídia
         </div>
       )}
 

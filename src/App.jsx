@@ -11,20 +11,20 @@ import Usuarios from "./pages/Usuarios"
 import KanbanPedidos from "./pages/KanbanPedidos"
 import EscalaMidia from "./pages/EscalaMidia"
 import SenhasAplicativos from "./pages/SenhasAplicativos"
+import CustosFixos from "./pages/CustosFixos"
 
 import Sidebar from "./components/Sidebar"
 
 import { supabase } from "./lib/supabase"
 
-export default function App(){
+export default function App() {
+  const [email, setEmail] = useState("")
+  const [senha, setSenha] = useState("")
+  const [user, setUser] = useState(null)
 
-  const [email,setEmail] = useState("")
-  const [senha,setSenha] = useState("")
-  const [user,setUser] = useState(null)
+  const [menuOpen, setMenuOpen] = useState(false)
 
-  const [menuOpen,setMenuOpen] = useState(false)
-
-  async function login(e){
+  async function login(e) {
     e.preventDefault()
 
     const { data, error } = await supabase
@@ -33,12 +33,12 @@ export default function App(){
       .eq("email", email)
       .single()
 
-    if(error || !data){
+    if (error || !data) {
       alert("Usuário não encontrado")
       return
     }
 
-    if(data.senha !== senha){
+    if (data.senha !== senha) {
       alert("Senha incorreta")
       return
     }
@@ -47,29 +47,24 @@ export default function App(){
     localStorage.setItem("loginTime", Date.now())
   }
 
-  useEffect(()=>{
-
-    const interval = setInterval(()=>{
-
+  useEffect(() => {
+    const interval = setInterval(() => {
       const loginTime = localStorage.getItem("loginTime")
 
-      if(!loginTime) return
+      if (!loginTime) return
 
       const agora = Date.now()
       const tempo = agora - loginTime
-
       const cincoMinutos = 5 * 60 * 1000
 
-      if(tempo > cincoMinutos){
+      if (tempo > cincoMinutos) {
         setUser(null)
         localStorage.removeItem("loginTime")
       }
+    }, 10000)
 
-    },10000)
-
-    return ()=>clearInterval(interval)
-
-  },[])
+    return () => clearInterval(interval)
+  }, [])
 
   const podeVerEscala =
     user?.role === "Administrador" ||
@@ -80,13 +75,16 @@ export default function App(){
     user?.role === "Administrador" ||
     user?.role === "Mídia"
 
-  if(!user){
+  const podeVerCustosFixos =
+    user?.role === "Administrador" ||
+    user?.role === "Mídia"
+
+  if (!user) {
     return (
       <div className="login-page">
         <div className="login-card">
-
           <div className="logo-title">
-            <img src="/logo.png" alt="Logo"/>
+            <img src="/logo.png" alt="Logo" />
             <h2>Sistema Geral ADJACARÉ</h2>
           </div>
 
@@ -94,21 +92,20 @@ export default function App(){
             <input
               placeholder="Email"
               value={email}
-              onChange={e=>setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
             />
 
             <input
               type="password"
               placeholder="Senha"
               value={senha}
-              onChange={e=>setSenha(e.target.value)}
+              onChange={(e) => setSenha(e.target.value)}
             />
 
             <button className="login-btn">
               Entrar
             </button>
           </form>
-
         </div>
       </div>
     )
@@ -116,24 +113,21 @@ export default function App(){
 
   return (
     <div className="dashboard">
-
       <header className="topbar">
-
         <button
           className="menu-btn"
-          onClick={()=>setMenuOpen(true)}
+          onClick={() => setMenuOpen(true)}
         >
           ☰ Menu
         </button>
 
-        <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
-
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div className="user-box">
             {user.nome} • {user.role}
           </div>
 
           <button
-            onClick={()=>{
+            onClick={() => {
               setUser(null)
               localStorage.removeItem("loginTime")
             }}
@@ -141,9 +135,7 @@ export default function App(){
           >
             Sair
           </button>
-
         </div>
-
       </header>
 
       <Sidebar
@@ -153,37 +145,45 @@ export default function App(){
       />
 
       <Routes>
-        <Route path="/" element={<Dashboard user={user}/>}/>
-        <Route path="/dashboard" element={<Dashboard user={user}/>}/>
-        <Route path="/pedidos" element={<Pedidos user={user}/>}/>
-        <Route path="/kanban" element={<KanbanPedidos user={user}/>}/>
-        <Route path="/solicitacoes" element={<Solicitacoes/>}/>
-        <Route path="/agenda" element={<Agenda/>}/>
-        <Route path="/avisos" element={<Avisos/>}/>
-        <Route path="/usuarios" element={<Usuarios user={user}/>}/>
-        <Route path="/trocar-senha" element={<TrocarSenha/>}/>
+        <Route path="/" element={<Dashboard user={user} />} />
+        <Route path="/dashboard" element={<Dashboard user={user} />} />
+        <Route path="/pedidos" element={<Pedidos user={user} />} />
+        <Route path="/kanban" element={<KanbanPedidos user={user} />} />
+        <Route path="/solicitacoes" element={<Solicitacoes />} />
+        <Route path="/agenda" element={<Agenda />} />
+        <Route path="/avisos" element={<Avisos />} />
+        <Route path="/usuarios" element={<Usuarios user={user} />} />
+        <Route path="/trocar-senha" element={<TrocarSenha />} />
 
         <Route
           path="/escala-midia"
           element={
             podeVerEscala
-              ? <EscalaMidia user={user}/>
+              ? <EscalaMidia user={user} />
               : <Navigate to="/dashboard" replace />
           }
         />
 
         <Route
-  path="/senhas-aplicativos"
-  element={
-    podeVerSenhas
-      ? <SenhasAplicativos user={user} />
-      : <Navigate to="/dashboard" replace />
-  }
-/>
+          path="/senhas-aplicativos"
+          element={
+            podeVerSenhas
+              ? <SenhasAplicativos user={user} />
+              : <Navigate to="/dashboard" replace />
+          }
+        />
 
-        <Route path="*" element={<Navigate to="/dashboard" replace />}/>
+        <Route
+          path="/custos-fixos"
+          element={
+            podeVerCustosFixos
+              ? <CustosFixos user={user} />
+              : <Navigate to="/dashboard" replace />
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
-
     </div>
   )
 }

@@ -20,8 +20,9 @@ export default function Sidebar({ open, setOpen, user }) {
 
   const podeVerCustosFixos =
     user?.role === "Administrador" ||
-    user?.role === "Mídia"
-
+    user?.role === "Mídia" ||
+    user?.role === "Dirigente"
+  
   return (
     <div className={`sidebar ${open ? "open" : ""}`}>
 

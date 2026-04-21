@@ -285,7 +285,7 @@ export default function CustosFixos({ user }) {
       <div className="senhas-card">
         <div className="senhas-topo">
           <div>
-            <h1>Custos Fixos</h1>
+            <h1>Assinaturas e Pagamentos Mídia</h1>
             <p>Controle de assinaturas, pagamentos e vencimentos.</p>
           </div>
         </div>

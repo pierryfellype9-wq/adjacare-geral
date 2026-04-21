@@ -18,6 +18,10 @@ export default function Sidebar({ open, setOpen, user }) {
     user?.role === "Administrador" ||
     user?.role === "Mídia"
 
+  const podeVerCustosFixos =
+    user?.role === "Administrador" ||
+    user?.role === "Mídia"
+
   return (
     <div className={`sidebar ${open ? "open" : ""}`}>
 
@@ -61,6 +65,12 @@ export default function Sidebar({ open, setOpen, user }) {
       {podeVerSenhas && (
         <div className="menu-item" onClick={()=>navegar("/senhas-aplicativos")}>
           Senhas Aplicativos e Softwares
+        </div>
+      )}
+
+      {podeVerCustosFixos && (
+        <div className="menu-item" onClick={()=>navegar("/custos-fixos")}>
+          Custos Fixos
         </div>
       )}
 

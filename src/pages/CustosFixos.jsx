@@ -56,10 +56,18 @@ function corStatus(status) {
     }
   }
 
+  if (status === "Cancelado") {
+    return {
+      fundo: "#f3f4f6",
+      texto: "#6b7280",
+      borda: "#d1d5db",
+    }
+  }
+
   return {
-    fundo: "#f3f4f6",
-    texto: "#6b7280",
-    borda: "#d1d5db",
+    fundo: "#eef2ff",
+    texto: "#4338ca",
+    borda: "#c7d2fe",
   }
 }
 
@@ -147,6 +155,10 @@ export default function CustosFixos({ user }) {
 
   const proximosVencimentos = useMemo(() => {
     return custosTratados.filter((item) => item.statusVisual === "Próximo").length
+  }, [custosTratados])
+
+  const quantidadeAtrasados = useMemo(() => {
+    return custosTratados.filter((item) => item.statusVisual === "Atrasado").length
   }, [custosTratados])
 
   function atualizarCampo(e) {
@@ -257,296 +269,281 @@ export default function CustosFixos({ user }) {
   }
 
   return (
-    <div style={{ padding: 20 }}>
-      <div
-        style={{
-          marginBottom: 20,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 16,
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <h1 style={{ margin: 0, fontSize: 28 }}>Custos Fixos</h1>
-          <p style={{ margin: "6px 0 0", color: "#666" }}>
-            Controle de assinaturas, pagamentos e vencimentos.
-          </p>
-        </div>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 14,
-          marginBottom: 22,
-        }}
-      >
-        <div
-          style={{
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 14,
-            padding: 18,
-            boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-          }}
-        >
-          <div style={{ color: "#666", fontSize: 14 }}>Total mensal</div>
-          <div style={{ fontSize: 28, fontWeight: 700, marginTop: 6 }}>
-            {formatarMoeda(totalMensal)}
+    <div className="senhas-page">
+      <div className="senhas-card">
+        <div className="senhas-topo">
+          <div>
+            <h1>Custos Fixos</h1>
+            <p>Controle de assinaturas, pagamentos e vencimentos.</p>
           </div>
         </div>
 
         <div
-          style={{
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 14,
-            padding: 18,
-            boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-          }}
-        >
-          <div style={{ color: "#666", fontSize: 14 }}>Próximos vencimentos</div>
-          <div style={{ fontSize: 28, fontWeight: 700, marginTop: 6 }}>
-            {proximosVencimentos}
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 14,
-            padding: 18,
-            boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-          }}
-        >
-          <div style={{ color: "#666", fontSize: 14 }}>Atrasados</div>
-          <div style={{ fontSize: 28, fontWeight: 700, marginTop: 6 }}>
-            {custosTratados.filter((item) => item.statusVisual === "Atrasado").length}
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 14,
-            padding: 18,
-            boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-          }}
-        >
-          <div style={{ color: "#666", fontSize: 14 }}>Valor atrasado</div>
-          <div style={{ fontSize: 28, fontWeight: 700, marginTop: 6 }}>
-            {formatarMoeda(totalAtrasado)}
-          </div>
-        </div>
-      </div>
-
-      <div
-        style={{
-          background: "#fff",
-          border: "1px solid #e5e7eb",
-          borderRadius: 14,
-          padding: 18,
-          marginBottom: 22,
-          boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-        }}
-      >
-        <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 20 }}>
-          Cadastrar custo fixo
-        </h2>
-
-        <form
-          onSubmit={cadastrarCusto}
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: 12,
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 18,
+            marginBottom: 24,
           }}
         >
-          <input
-            name="nome"
-            placeholder="Nome do serviço"
-            value={form.nome}
-            onChange={atualizarCampo}
+          <div
             style={{
-              padding: 12,
-              borderRadius: 10,
-              border: "1px solid #d1d5db",
-              outline: "none",
-            }}
-          />
-
-          <input
-            name="valor"
-            type="number"
-            step="0.01"
-            placeholder="Valor"
-            value={form.valor}
-            onChange={atualizarCampo}
-            style={{
-              padding: 12,
-              borderRadius: 10,
-              border: "1px solid #d1d5db",
-              outline: "none",
-            }}
-          />
-
-          <select
-            name="frequencia"
-            value={form.frequencia}
-            onChange={atualizarCampo}
-            style={{
-              padding: 12,
-              borderRadius: 10,
-              border: "1px solid #d1d5db",
-              outline: "none",
+              background: "#ffffff",
+              border: "1px solid #e5e7eb",
+              borderRadius: 16,
+              padding: 20,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
             }}
           >
-            <option value="mensal">Mensal</option>
-            <option value="anual">Anual</option>
-            <option value="unico">Único</option>
-          </select>
+            <div style={{ color: "#64748b", fontSize: 14 }}>Total mensal</div>
+            <div style={{ fontSize: 32, fontWeight: 700, marginTop: 8, color: "#0f172a" }}>
+              {formatarMoeda(totalMensal)}
+            </div>
+          </div>
 
-          <input
-            name="data_proximo_pagamento"
-            type="date"
-            value={form.data_proximo_pagamento}
-            onChange={atualizarCampo}
+          <div
             style={{
-              padding: 12,
-              borderRadius: 10,
-              border: "1px solid #d1d5db",
-              outline: "none",
-            }}
-          />
-
-          <button
-            type="submit"
-            disabled={salvando}
-            style={{
-              border: "none",
-              borderRadius: 10,
-              padding: "12px 16px",
-              background: "#111827",
-              color: "#fff",
-              fontWeight: 600,
-              cursor: "pointer",
+              background: "#ffffff",
+              border: "1px solid #e5e7eb",
+              borderRadius: 16,
+              padding: 20,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
             }}
           >
-            {salvando ? "Salvando..." : "Cadastrar"}
-          </button>
-        </form>
-      </div>
+            <div style={{ color: "#64748b", fontSize: 14 }}>Próximos vencimentos</div>
+            <div style={{ fontSize: 32, fontWeight: 700, marginTop: 8, color: "#0f172a" }}>
+              {proximosVencimentos}
+            </div>
+          </div>
 
-      <div
-        style={{
-          background: "#fff",
-          border: "1px solid #e5e7eb",
-          borderRadius: 14,
-          padding: 18,
-          boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
-        }}
-      >
-        <h2 style={{ marginTop: 0, marginBottom: 16, fontSize: 20 }}>
-          Assinaturas e pagamentos
-        </h2>
+          <div
+            style={{
+              background: "#ffffff",
+              border: "1px solid #e5e7eb",
+              borderRadius: 16,
+              padding: 20,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
+            }}
+          >
+            <div style={{ color: "#64748b", fontSize: 14 }}>Atrasados</div>
+            <div style={{ fontSize: 32, fontWeight: 700, marginTop: 8, color: "#0f172a" }}>
+              {quantidadeAtrasados}
+            </div>
+          </div>
 
-        {loading ? (
-          <p style={{ margin: 0 }}>Carregando...</p>
-        ) : custosTratados.length === 0 ? (
-          <p style={{ margin: 0 }}>Nenhum custo fixo cadastrado.</p>
-        ) : (
-          <div style={{ display: "grid", gap: 12 }}>
-            {custosTratados.map((item) => {
-              const estiloStatus = corStatus(item.statusVisual)
+          <div
+            style={{
+              background: "#ffffff",
+              border: "1px solid #e5e7eb",
+              borderRadius: 16,
+              padding: 20,
+              boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
+            }}
+          >
+            <div style={{ color: "#64748b", fontSize: 14 }}>Valor atrasado</div>
+            <div style={{ fontSize: 32, fontWeight: 700, marginTop: 8, color: "#0f172a" }}>
+              {formatarMoeda(totalAtrasado)}
+            </div>
+          </div>
+        </div>
 
-              return (
-                <div
-                  key={item.id}
-                  style={{
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 12,
-                    padding: 16,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 16,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <div style={{ flex: 1, minWidth: 220 }}>
-                    <div
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 700,
-                        marginBottom: 8,
-                      }}
-                    >
-                      {item.nome}
+        <div
+          style={{
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
+            borderRadius: 16,
+            padding: 20,
+            marginBottom: 24,
+          }}
+        >
+          <h2 style={{ marginTop: 0, marginBottom: 16, color: "#1e293b" }}>
+            Cadastrar custo fixo
+          </h2>
+
+          <form
+            onSubmit={cadastrarCusto}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 12,
+              alignItems: "end",
+            }}
+          >
+            <input
+              className="input"
+              name="nome"
+              placeholder="Nome do serviço"
+              value={form.nome}
+              onChange={atualizarCampo}
+              style={{ marginTop: 0, height: 44 }}
+            />
+
+            <input
+              className="input"
+              name="valor"
+              type="number"
+              step="0.01"
+              placeholder="Valor"
+              value={form.valor}
+              onChange={atualizarCampo}
+              style={{ marginTop: 0, height: 44 }}
+            />
+
+            <select
+              className="input"
+              name="frequencia"
+              value={form.frequencia}
+              onChange={atualizarCampo}
+              style={{ marginTop: 0, height: 44 }}
+            >
+              <option value="mensal">Mensal</option>
+              <option value="anual">Anual</option>
+              <option value="unico">Único</option>
+            </select>
+
+            <input
+              className="input"
+              name="data_proximo_pagamento"
+              type="date"
+              value={form.data_proximo_pagamento}
+              onChange={atualizarCampo}
+              style={{ marginTop: 0, height: 44 }}
+            />
+
+            <button
+              type="submit"
+              className="btn"
+              disabled={salvando}
+              style={{
+                height: 44,
+                borderRadius: 12,
+              }}
+            >
+              {salvando ? "Salvando..." : "Cadastrar"}
+            </button>
+          </form>
+        </div>
+
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e5e7eb",
+            borderRadius: 16,
+            padding: 20,
+          }}
+        >
+          <h2 style={{ marginTop: 0, marginBottom: 16, color: "#1e293b" }}>
+            Assinaturas e pagamentos
+          </h2>
+
+          {loading ? (
+            <p style={{ margin: 0, color: "#64748b" }}>Carregando...</p>
+          ) : custosTratados.length === 0 ? (
+            <p style={{ margin: 0, color: "#64748b" }}>Nenhum custo fixo cadastrado.</p>
+          ) : (
+            <div style={{ display: "grid", gap: 14 }}>
+              {custosTratados.map((item) => {
+                const estiloStatus = corStatus(item.statusVisual)
+
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      background: "#f8fafc",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 16,
+                      padding: 18,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 16,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 240 }}>
+                      <div
+                        style={{
+                          fontSize: 19,
+                          fontWeight: 700,
+                          color: "#0f172a",
+                          marginBottom: 8,
+                        }}
+                      >
+                        {item.nome}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 600,
+                          color: "#111827",
+                          marginBottom: 8,
+                        }}
+                      >
+                        {formatarMoeda(item.valor)}
+                      </div>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 10,
+                          flexWrap: "wrap",
+                          color: "#475569",
+                          fontSize: 14,
+                        }}
+                      >
+                        <span><strong>Frequência:</strong> {item.frequencia}</span>
+                        <span><strong>Vence:</strong> {formatarData(item.data_proximo_pagamento)}</span>
+                      </div>
                     </div>
 
                     <div
                       style={{
                         display: "flex",
+                        alignItems: "center",
                         gap: 10,
                         flexWrap: "wrap",
-                        color: "#555",
-                        fontSize: 14,
                       }}
                     >
-                      <span><strong>Valor:</strong> {formatarMoeda(item.valor)}</span>
-                      <span><strong>Frequência:</strong> {item.frequencia}</span>
-                      <span><strong>Vence:</strong> {formatarData(item.data_proximo_pagamento)}</span>
+                      <span
+                        style={{
+                          background: estiloStatus.fundo,
+                          color: estiloStatus.texto,
+                          border: `1px solid ${estiloStatus.borda}`,
+                          padding: "6px 14px",
+                          borderRadius: 999,
+                          fontWeight: 700,
+                          fontSize: 12,
+                          letterSpacing: "0.3px",
+                        }}
+                      >
+                        {item.statusVisual}
+                      </span>
+
+                      <button
+                        onClick={() => marcarComoPago(item)}
+                        disabled={processandoId === item.id}
+                        style={{
+                          border: "none",
+                          borderRadius: 10,
+                          padding: "8px 12px",
+                          background: "#0f172a",
+                          color: "#fff",
+                          fontWeight: 600,
+                          fontSize: 13,
+                          cursor: processandoId === item.id ? "not-allowed" : "pointer",
+                          opacity: processandoId === item.id ? 0.7 : 1,
+                        }}
+                      >
+                        {processandoId === item.id ? "Salvando..." : "Marcar como pago"}
+                      </button>
                     </div>
                   </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <span
-                      style={{
-                        background: estiloStatus.fundo,
-                        color: estiloStatus.texto,
-                        border: `1px solid ${estiloStatus.borda}`,
-                        padding: "8px 12px",
-                        borderRadius: 999,
-                        fontWeight: 700,
-                        fontSize: 13,
-                      }}
-                    >
-                      {item.statusVisual}
-                    </span>
-
-                    <button
-                      onClick={() => marcarComoPago(item)}
-                      disabled={processandoId === item.id}
-                      style={{
-                        border: "none",
-                        borderRadius: 10,
-                        padding: "10px 14px",
-                        background: "#111827",
-                        color: "#fff",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {processandoId === item.id ? "Salvando..." : "Marcar como pago"}
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

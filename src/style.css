@@ -963,6 +963,38 @@ label {
   }
 }
 
+/* ALERTA TOPO EBD */
+
+.ebd-alerta-topo {
+  background: #fef3c7;
+  border: 2px solid #facc15;
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  animation: piscar 1s infinite alternate;
+}
+
+.ebd-alerta-topo h3 {
+  margin: 0 0 10px;
+  color: #92400e;
+}
+
+.ebd-alerta-item-topo {
+  font-weight: 600;
+  color: #78350f;
+  margin-bottom: 4px;
+}
+
+/* EFEITO PISCAR */
+@keyframes piscar {
+  from {
+    box-shadow: 0 0 0px rgba(250, 204, 21, 0.5);
+  }
+  to {
+    box-shadow: 0 0 15px rgba(250, 204, 21, 0.9);
+  }
+}
+
 /* MOBILE */
 
 @media (max-width: 600px) {

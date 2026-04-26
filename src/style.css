@@ -576,6 +576,65 @@ label {
   margin-bottom: 8px;
 }
 
+/* HERO */
+
+.ebd-hero {
+  margin-bottom: 30px;
+}
+
+.ebd-hero h1 {
+  font-size: 34px;
+  margin: 0;
+  color: #0f172a;
+}
+
+.ebd-hero p {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 15px;
+}
+
+/* CARDS */
+
+.ebd-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.ebd-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+  cursor: pointer;
+  transition: 0.25s;
+  border: 1px solid #e5e7eb;
+}
+
+.ebd-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  border-color: #2563eb;
+}
+
+.ebd-card .icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.ebd-card h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.ebd-card p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
 /* MOBILE */
 
 @media (max-width: 600px) {

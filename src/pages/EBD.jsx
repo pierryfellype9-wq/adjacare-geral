@@ -9,8 +9,13 @@ export default function EBD({ user }) {
   const [alertas, setAlertas] = useState([])
   const [mostrarModal, setMostrarModal] = useState(false)
 
+  const podeVerTudo =
+    usuario?.role === "Administrador" ||
+    usuario?.role === "Dirigente" ||
+    usuario?.turma_ebd === "Superintendente"
+
   const professor =
-    usuario?.role === "EBD" &&
+    usuario?.turma_ebd &&
     usuario?.turma_ebd !== "Superintendente" &&
     usuario?.turma_ebd !== "Não permitido"
 
@@ -27,6 +32,11 @@ export default function EBD({ user }) {
   }
 
   async function carregarAlertas() {
+    if (!podeVerTudo && !professor) {
+      setAlertas([])
+      return
+    }
+
     const { data } = await supabase
       .from("ebd_alunos")
       .select(`
@@ -41,6 +51,10 @@ export default function EBD({ user }) {
     const alertasTemp = []
 
     alunos.forEach((aluno) => {
+      if (!podeVerTudo && professor) {
+        if (aluno.ebd_turmas?.nome !== usuario.turma_ebd) return
+      }
+
       const presencas = aluno.ebd_presencas || []
 
       const presentes = presencas.filter((p) => p.status === "presente").length
@@ -48,8 +62,6 @@ export default function EBD({ user }) {
       const frequencia = total > 0 ? Math.round((presentes / total) * 100) : 0
 
       if (frequencia > 0 && frequencia < 60) {
-        if (professor && aluno.ebd_turmas?.nome !== usuario.turma_ebd) return
-
         alertasTemp.push({
           id: aluno.id,
           nome: aluno.nome,

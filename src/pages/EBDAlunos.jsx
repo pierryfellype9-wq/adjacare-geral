@@ -19,6 +19,7 @@ export default function EBDAlunos({ user }) {
   const [nomeMae, setNomeMae] = useState("")
   const [contato, setContato] = useState("")
   const [observacao, setObservacao] = useState("")
+  const [casado, setCasado] = useState("Não")
 
   const [editando, setEditando] = useState(false)
   const [alunoId, setAlunoId] = useState(null)
@@ -90,18 +91,33 @@ export default function EBDAlunos({ user }) {
     return idade
   }
 
-  function encontrarTurmaPorIdade(idade) {
-    return turmas.find((turma) => {
-      if (turma.idade_max === null) {
-        return idade >= turma.idade_min
+  function encontrarTurmaPorIdade(idade, casadoAluno) {
+    if (idade === null) return null
+
+    if (idade <= 2) return turmas.find((t) => t.nome === "Berçário")
+    if (idade <= 5) return turmas.find((t) => t.nome === "Maternal")
+    if (idade <= 8) return turmas.find((t) => t.nome === "Primários")
+    if (idade <= 11) return turmas.find((t) => t.nome === "Juniores")
+    if (idade <= 16) return turmas.find((t) => t.nome === "Juvenis")
+
+    if (idade === 17) {
+      return turmas.find((t) => t.nome === "Jovens")
+    }
+
+    if (idade >= 18) {
+      if (casadoAluno === "Sim") {
+        return turmas.find((t) => t.nome === "Adultos")
       }
 
-      return idade >= turma.idade_min && idade <= turma.idade_max
-    })
+      return turmas.find((t) => t.nome === "Jovens")
+    }
+
+    return null
   }
 
   const idade = dataNascimento ? calcularIdade(dataNascimento) : null
-  const turmaAutomatica = idade !== null ? encontrarTurmaPorIdade(idade) : null
+  const turmaAutomatica =
+    idade !== null ? encontrarTurmaPorIdade(idade, casado) : null
   const menorDeIdade = idade !== null && idade < 18
 
   function limparFormulario() {
@@ -111,6 +127,7 @@ export default function EBDAlunos({ user }) {
     setNomeMae("")
     setContato("")
     setObservacao("")
+    setCasado("Não")
     setEditando(false)
     setAlunoId(null)
   }
@@ -259,14 +276,38 @@ export default function EBDAlunos({ user }) {
         <div className="form-grid-ebd">
           <div>
             <label>Nome do aluno</label>
-            <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Digite o nome" />
+            <input
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="Digite o nome"
+            />
           </div>
 
           <div>
             <label>Data de nascimento</label>
-            <input type="date" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} />
+            <input
+              type="date"
+              value={dataNascimento}
+              onChange={(e) => {
+                setDataNascimento(e.target.value)
+                setCasado("Não")
+              }}
+            />
           </div>
         </div>
+
+        {idade !== null && idade >= 18 && (
+          <div>
+            <label>É casado?</label>
+            <select
+              value={casado}
+              onChange={(e) => setCasado(e.target.value)}
+            >
+              <option value="Não">Não</option>
+              <option value="Sim">Sim</option>
+            </select>
+          </div>
+        )}
 
         {idade !== null && (
           <div className="info-box ebd-info-box">
@@ -276,7 +317,7 @@ export default function EBDAlunos({ user }) {
             </div>
 
             <div>
-              <span>Classe</span>
+              <span>Classe sugerida</span>
               <strong>{turmaAutomatica?.nome || "Não encontrada"}</strong>
             </div>
           </div>
@@ -286,17 +327,29 @@ export default function EBDAlunos({ user }) {
           <div className="form-grid-ebd">
             <div>
               <label>Nome do pai</label>
-              <input value={nomePai} onChange={(e) => setNomePai(e.target.value)} placeholder="Nome do pai" />
+              <input
+                value={nomePai}
+                onChange={(e) => setNomePai(e.target.value)}
+                placeholder="Nome do pai"
+              />
             </div>
 
             <div>
               <label>Nome da mãe</label>
-              <input value={nomeMae} onChange={(e) => setNomeMae(e.target.value)} placeholder="Nome da mãe" />
+              <input
+                value={nomeMae}
+                onChange={(e) => setNomeMae(e.target.value)}
+                placeholder="Nome da mãe"
+              />
             </div>
 
             <div>
               <label>Contato do responsável</label>
-              <input value={contato} onChange={(e) => setContato(e.target.value)} placeholder="Telefone do responsável" />
+              <input
+                value={contato}
+                onChange={(e) => setContato(e.target.value)}
+                placeholder="Telefone do responsável"
+              />
             </div>
           </div>
         )}
@@ -304,22 +357,38 @@ export default function EBDAlunos({ user }) {
         {idade !== null && idade >= 18 && (
           <div>
             <label>Contato do aluno</label>
-            <input value={contato} onChange={(e) => setContato(e.target.value)} placeholder="Telefone do aluno" />
+            <input
+              value={contato}
+              onChange={(e) => setContato(e.target.value)}
+              placeholder="Telefone do aluno"
+            />
           </div>
         )}
 
         <div>
           <label>Observação</label>
-          <textarea value={observacao} onChange={(e) => setObservacao(e.target.value)} placeholder="Observações, se houver" />
+          <textarea
+            value={observacao}
+            onChange={(e) => setObservacao(e.target.value)}
+            placeholder="Observações, se houver"
+          />
         </div>
 
         <div className="form-actions">
           <button disabled={carregando}>
-            {carregando ? "Salvando..." : editando ? "Salvar alterações" : "Cadastrar aluno"}
+            {carregando
+              ? "Salvando..."
+              : editando
+              ? "Salvar alterações"
+              : "Cadastrar aluno"}
           </button>
 
           {editando && (
-            <button type="button" className="btn-cancelar" onClick={limparFormulario}>
+            <button
+              type="button"
+              className="btn-cancelar"
+              onClick={limparFormulario}
+            >
               Cancelar
             </button>
           )}
@@ -333,7 +402,10 @@ export default function EBDAlunos({ user }) {
               Alunos cadastrados
               {professorEBD && ` — ${usuario.turma_ebd}`}
             </h2>
-            <p>{alunos.length} aluno{alunos.length !== 1 ? "s" : ""} cadastrado{alunos.length !== 1 ? "s" : ""}</p>
+            <p>
+              {alunos.length} aluno{alunos.length !== 1 ? "s" : ""} cadastrado
+              {alunos.length !== 1 ? "s" : ""}
+            </p>
           </div>
         </div>
 
@@ -345,7 +417,9 @@ export default function EBDAlunos({ user }) {
               <div className="aluno-card-top">
                 <div>
                   <h3>{aluno.nome}</h3>
-                  <span className="badge-turma">{aluno.ebd_turmas?.nome || "Sem turma"}</span>
+                  <span className="badge-turma">
+                    {aluno.ebd_turmas?.nome || "Sem turma"}
+                  </span>
                 </div>
 
                 <div className="idade-circle">
@@ -355,17 +429,29 @@ export default function EBDAlunos({ user }) {
               </div>
 
               <div className="aluno-info">
-                <p><strong>Contato:</strong> {aluno.contato || "Não informado"}</p>
-                <p><strong>Cadastrado por:</strong> {aluno.criado_por || "Não informado"}</p>
+                <p>
+                  <strong>Contato:</strong> {aluno.contato || "Não informado"}
+                </p>
+                <p>
+                  <strong>Cadastrado por:</strong>{" "}
+                  {aluno.criado_por || "Não informado"}
+                </p>
 
-                {aluno.observacao && <p><strong>Obs.:</strong> {aluno.observacao}</p>}
+                {aluno.observacao && (
+                  <p>
+                    <strong>Obs.:</strong> {aluno.observacao}
+                  </p>
+                )}
               </div>
 
               <div className="aluno-acoes">
                 <button onClick={() => iniciarEdicao(aluno)}>Editar</button>
 
                 {podeVerTudoEBD && (
-                  <button className="btn-danger" onClick={() => excluirAluno(aluno.id)}>
+                  <button
+                    className="btn-danger"
+                    onClick={() => excluirAluno(aluno.id)}
+                  >
                     Excluir
                   </button>
                 )}

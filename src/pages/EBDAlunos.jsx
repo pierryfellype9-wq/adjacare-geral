@@ -165,10 +165,15 @@ export default function EBDAlunos({ user }) {
       return
     }
 
-    if (!nome || !dataNascimento) {
-      alert("Preencha o nome e a data de nascimento.")
-      return
-    }
+   if (!nome || !dataNascimento) {
+  alert("Nome e data de nascimento são obrigatórios.")
+  return
+}
+
+if (menorDeIdade && (!nomePai || !nomeMae || !contato)) {
+  alert("Para menores de idade, é obrigatório informar pai, mãe e contato.")
+  return
+}
 
     if (!turmaFinal) {
       alert("Selecione uma classe.")
@@ -286,23 +291,30 @@ export default function EBDAlunos({ user }) {
           <div>
             <label>Nome do aluno</label>
             <input
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Digite o nome"
-            />
+  required
+  value={nome}
+  onChange={(e) => setNome(e.target.value)}
+  placeholder="Digite o nome"
+/>
           </div>
 
           <div>
             <label>Data de nascimento</label>
-            <input
-              type="date"
-              value={dataNascimento}
-              onChange={(e) => {
-                setDataNascimento(e.target.value)
-                setCasado("Não")
-                setTurmaSelecionada("")
-              }}
-            />
+              <input
+  required
+  type="date"
+  value={dataNascimento}
+  onChange={(e) => {
+    setDataNascimento(e.target.value)
+    setCasado("Não")
+    setTurmaSelecionada("")
+
+    // limpa dados ao mudar idade
+    setNomePai("")
+    setNomeMae("")
+    setContato("")
+  }}
+/>
           </div>
         </div>
 
@@ -359,6 +371,7 @@ export default function EBDAlunos({ user }) {
             <div>
               <label>Nome do pai</label>
               <input
+                required
                 value={nomePai}
                 onChange={(e) => setNomePai(e.target.value)}
                 placeholder="Nome do pai"
@@ -368,6 +381,7 @@ export default function EBDAlunos({ user }) {
             <div>
               <label>Nome da mãe</label>
               <input
+                required
                 value={nomeMae}
                 onChange={(e) => setNomeMae(e.target.value)}
                 placeholder="Nome da mãe"
@@ -377,6 +391,7 @@ export default function EBDAlunos({ user }) {
             <div>
               <label>Contato do responsável</label>
               <input
+                required
                 value={contato}
                 onChange={(e) => setContato(e.target.value)}
                 placeholder="Telefone do responsável"

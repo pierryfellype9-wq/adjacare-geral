@@ -195,7 +195,7 @@ export default function App() {
 
         {/* EBD */}
         <Route path="/ebd" element={<EBD />} />
-        <Route path="/ebd/alunos" element={<EBDAlunos />} />
+        <Route path="/ebd/alunos" element={<EBDAlunos user={user} />} />
         <Route path="/ebd/chamada" element={<EBDChamada user={user} />} />
         <Route path="/ebd/relatorios" element={<EBDRelatorios />} />
 

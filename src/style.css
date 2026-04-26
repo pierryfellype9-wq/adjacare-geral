@@ -482,6 +482,78 @@ label {
   color: #0f172a;
 }
 
+/* BOTÃO VOLTAR */
+
+.btn-voltar {
+  background: #ffffff;
+  color: #1f3c74;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  transition: 0.2s;
+}
+
+.btn-voltar:hover {
+  background: #1f3c74;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* RELATÓRIOS EBD */
+
+.relatorio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.relatorio-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.relatorio-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.relatorio-card h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.relatorio-card p {
+  margin: 6px 0;
+  color: #334155;
+  font-size: 14px;
+}
+
+.frequencia {
+  width: 70px;
+  height: 70px;
+  min-width: 70px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 18px;
+}
+
 /* CARDS DA HOME EBD */
 
 .cards-grid {

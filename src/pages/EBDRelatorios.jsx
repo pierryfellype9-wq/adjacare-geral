@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
 
 export default function EBDRelatorios({ user }) {
   const navigate = useNavigate()
@@ -102,6 +104,76 @@ export default function EBDRelatorios({ user }) {
     setDados(formatado)
   }
 
+  function exportarPDF(tipo) {
+    const doc = new jsPDF()
+    const hoje = new Date()
+
+    let titulo = ""
+    let periodo = ""
+    let nomeArquivo = ""
+
+    if (tipo === "mensal") {
+      titulo = "Relatório Mensal - EBD"
+      periodo = hoje.toLocaleDateString("pt-BR", {
+        month: "long",
+        year: "numeric",
+      })
+      nomeArquivo = "relatorio-mensal-ebd.pdf"
+    }
+
+    if (tipo === "trimestral") {
+      const trimestre = Math.floor(hoje.getMonth() / 3) + 1
+      titulo = "Relatório Trimestral - EBD"
+      periodo = `${trimestre}º trimestre de ${hoje.getFullYear()}`
+      nomeArquivo = "relatorio-trimestral-ebd.pdf"
+    }
+
+    const turmaSelecionada = turmaFiltro
+      ? turmas.find((t) => String(t.id) === String(turmaFiltro))?.nome
+      : professorEBD
+      ? usuario.turma_ebd
+      : "Todas as turmas"
+
+    doc.setFontSize(16)
+    doc.text(titulo, 14, 18)
+
+    doc.setFontSize(10)
+    doc.text(`Período: ${periodo}`, 14, 27)
+    doc.text(`Turma: ${turmaSelecionada || "Todas as turmas"}`, 14, 34)
+    doc.text(`Gerado por: ${usuario?.nome || "Não identificado"}`, 14, 41)
+    doc.text(`Data de emissão: ${hoje.toLocaleDateString("pt-BR")}`, 14, 48)
+
+    autoTable(doc, {
+      startY: 56,
+      head: [[
+        "Aluno",
+        "Turma",
+        "Presentes",
+        "Faltas",
+        "Justificadas",
+        "Total",
+        "Frequência"
+      ]],
+      body: dados.map((item) => [
+        item.nome,
+        item.turma,
+        item.presentes,
+        item.faltas,
+        item.justificadas,
+        item.total,
+        `${item.frequencia}%`,
+      ]),
+      styles: {
+        fontSize: 9,
+      },
+      headStyles: {
+        fillColor: [31, 60, 116],
+      },
+    })
+
+    doc.save(nomeArquivo)
+  }
+
   if (!temAcessoEBD) {
     return (
       <div className="page">
@@ -143,6 +215,26 @@ export default function EBDRelatorios({ user }) {
             </option>
           ))}
         </select>
+
+        <div className="form-actions">
+          <button
+            type="button"
+            className="btn"
+            onClick={() => exportarPDF("mensal")}
+            disabled={dados.length === 0}
+          >
+            Relatório mensal
+          </button>
+
+          <button
+            type="button"
+            className="btn"
+            onClick={() => exportarPDF("trimestral")}
+            disabled={dados.length === 0}
+          >
+            Relatório trimestral
+          </button>
+        </div>
       </div>
 
       <div className="list-card">

@@ -22,11 +22,8 @@ export default function Sidebar({ open, setOpen, user }) {
     user?.role === "Mídia" ||
     user?.role === "Dirigente"
 
-  const podeVerEBD =
-    user?.role === "Administrador" ||
-    user?.role === "Dirigente" ||
-    user?.role === "EBD"
-
+  const podeVerEBD = true
+    
   return (
     <div className={`sidebar ${open ? "open" : ""}`}>
       <div className="sidebar-header">

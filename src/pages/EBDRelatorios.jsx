@@ -1,19 +1,29 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 
-export default function EBDRelatorios() {
+export default function EBDRelatorios({ user }) {
+  const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")
+
   const [dados, setDados] = useState([])
   const [turmas, setTurmas] = useState([])
   const [turmaFiltro, setTurmaFiltro] = useState("")
 
+  const podeVerTudoEBD =
+    usuario?.role === "Administrador" ||
+    usuario?.role === "Dirigente" ||
+    (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
+
+  const professorEBD =
+    usuario?.role === "EBD" &&
+    usuario?.turma_ebd !== "Superintendente"
+
   useEffect(() => {
     carregarTurmas()
-    carregarRelatorio()
   }, [])
 
   useEffect(() => {
     carregarRelatorio()
-  }, [turmaFiltro])
+  }, [turmaFiltro, turmas])
 
   async function carregarTurmas() {
     const { data } = await supabase
@@ -22,6 +32,11 @@ export default function EBDRelatorios() {
       .order("idade_min", { ascending: true })
 
     setTurmas(data || [])
+
+    if (professorEBD && usuario?.turma_ebd) {
+      const turmaDoUsuario = data?.find((t) => t.nome === usuario.turma_ebd)
+      if (turmaDoUsuario) setTurmaFiltro(turmaDoUsuario.id)
+    }
   }
 
   async function carregarRelatorio() {
@@ -36,7 +51,12 @@ export default function EBDRelatorios() {
       `)
       .order("nome", { ascending: true })
 
-    if (turmaFiltro) {
+    if (professorEBD) {
+      const turmaDoProfessor = turmas.find((t) => t.nome === usuario.turma_ebd)
+      if (turmaDoProfessor) {
+        query = query.eq("turma_id", turmaDoProfessor.id)
+      }
+    } else if (turmaFiltro) {
       query = query.eq("turma_id", turmaFiltro)
     }
 
@@ -65,7 +85,7 @@ export default function EBDRelatorios() {
         faltas,
         justificadas,
         total,
-        frequencia
+        frequencia,
       }
     })
 
@@ -78,8 +98,16 @@ export default function EBDRelatorios() {
 
       <div className="form-card">
         <label>Filtrar por turma</label>
-        <select value={turmaFiltro} onChange={(e) => setTurmaFiltro(e.target.value)}>
-          <option value="">Todas as turmas</option>
+
+        <select
+          value={turmaFiltro}
+          onChange={(e) => setTurmaFiltro(e.target.value)}
+          disabled={!podeVerTudoEBD}
+        >
+          <option value="">
+            {podeVerTudoEBD ? "Todas as turmas" : usuario?.turma_ebd}
+          </option>
+
           {turmas.map((turma) => (
             <option key={turma.id} value={turma.id}>
               {turma.nome}
@@ -89,7 +117,10 @@ export default function EBDRelatorios() {
       </div>
 
       <div className="list-card">
-        <h2>Frequência dos alunos</h2>
+        <h2>
+          Frequência dos alunos
+          {professorEBD && ` — ${usuario.turma_ebd}`}
+        </h2>
 
         {dados.length === 0 && <p>Nenhum dado encontrado.</p>}
 

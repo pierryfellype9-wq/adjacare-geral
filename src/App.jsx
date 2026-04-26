@@ -12,6 +12,7 @@ import KanbanPedidos from "./pages/KanbanPedidos"
 import EscalaMidia from "./pages/EscalaMidia"
 import SenhasAplicativos from "./pages/SenhasAplicativos"
 import CustosFixos from "./pages/CustosFixos"
+import EBDDashboard from "./pages/EBDDashboard"
 
 import EBD from "./pages/EBD"
 import EBDAlunos from "./pages/EBDAlunos"
@@ -198,6 +199,7 @@ export default function App() {
         <Route path="/ebd/alunos" element={<EBDAlunos user={user} />} />
         <Route path="/ebd/chamada" element={<EBDChamada user={user} />} />
         <Route path="/ebd/relatorios" element={<EBDRelatorios user={user} />} />
+        <Route path="/ebd/dashboard" element={<EBDDashboard user={user} />} />
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

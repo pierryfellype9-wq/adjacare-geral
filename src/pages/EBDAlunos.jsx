@@ -13,6 +13,9 @@ export default function EBDAlunos({ user }) {
   const [nomeMae, setNomeMae] = useState("")
   const [contato, setContato] = useState("")
   const [observacao, setObservacao] = useState("")
+
+  const [editando, setEditando] = useState(false)
+  const [alunoId, setAlunoId] = useState(null)
   const [carregando, setCarregando] = useState(false)
 
   const podeVerTudoEBD =
@@ -92,6 +95,33 @@ export default function EBDAlunos({ user }) {
   const turmaAutomatica = idade !== null ? encontrarTurmaPorIdade(idade) : null
   const menorDeIdade = idade !== null && idade < 18
 
+  function limparFormulario() {
+    setNome("")
+    setDataNascimento("")
+    setNomePai("")
+    setNomeMae("")
+    setContato("")
+    setObservacao("")
+    setEditando(false)
+    setAlunoId(null)
+  }
+
+  function iniciarEdicao(aluno) {
+    setEditando(true)
+    setAlunoId(aluno.id)
+    setNome(aluno.nome || "")
+    setDataNascimento(aluno.data_nascimento || "")
+    setNomePai(aluno.nome_pai || "")
+    setNomeMae(aluno.nome_mae || "")
+    setContato(aluno.contato || "")
+    setObservacao(aluno.observacao || "")
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    })
+  }
+
   async function cadastrarAluno(e) {
     e.preventDefault()
 
@@ -112,7 +142,7 @@ export default function EBDAlunos({ user }) {
 
     setCarregando(true)
 
-    const { error } = await supabase.from("ebd_alunos").insert({
+    const dadosAluno = {
       nome,
       data_nascimento: dataNascimento,
       turma_id: turmaAutomatica.id,
@@ -120,25 +150,37 @@ export default function EBDAlunos({ user }) {
       nome_mae: menorDeIdade ? nomeMae : null,
       contato,
       observacao,
-    })
+    }
+
+    let error
+
+    if (editando) {
+      const resposta = await supabase
+        .from("ebd_alunos")
+        .update(dadosAluno)
+        .eq("id", alunoId)
+
+      error = resposta.error
+    } else {
+      const resposta = await supabase.from("ebd_alunos").insert({
+        ...dadosAluno,
+        criado_por: usuario?.nome || "Não identificado",
+      })
+
+      error = resposta.error
+    }
 
     setCarregando(false)
 
     if (error) {
       console.error(error)
-      alert("Erro ao cadastrar aluno.")
+      alert(editando ? "Erro ao editar aluno." : "Erro ao cadastrar aluno.")
       return
     }
 
-    setNome("")
-    setDataNascimento("")
-    setNomePai("")
-    setNomeMae("")
-    setContato("")
-    setObservacao("")
-
+    limparFormulario()
     carregarDados()
-    alert("Aluno cadastrado com sucesso!")
+    alert(editando ? "Aluno atualizado com sucesso!" : "Aluno cadastrado com sucesso!")
   }
 
   async function excluirAluno(id) {
@@ -166,106 +208,176 @@ export default function EBDAlunos({ user }) {
 
   return (
     <div className="page">
-      <h1>Alunos da EBD</h1>
+      <div className="ebd-header">
+        <div>
+          <h1>Alunos da EBD</h1>
+          <p>Cadastro e organização dos alunos por classe.</p>
+        </div>
+      </div>
 
-      <form className="form-card" onSubmit={cadastrarAluno}>
-        <h2>Cadastrar aluno</h2>
+      <form className="form-card ebd-form" onSubmit={cadastrarAluno}>
+        <div className="form-title-row">
+          <div>
+            <h2>{editando ? "Editar aluno" : "Cadastrar aluno"}</h2>
+            <p>Os dados serão classificados automaticamente pela idade.</p>
+          </div>
+        </div>
 
-        <label>Nome do aluno</label>
-        <input
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          placeholder="Digite o nome"
-        />
+        <div className="form-grid-ebd">
+          <div>
+            <label>Nome do aluno</label>
+            <input
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="Digite o nome"
+            />
+          </div>
 
-        <label>Data de nascimento</label>
-        <input
-          type="date"
-          value={dataNascimento}
-          onChange={(e) => setDataNascimento(e.target.value)}
-        />
+          <div>
+            <label>Data de nascimento</label>
+            <input
+              type="date"
+              value={dataNascimento}
+              onChange={(e) => setDataNascimento(e.target.value)}
+            />
+          </div>
+        </div>
 
         {idade !== null && (
-          <div className="info-box">
-            <p><strong>Idade:</strong> {idade} anos</p>
-            <p><strong>Classe:</strong> {turmaAutomatica?.nome || "Não encontrada"}</p>
+          <div className="info-box ebd-info-box">
+            <div>
+              <span>Idade</span>
+              <strong>{idade} anos</strong>
+            </div>
+
+            <div>
+              <span>Classe</span>
+              <strong>{turmaAutomatica?.nome || "Não encontrada"}</strong>
+            </div>
           </div>
         )}
 
         {menorDeIdade && (
-          <>
-            <label>Nome do pai</label>
-            <input
-              value={nomePai}
-              onChange={(e) => setNomePai(e.target.value)}
-              placeholder="Nome do pai"
-            />
+          <div className="form-grid-ebd">
+            <div>
+              <label>Nome do pai</label>
+              <input
+                value={nomePai}
+                onChange={(e) => setNomePai(e.target.value)}
+                placeholder="Nome do pai"
+              />
+            </div>
 
-            <label>Nome da mãe</label>
-            <input
-              value={nomeMae}
-              onChange={(e) => setNomeMae(e.target.value)}
-              placeholder="Nome da mãe"
-            />
+            <div>
+              <label>Nome da mãe</label>
+              <input
+                value={nomeMae}
+                onChange={(e) => setNomeMae(e.target.value)}
+                placeholder="Nome da mãe"
+              />
+            </div>
 
-            <label>Contato do responsável</label>
-            <input
-              value={contato}
-              onChange={(e) => setContato(e.target.value)}
-              placeholder="Telefone do responsável"
-            />
-          </>
+            <div>
+              <label>Contato do responsável</label>
+              <input
+                value={contato}
+                onChange={(e) => setContato(e.target.value)}
+                placeholder="Telefone do responsável"
+              />
+            </div>
+          </div>
         )}
 
         {idade !== null && idade >= 18 && (
-          <>
+          <div>
             <label>Contato do aluno</label>
             <input
               value={contato}
               onChange={(e) => setContato(e.target.value)}
               placeholder="Telefone do aluno"
             />
-          </>
+          </div>
         )}
 
-        <label>Observação</label>
-        <textarea
-          value={observacao}
-          onChange={(e) => setObservacao(e.target.value)}
-          placeholder="Observações, se houver"
-        />
+        <div>
+          <label>Observação</label>
+          <textarea
+            value={observacao}
+            onChange={(e) => setObservacao(e.target.value)}
+            placeholder="Observações, se houver"
+          />
+        </div>
 
-        <button disabled={carregando}>
-          {carregando ? "Salvando..." : "Cadastrar aluno"}
-        </button>
+        <div className="form-actions">
+          <button disabled={carregando}>
+            {carregando
+              ? "Salvando..."
+              : editando
+                ? "Salvar alterações"
+                : "Cadastrar aluno"}
+          </button>
+
+          {editando && (
+            <button type="button" className="btn-cancelar" onClick={limparFormulario}>
+              Cancelar
+            </button>
+          )}
+        </div>
       </form>
 
       <div className="list-card">
-        <h2>
-          Alunos cadastrados
-          {professorEBD && ` — ${usuario.turma_ebd}`}
-        </h2>
+        <div className="list-header">
+          <div>
+            <h2>
+              Alunos cadastrados
+              {professorEBD && ` — ${usuario.turma_ebd}`}
+            </h2>
+            <p>{alunos.length} aluno{alunos.length !== 1 ? "s" : ""} cadastrado{alunos.length !== 1 ? "s" : ""}</p>
+          </div>
+        </div>
 
         {alunos.length === 0 && <p>Nenhum aluno cadastrado.</p>}
 
-        {alunos.map((aluno) => (
-          <div className="list-item" key={aluno.id}>
-            <div>
-              <strong>{aluno.nome}</strong>
-              <p>
-                {calcularIdade(aluno.data_nascimento)} anos —{" "}
-                {aluno.ebd_turmas?.nome || "Sem turma"}
-              </p>
-              <p>Contato: {aluno.contato || "Não informado"}</p>
-            </div>
+        <div className="alunos-grid">
+          {alunos.map((aluno) => (
+            <div className="aluno-card" key={aluno.id}>
+              <div className="aluno-card-top">
+                <div>
+                  <h3>{aluno.nome}</h3>
+                  <span className="badge-turma">
+                    {aluno.ebd_turmas?.nome || "Sem turma"}
+                  </span>
+                </div>
 
-            {podeVerTudoEBD && (
-              <button className="btn-danger" onClick={() => excluirAluno(aluno.id)}>
-                Excluir
-              </button>
-            )}
-          </div>
-        ))}
+                <div className="idade-circle">
+                  {calcularIdade(aluno.data_nascimento)}
+                  <small>anos</small>
+                </div>
+              </div>
+
+              <div className="aluno-info">
+                <p><strong>Contato:</strong> {aluno.contato || "Não informado"}</p>
+                <p><strong>Cadastrado por:</strong> {aluno.criado_por || "Não informado"}</p>
+
+                {aluno.observacao && (
+                  <p><strong>Obs.:</strong> {aluno.observacao}</p>
+                )}
+              </div>
+
+              <div className="aluno-acoes">
+                <button onClick={() => iniciarEdicao(aluno)}>
+                  Editar
+                </button>
+
+                {podeVerTudoEBD && (
+                  <button className="btn-danger" onClick={() => excluirAluno(aluno.id)}>
+                    Excluir
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

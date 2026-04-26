@@ -3,11 +3,13 @@ import { supabase } from "../lib/supabase"
 
 export default function Usuarios({ user }) {
   const [usuarios, setUsuarios] = useState([])
+  const [turmas, setTurmas] = useState([])
 
   const [nome, setNome] = useState("")
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
   const [role, setRole] = useState("")
+  const [turmaEbd, setTurmaEbd] = useState("")
 
   const [editando, setEditando] = useState(false)
   const [usuarioId, setUsuarioId] = useState(null)
@@ -70,6 +72,7 @@ export default function Usuarios({ user }) {
 
   useEffect(() => {
     carregarUsuarios()
+    carregarTurmas()
   }, [])
 
   async function carregarUsuarios() {
@@ -86,11 +89,26 @@ export default function Usuarios({ user }) {
     setUsuarios(data || [])
   }
 
+  async function carregarTurmas() {
+    const { data, error } = await supabase
+      .from("ebd_turmas")
+      .select("*")
+      .order("idade_min", { ascending: true })
+
+    if (error) {
+      console.log(error)
+      return
+    }
+
+    setTurmas(data || [])
+  }
+
   function limparFormulario() {
     setNome("")
     setEmail("")
     setSenha("")
     setRole("")
+    setTurmaEbd("")
     setEditando(false)
     setUsuarioId(null)
   }
@@ -108,12 +126,18 @@ export default function Usuarios({ user }) {
       return
     }
 
+    if (role === "EBD" && !turmaEbd) {
+      alert("Selecione a turma da EBD.")
+      return
+    }
+
     const { error } = await supabase.from("users").insert([
       {
         nome,
         email,
         senha,
         role,
+        turma_ebd: role === "EBD" ? turmaEbd : null,
         primeiro_acesso: true,
       },
     ])
@@ -124,7 +148,6 @@ export default function Usuarios({ user }) {
       return
     }
 
-    // ENVIO DE EMAIL PARA O USUÁRIO
     await fetch("/api/enviar-email", {
       method: "POST",
       headers: {
@@ -184,6 +207,7 @@ export default function Usuarios({ user }) {
     setEmail(u.email || "")
     setSenha(u.senha || "")
     setRole(u.role || "")
+    setTurmaEbd(u.turma_ebd || "")
     setUsuarioId(u.id)
     setEditando(true)
 
@@ -206,6 +230,11 @@ export default function Usuarios({ user }) {
       return
     }
 
+    if (role === "EBD" && !turmaEbd) {
+      alert("Selecione a turma da EBD.")
+      return
+    }
+
     const { error } = await supabase
       .from("users")
       .update({
@@ -213,6 +242,7 @@ export default function Usuarios({ user }) {
         email,
         senha,
         role,
+        turma_ebd: role === "EBD" ? turmaEbd : null,
       })
       .eq("id", usuarioId)
 
@@ -350,58 +380,85 @@ export default function Usuarios({ user }) {
         </div>
 
         {isAdmin && (
-          <>
-            <div
+          <div
+            style={{
+              background: editando ? "#eff6ff" : "#f8fafc",
+              border: editando ? "1px solid #bfdbfe" : "1px solid #e5e7eb",
+              borderRadius: "14px",
+              padding: "22px",
+              marginBottom: "28px",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
+            }}
+          >
+            <h3
               style={{
-                background: editando ? "#eff6ff" : "#f8fafc",
-                border: editando ? "1px solid #bfdbfe" : "1px solid #e5e7eb",
-                borderRadius: "14px",
-                padding: "22px",
-                marginBottom: "28px",
-                boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
+                marginTop: 0,
+                marginBottom: "18px",
+                fontSize: "20px",
+                color: "#111827",
               }}
             >
-              <h3
+              {editando ? "Editar usuário" : "Novo usuário"}
+            </h3>
+
+            <form onSubmit={editando ? salvarEdicao : criarUsuario}>
+              <div
                 style={{
-                  marginTop: 0,
-                  marginBottom: "18px",
-                  fontSize: "20px",
-                  color: "#111827",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                  gap: "12px",
                 }}
               >
-                {editando ? "Editar usuário" : "Novo usuário"}
-              </h3>
+                <input
+                  placeholder="Nome"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                />
 
-              <form onSubmit={editando ? salvarEdicao : criarUsuario}>
-                <div
+                <input
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+
+                <input
+                  type="password"
+                  placeholder="Senha"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                />
+
+                <select
+                  value={role}
+                  onChange={(e) => {
+                    setRole(e.target.value)
+                    if (e.target.value !== "EBD") {
+                      setTurmaEbd("")
+                    }
+                  }}
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                    gap: "12px",
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border: "1px solid #ddd",
+                    boxSizing: "border-box",
+                    fontSize: "14px",
+                    background: "white",
                   }}
                 >
-                  <input
-                    placeholder="Nome"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                  />
+                  <option value="">Selecione o departamento</option>
 
-                  <input
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                  {departamentos.map((dep) => (
+                    <option key={dep} value={dep}>
+                      {dep}
+                    </option>
+                  ))}
+                </select>
 
-                  <input
-                    type="password"
-                    placeholder="Senha"
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)}
-                  />
-
+                {role === "EBD" && (
                   <select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
+                    value={turmaEbd}
+                    onChange={(e) => setTurmaEbd(e.target.value)}
                     style={{
                       width: "100%",
                       padding: "12px",
@@ -412,54 +469,54 @@ export default function Usuarios({ user }) {
                       background: "white",
                     }}
                   >
-                    <option value="">Selecione o departamento</option>
+                    <option value="">Selecione a turma da EBD</option>
 
-                    {departamentos.map((dep) => (
-                      <option key={dep} value={dep}>
-                        {dep}
+                    {turmas.map((t) => (
+                      <option key={t.id} value={t.nome}>
+                        {t.nome}
                       </option>
                     ))}
                   </select>
-                </div>
+                )}
+              </div>
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    marginTop: "16px",
-                    flexWrap: "wrap",
-                  }}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  marginTop: "16px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  className="login-btn"
+                  style={{ marginTop: 0, width: "auto" }}
                 >
-                  <button
-                    className="login-btn"
-                    style={{ marginTop: 0, width: "auto" }}
-                  >
-                    {editando ? "Salvar alterações" : "Criar usuário"}
-                  </button>
+                  {editando ? "Salvar alterações" : "Criar usuário"}
+                </button>
 
-                  {editando && (
-                    <button
-                      type="button"
-                      onClick={limparFormulario}
-                      style={{
-                        marginTop: 0,
-                        width: "auto",
-                        padding: "12px 18px",
-                        border: "none",
-                        borderRadius: "8px",
-                        background: "#e5e7eb",
-                        color: "#111827",
-                        cursor: "pointer",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Cancelar
-                    </button>
-                  )}
-                </div>
-              </form>
-            </div>
-          </>
+                {editando && (
+                  <button
+                    type="button"
+                    onClick={limparFormulario}
+                    style={{
+                      marginTop: 0,
+                      width: "auto",
+                      padding: "12px 18px",
+                      border: "none",
+                      borderRadius: "8px",
+                      background: "#e5e7eb",
+                      color: "#111827",
+                      cursor: "pointer",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
         )}
 
         <div
@@ -505,58 +562,18 @@ export default function Usuarios({ user }) {
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
-                minWidth: "760px",
+                minWidth: "850px",
               }}
             >
               <thead>
                 <tr style={{ background: "#f8fafc" }}>
-                  <th
-                    style={{
-                      textAlign: "left",
-                      padding: "14px 16px",
-                      fontSize: "13px",
-                      color: "#6b7280",
-                      borderBottom: "1px solid #e5e7eb",
-                    }}
-                  >
-                    Nome
-                  </th>
-
-                  <th
-                    style={{
-                      textAlign: "left",
-                      padding: "14px 16px",
-                      fontSize: "13px",
-                      color: "#6b7280",
-                      borderBottom: "1px solid #e5e7eb",
-                    }}
-                  >
-                    Email
-                  </th>
-
-                  <th
-                    style={{
-                      textAlign: "left",
-                      padding: "14px 16px",
-                      fontSize: "13px",
-                      color: "#6b7280",
-                      borderBottom: "1px solid #e5e7eb",
-                    }}
-                  >
-                    Departamento
-                  </th>
+                  <th style={thStyle}>Nome</th>
+                  <th style={thStyle}>Email</th>
+                  <th style={thStyle}>Departamento</th>
+                  <th style={thStyle}>Turma EBD</th>
 
                   {isAdmin && (
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "14px 16px",
-                        fontSize: "13px",
-                        color: "#6b7280",
-                        borderBottom: "1px solid #e5e7eb",
-                        width: "180px",
-                      }}
-                    >
+                    <th style={{ ...thStyle, width: "180px" }}>
                       Ações
                     </th>
                   )}
@@ -567,7 +584,7 @@ export default function Usuarios({ user }) {
                 {usuarios.length === 0 && (
                   <tr>
                     <td
-                      colSpan={isAdmin ? 4 : 3}
+                      colSpan={isAdmin ? 5 : 4}
                       style={{
                         padding: "24px 16px",
                         textAlign: "center",
@@ -589,33 +606,11 @@ export default function Usuarios({ user }) {
                         background: index % 2 === 0 ? "#ffffff" : "#fafafa",
                       }}
                     >
-                      <td
-                        style={{
-                          padding: "16px",
-                          borderBottom: "1px solid #f1f5f9",
-                          fontWeight: "600",
-                          color: "#111827",
-                        }}
-                      >
-                        {u.nome}
-                      </td>
+                      <td style={tdNomeStyle}>{u.nome}</td>
 
-                      <td
-                        style={{
-                          padding: "16px",
-                          borderBottom: "1px solid #f1f5f9",
-                          color: "#4b5563",
-                        }}
-                      >
-                        {u.email}
-                      </td>
+                      <td style={tdStyle}>{u.email}</td>
 
-                      <td
-                        style={{
-                          padding: "16px",
-                          borderBottom: "1px solid #f1f5f9",
-                        }}
-                      >
+                      <td style={tdStyle}>
                         <span
                           style={{
                             background: badge.background,
@@ -631,40 +626,23 @@ export default function Usuarios({ user }) {
                         </span>
                       </td>
 
+                      <td style={tdStyle}>
+                        {u.role === "EBD" ? u.turma_ebd || "Não definida" : "-"}
+                      </td>
+
                       {isAdmin && (
-                        <td
-                          style={{
-                            padding: "16px",
-                            borderBottom: "1px solid #f1f5f9",
-                          }}
-                        >
+                        <td style={tdStyle}>
                           <div style={{ display: "flex", gap: "8px" }}>
                             <button
                               onClick={() => iniciarEdicao(u)}
-                              style={{
-                                padding: "8px 12px",
-                                borderRadius: "8px",
-                                border: "none",
-                                background: "#2563eb",
-                                color: "white",
-                                cursor: "pointer",
-                                fontWeight: "600",
-                              }}
+                              style={btnEditarStyle}
                             >
                               Editar
                             </button>
 
                             <button
                               onClick={() => excluirUsuario(u.id)}
-                              style={{
-                                padding: "8px 12px",
-                                borderRadius: "8px",
-                                border: "none",
-                                background: "#ef4444",
-                                color: "white",
-                                cursor: "pointer",
-                                fontWeight: "600",
-                              }}
+                              style={btnExcluirStyle}
                             >
                               Excluir
                             </button>
@@ -681,4 +659,45 @@ export default function Usuarios({ user }) {
       </div>
     </div>
   )
+}
+
+const thStyle = {
+  textAlign: "left",
+  padding: "14px 16px",
+  fontSize: "13px",
+  color: "#6b7280",
+  borderBottom: "1px solid #e5e7eb",
+}
+
+const tdStyle = {
+  padding: "16px",
+  borderBottom: "1px solid #f1f5f9",
+  color: "#4b5563",
+}
+
+const tdNomeStyle = {
+  padding: "16px",
+  borderBottom: "1px solid #f1f5f9",
+  fontWeight: "600",
+  color: "#111827",
+}
+
+const btnEditarStyle = {
+  padding: "8px 12px",
+  borderRadius: "8px",
+  border: "none",
+  background: "#2563eb",
+  color: "white",
+  cursor: "pointer",
+  fontWeight: "600",
+}
+
+const btnExcluirStyle = {
+  padding: "8px 12px",
+  borderRadius: "8px",
+  border: "none",
+  background: "#ef4444",
+  color: "white",
+  cursor: "pointer",
+  fontWeight: "600",
 }

@@ -5,23 +5,28 @@ export default function EBD() {
 
   return (
     <div className="page">
-      <h1>EBD</h1>
-      <p>Gerenciamento da Escola Bíblica Dominical</p>
+      <div className="ebd-hero">
+        <h1>EBD</h1>
+        <p>Gerenciamento da Escola Bíblica Dominical</p>
+      </div>
 
-      <div className="cards-grid">
-        <div className="card" onClick={() => navigate("/ebd/alunos")}>
+      <div className="ebd-cards">
+        <div className="ebd-card" onClick={() => navigate("/ebd/alunos")}>
+          <div className="icon">👥</div>
           <h3>Alunos</h3>
-          <p>Cadastrar, listar e excluir alunos.</p>
+          <p>Cadastrar, listar e gerenciar alunos.</p>
         </div>
 
-        <div className="card" onClick={() => navigate("/ebd/chamada")}>
+        <div className="ebd-card" onClick={() => navigate("/ebd/chamada")}>
+          <div className="icon">📝</div>
           <h3>Chamada</h3>
           <p>Registrar presença dos alunos.</p>
         </div>
 
-        <div className="card" onClick={() => navigate("/ebd/relatorios")}>
+        <div className="ebd-card" onClick={() => navigate("/ebd/relatorios")}>
+          <div className="icon">📊</div>
           <h3>Relatórios</h3>
-          <p>Ver frequência e faltas.</p>
+          <p>Visualizar frequência e faltas.</p>
         </div>
       </div>
     </div>

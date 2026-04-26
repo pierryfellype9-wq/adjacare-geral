@@ -12,9 +12,16 @@ export default function EBDChamada({ user }) {
   const [dataChamada, setDataChamada] = useState(new Date().toISOString().split("T")[0])
   const [carregando, setCarregando] = useState(false)
 
-  const podeEscolherTurma =
+  const podeVerTudoEBD =
     usuario?.role === "Administrador" ||
-    usuario?.role === "Dirigente"
+    usuario?.role === "Dirigente" ||
+    (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
+
+  const professorEBD =
+    usuario?.role === "EBD" &&
+    usuario?.turma_ebd !== "Superintendente"
+
+  const podeEscolherTurma = podeVerTudoEBD
 
   useEffect(() => {
     carregarTurmas()
@@ -34,7 +41,8 @@ export default function EBDChamada({ user }) {
 
     setTurmas(data || [])
 
-    if (!podeEscolherTurma && usuario?.turma_ebd) {
+    // Se for professor, trava na turma dele
+    if (professorEBD && usuario?.turma_ebd) {
       const turmaDoUsuario = data?.find((t) => t.nome === usuario.turma_ebd)
       if (turmaDoUsuario) setTurmaSelecionada(turmaDoUsuario.id)
     }
@@ -170,7 +178,10 @@ export default function EBDChamada({ user }) {
       </div>
 
       <div className="list-card">
-        <h2>Lista de alunos</h2>
+        <h2>
+          Lista de alunos
+          {professorEBD && ` — ${usuario.turma_ebd}`}
+        </h2>
 
         {alunos.length === 0 && <p>Nenhum aluno para chamada.</p>}
 

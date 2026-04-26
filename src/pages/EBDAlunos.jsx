@@ -92,6 +92,27 @@ export default function EBDAlunos({ user }) {
     return idade
   }
 
+  function gerarEmailPortal(nomeAluno) {
+    if (!nomeAluno) return ""
+
+    return (
+      nomeAluno
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s]/g, "")
+        .trim()
+        .replace(/\s+/g, ".") + "@adjacare.org"
+    )
+  }
+
+  function gerarSenhaPortal(data) {
+    if (!data) return ""
+
+    const [ano, mes, dia] = data.split("-")
+    return `${dia}${mes}${ano}`
+  }
+
   function encontrarTurmaPorIdade(idade, casadoAluno) {
     if (idade === null) return null
 
@@ -117,6 +138,8 @@ export default function EBDAlunos({ user }) {
   }
 
   const idade = dataNascimento ? calcularIdade(dataNascimento) : null
+  const emailPortal = gerarEmailPortal(nome)
+  const senhaPortal = gerarSenhaPortal(dataNascimento)
 
   const turmaAutomatica =
     idade !== null ? encontrarTurmaPorIdade(idade, casado) : null
@@ -165,15 +188,15 @@ export default function EBDAlunos({ user }) {
       return
     }
 
-   if (!nome || !dataNascimento) {
-  alert("Nome e data de nascimento são obrigatórios.")
-  return
-}
+    if (!nome || !dataNascimento) {
+      alert("Nome e data de nascimento são obrigatórios.")
+      return
+    }
 
-if (menorDeIdade && (!nomePai || !nomeMae || !contato)) {
-  alert("Para menores de idade, é obrigatório informar pai, mãe e contato.")
-  return
-}
+    if (menorDeIdade && (!nomePai || !nomeMae || !contato)) {
+      alert("Para menores de idade, é obrigatório informar pai, mãe e contato.")
+      return
+    }
 
     if (!turmaFinal) {
       alert("Selecione uma classe.")
@@ -195,6 +218,8 @@ if (menorDeIdade && (!nomePai || !nomeMae || !contato)) {
       nome_mae: menorDeIdade ? nomeMae : null,
       contato,
       observacao,
+      email_portal: emailPortal,
+      senha_portal: senhaPortal,
     }
 
     let error
@@ -291,32 +316,44 @@ if (menorDeIdade && (!nomePai || !nomeMae || !contato)) {
           <div>
             <label>Nome do aluno</label>
             <input
-  required
-  value={nome}
-  onChange={(e) => setNome(e.target.value)}
-  placeholder="Digite o nome"
-/>
+              required
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="Digite o nome"
+            />
           </div>
 
           <div>
             <label>Data de nascimento</label>
-              <input
-  required
-  type="date"
-  value={dataNascimento}
-  onChange={(e) => {
-    setDataNascimento(e.target.value)
-    setCasado("Não")
-    setTurmaSelecionada("")
-
-    // limpa dados ao mudar idade
-    setNomePai("")
-    setNomeMae("")
-    setContato("")
-  }}
-/>
+            <input
+              required
+              type="date"
+              value={dataNascimento}
+              onChange={(e) => {
+                setDataNascimento(e.target.value)
+                setCasado("Não")
+                setTurmaSelecionada("")
+                setNomePai("")
+                setNomeMae("")
+                setContato("")
+              }}
+            />
           </div>
         </div>
+
+        {nome && dataNascimento && (
+          <div className="info-box ebd-info-box">
+            <div>
+              <span>Login do aluno</span>
+              <strong>{emailPortal}</strong>
+            </div>
+
+            <div>
+              <span>Senha inicial</span>
+              <strong>{senhaPortal}</strong>
+            </div>
+          </div>
+        )}
 
         {idade !== null && idade >= 18 && (
           <div>
@@ -478,6 +515,17 @@ if (menorDeIdade && (!nomePai || !nomeMae || !contato)) {
                 <p>
                   <strong>Contato:</strong> {aluno.contato || "Não informado"}
                 </p>
+
+                <p>
+                  <strong>Login:</strong>{" "}
+                  {aluno.email_portal || gerarEmailPortal(aluno.nome)}
+                </p>
+
+                <p>
+                  <strong>Senha:</strong>{" "}
+                  {aluno.senha_portal || gerarSenhaPortal(aluno.data_nascimento)}
+                </p>
+
                 <p>
                   <strong>Cadastrado por:</strong>{" "}
                   {aluno.criado_por || "Não informado"}

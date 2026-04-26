@@ -20,6 +20,7 @@ export default function EBDAlunos({ user }) {
   const [contato, setContato] = useState("")
   const [observacao, setObservacao] = useState("")
   const [casado, setCasado] = useState("Não")
+  const [turmaSelecionada, setTurmaSelecionada] = useState("")
 
   const [editando, setEditando] = useState(false)
   const [alunoId, setAlunoId] = useState(null)
@@ -116,8 +117,14 @@ export default function EBDAlunos({ user }) {
   }
 
   const idade = dataNascimento ? calcularIdade(dataNascimento) : null
+
   const turmaAutomatica =
     idade !== null ? encontrarTurmaPorIdade(idade, casado) : null
+
+  const turmaFinal = turmaSelecionada
+    ? turmas.find((t) => String(t.id) === String(turmaSelecionada))
+    : turmaAutomatica
+
   const menorDeIdade = idade !== null && idade < 18
 
   function limparFormulario() {
@@ -128,6 +135,7 @@ export default function EBDAlunos({ user }) {
     setContato("")
     setObservacao("")
     setCasado("Não")
+    setTurmaSelecionada("")
     setEditando(false)
     setAlunoId(null)
   }
@@ -141,6 +149,7 @@ export default function EBDAlunos({ user }) {
     setNomeMae(aluno.nome_mae || "")
     setContato(aluno.contato || "")
     setObservacao(aluno.observacao || "")
+    setTurmaSelecionada(aluno.turma_id ? String(aluno.turma_id) : "")
 
     window.scrollTo({
       top: 0,
@@ -161,12 +170,12 @@ export default function EBDAlunos({ user }) {
       return
     }
 
-    if (!turmaAutomatica) {
-      alert("Nenhuma turma encontrada para essa idade.")
+    if (!turmaFinal) {
+      alert("Selecione uma classe.")
       return
     }
 
-    if (professorEBD && turmaAutomatica.nome !== usuario.turma_ebd) {
+    if (professorEBD && turmaFinal.nome !== usuario.turma_ebd) {
       alert("Você só pode cadastrar alunos da sua turma.")
       return
     }
@@ -176,7 +185,7 @@ export default function EBDAlunos({ user }) {
     const dadosAluno = {
       nome,
       data_nascimento: dataNascimento,
-      turma_id: turmaAutomatica.id,
+      turma_id: turmaFinal.id,
       nome_pai: menorDeIdade ? nomePai : null,
       nome_mae: menorDeIdade ? nomeMae : null,
       contato,
@@ -269,7 +278,7 @@ export default function EBDAlunos({ user }) {
         <div className="form-title-row">
           <div>
             <h2>{editando ? "Editar aluno" : "Cadastrar aluno"}</h2>
-            <p>Os dados serão classificados automaticamente pela idade.</p>
+            <p>O sistema sugere a classe pela idade, mas permite alterar manualmente.</p>
           </div>
         </div>
 
@@ -291,6 +300,7 @@ export default function EBDAlunos({ user }) {
               onChange={(e) => {
                 setDataNascimento(e.target.value)
                 setCasado("Não")
+                setTurmaSelecionada("")
               }}
             />
           </div>
@@ -301,7 +311,10 @@ export default function EBDAlunos({ user }) {
             <label>É casado?</label>
             <select
               value={casado}
-              onChange={(e) => setCasado(e.target.value)}
+              onChange={(e) => {
+                setCasado(e.target.value)
+                setTurmaSelecionada("")
+              }}
             >
               <option value="Não">Não</option>
               <option value="Sim">Sim</option>
@@ -310,17 +323,35 @@ export default function EBDAlunos({ user }) {
         )}
 
         {idade !== null && (
-          <div className="info-box ebd-info-box">
-            <div>
-              <span>Idade</span>
-              <strong>{idade} anos</strong>
+          <>
+            <div className="info-box ebd-info-box">
+              <div>
+                <span>Idade</span>
+                <strong>{idade} anos</strong>
+              </div>
+
+              <div>
+                <span>Classe sugerida</span>
+                <strong>{turmaAutomatica?.nome || "Não encontrada"}</strong>
+              </div>
             </div>
 
             <div>
-              <span>Classe sugerida</span>
-              <strong>{turmaAutomatica?.nome || "Não encontrada"}</strong>
+              <label>Classe</label>
+              <select
+                value={turmaSelecionada || turmaAutomatica?.id || ""}
+                onChange={(e) => setTurmaSelecionada(e.target.value)}
+              >
+                <option value="">Selecione a classe</option>
+
+                {turmas.map((turma) => (
+                  <option key={turma.id} value={turma.id}>
+                    {turma.nome}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
+          </>
         )}
 
         {menorDeIdade && (

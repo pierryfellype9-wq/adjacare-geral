@@ -50,7 +50,7 @@ export default function App() {
 
     setUser(data)
     localStorage.setItem("loginTime", Date.now())
-    localStorage.setItem("user", JSON.stringify(data)) // 👈 importante pra EBD funcionar
+    localStorage.setItem("user", JSON.stringify(data))
   }
 
   useEffect(() => {
@@ -68,10 +68,10 @@ export default function App() {
       const oitoHoras = 8 * 60 * 60 * 1000
 
       if (tempo > oitoHoras) {
-       setUser(null)
-         localStorage.removeItem("loginTime")
+        setUser(null)
+        localStorage.removeItem("loginTime")
         localStorage.removeItem("user")
-    }
+      }
     }, 10000)
 
     return () => clearInterval(interval)
@@ -91,120 +91,133 @@ export default function App() {
     user?.role === "Mídia" ||
     user?.role === "Dirigente"
 
-  if (!user) {
-    return (
-      <div className="login-page">
-        <div className="login-card">
-          <div className="logo-title">
-            <img src="/logo.png" alt="Logo" />
-            <h2>Sistema Geral ADJACARÉ</h2>
-          </div>
-
-          <form onSubmit={login}>
-            <input
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-
-            <input
-              type="password"
-              placeholder="Senha"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-            />
-
-            <button className="login-btn">
-              Entrar
-            </button>
-          </form>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="dashboard">
-      <header className="topbar">
-        <button
-          className="menu-btn"
-          onClick={() => setMenuOpen(true)}
-        >
-          ☰ Menu
-        </button>
+    <Routes>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div className="user-box">
-            {user.nome} • {user.role}
-          </div>
+      {/* 🔓 PORTAL DO ALUNO (SEM LOGIN) */}
+      <Route path="/portal-aluno" element={<PortalAluno />} />
 
-          <button
-            onClick={() => {
-              setUser(null)
-              localStorage.removeItem("loginTime")
-              localStorage.removeItem("user")
-            }}
-            className="logout-btn"
-          >
-            Sair
-          </button>
-        </div>
-      </header>
-
-      <Sidebar
-        user={user}
-        open={menuOpen}
-        setOpen={setMenuOpen}
-      />
-
-      <Routes>
-        <Route path="/" element={<Dashboard user={user} />} />
-        <Route path="/dashboard" element={<Dashboard user={user} />} />
-        <Route path="/pedidos" element={<Pedidos user={user} />} />
-        <Route path="/kanban" element={<KanbanPedidos user={user} />} />
-        <Route path="/solicitacoes" element={<Solicitacoes />} />
-        <Route path="/agenda" element={<Agenda />} />
-        <Route path="/avisos" element={<Avisos />} />
-        <Route path="/usuarios" element={<Usuarios user={user} />} />
-        <Route path="/trocar-senha" element={<TrocarSenha />} />
-        <Route path="/portal-aluno" element={<PortalAluno />} />
-
+      {/* 🔒 SE NÃO ESTIVER LOGADO */}
+      {!user ? (
         <Route
-          path="/escala-midia"
+          path="*"
           element={
-            podeVerEscala
-              ? <EscalaMidia user={user} />
-              : <Navigate to="/dashboard" replace />
+            <div className="login-page">
+              <div className="login-card">
+                <div className="logo-title">
+                  <img src="/logo.png" alt="Logo" />
+                  <h2>Sistema Geral ADJACARÉ</h2>
+                </div>
+
+                <form onSubmit={login}>
+                  <input
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+
+                  <input
+                    type="password"
+                    placeholder="Senha"
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                  />
+
+                  <button className="login-btn">
+                    Entrar
+                  </button>
+                </form>
+              </div>
+            </div>
           }
         />
-
+      ) : (
+        /* 🔒 SISTEMA LOGADO */
         <Route
-          path="/senhas-aplicativos"
+          path="*"
           element={
-            podeVerSenhas
-              ? <SenhasAplicativos user={user} />
-              : <Navigate to="/dashboard" replace />
+            <div className="dashboard">
+              <header className="topbar">
+                <button
+                  className="menu-btn"
+                  onClick={() => setMenuOpen(true)}
+                >
+                  ☰ Menu
+                </button>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div className="user-box">
+                    {user.nome} • {user.role}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setUser(null)
+                      localStorage.removeItem("loginTime")
+                      localStorage.removeItem("user")
+                    }}
+                    className="logout-btn"
+                  >
+                    Sair
+                  </button>
+                </div>
+              </header>
+
+              <Sidebar
+                user={user}
+                open={menuOpen}
+                setOpen={setMenuOpen}
+              />
+
+              <Routes>
+                <Route path="/" element={<Dashboard user={user} />} />
+                <Route path="/dashboard" element={<Dashboard user={user} />} />
+                <Route path="/pedidos" element={<Pedidos user={user} />} />
+                <Route path="/kanban" element={<KanbanPedidos user={user} />} />
+                <Route path="/solicitacoes" element={<Solicitacoes />} />
+                <Route path="/agenda" element={<Agenda />} />
+                <Route path="/avisos" element={<Avisos />} />
+                <Route path="/usuarios" element={<Usuarios user={user} />} />
+                <Route path="/trocar-senha" element={<TrocarSenha />} />
+
+                <Route
+                  path="/escala-midia"
+                  element={
+                    podeVerEscala
+                      ? <EscalaMidia user={user} />
+                      : <Navigate to="/dashboard" replace />
+                  }
+                />
+
+                <Route
+                  path="/senhas-aplicativos"
+                  element={
+                    podeVerSenhas
+                      ? <SenhasAplicativos user={user} />
+                      : <Navigate to="/dashboard" replace />
+                  }
+                />
+
+                <Route
+                  path="/custos-fixos"
+                  element={
+                    podeVerCustosFixos
+                      ? <CustosFixos user={user} />
+                      : <Navigate to="/dashboard" replace />
+                  }
+                />
+
+                {/* EBD */}
+                <Route path="/ebd" element={<EBD />} />
+                <Route path="/ebd/alunos" element={<EBDAlunos user={user} />} />
+                <Route path="/ebd/chamada" element={<EBDChamada user={user} />} />
+                <Route path="/ebd/relatorios" element={<EBDRelatorios user={user} />} />
+                <Route path="/ebd/dashboard" element={<EBDDashboard user={user} />} />
+              </Routes>
+            </div>
           }
         />
-
-        <Route
-          path="/custos-fixos"
-          element={
-            podeVerCustosFixos
-              ? <CustosFixos user={user} />
-              : <Navigate to="/dashboard" replace />
-          }
-        />
-
-        {/* EBD */}
-        <Route path="/ebd" element={<EBD />} />
-        <Route path="/ebd/alunos" element={<EBDAlunos user={user} />} />
-        <Route path="/ebd/chamada" element={<EBDChamada user={user} />} />
-        <Route path="/ebd/relatorios" element={<EBDRelatorios user={user} />} />
-        <Route path="/ebd/dashboard" element={<EBDDashboard user={user} />} />
-
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </div>
+      )}
+    </Routes>
   )
 }

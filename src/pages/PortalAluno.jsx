@@ -10,7 +10,6 @@ export default function PortalAluno() {
 
   async function fazerLogin(e) {
     e.preventDefault()
-
     setErro("")
     setCarregando(true)
 
@@ -38,7 +37,6 @@ export default function PortalAluno() {
   function calcularFrequencia(presencas) {
     const total = presencas.length
     const presentes = presencas.filter(p => p.status === "presente").length
-
     return total > 0 ? Math.round((presentes / total) * 100) : 0
   }
 
@@ -50,36 +48,36 @@ export default function PortalAluno() {
     const frequencia = calcularFrequencia(presencas)
 
     return (
-      <div className="page">
-        <div className="form-card">
+      <div className="portal-page">
+        <div className="portal-card">
+
           <h1>Portal do Aluno</h1>
-
           <h2>{aluno.nome}</h2>
-          <p><strong>Turma:</strong> {aluno.ebd_turmas?.nome}</p>
+          <p className="turma">{aluno.ebd_turmas?.nome}</p>
 
-          <div className="info-box">
-            <div>
+          <div className="stats">
+            <div className="stat">
               <span>Frequência</span>
               <strong>{frequencia}%</strong>
             </div>
 
-            <div>
+            <div className="stat">
               <span>Presenças</span>
               <strong>{presentes}</strong>
             </div>
 
-            <div>
+            <div className="stat">
               <span>Faltas</span>
               <strong>{faltas}</strong>
             </div>
 
-            <div>
+            <div className="stat">
               <span>Justificadas</span>
               <strong>{justificadas}</strong>
             </div>
           </div>
 
-          <button onClick={() => setAluno(null)}>
+          <button className="btn-sair" onClick={() => setAluno(null)}>
             Sair
           </button>
         </div>
@@ -88,32 +86,27 @@ export default function PortalAluno() {
   }
 
   return (
-    <div className="page">
-      <div className="form-card">
+    <div className="portal-page">
+      <div className="portal-card">
+
         <h1>Portal do Aluno</h1>
-        <p>Acompanhe sua frequência na EBD</p>
+        <p className="sub">Acompanhe sua frequência</p>
 
         <form onSubmit={fazerLogin}>
-          <div>
-            <label>Login</label>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ex: joao.silva@adjacare.org"
-            />
-          </div>
+          <input
+            placeholder="Login"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-          <div>
-            <label>Senha</label>
-            <input
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              placeholder="Data de nascimento"
-            />
-          </div>
+          <input
+            type="password"
+            placeholder="Senha"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+          />
 
-          {erro && <p style={{ color: "red" }}>{erro}</p>}
+          {erro && <p className="erro">{erro}</p>}
 
           <button disabled={carregando}>
             {carregando ? "Entrando..." : "Entrar"}

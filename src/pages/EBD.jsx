@@ -6,10 +6,9 @@ export default function EBD() {
   return (
     <div className="page">
       <div className="ebd-hero">
-        <div className="ebd-hero">
-            <h1>Escola Bíblica Dominical</h1>
-             <p>Gerencie alunos, chamadas e relatórios em um só lugar.</p>
-        </div>
+        <h1>Escola Bíblica Dominical</h1>
+        <p>Gerencie alunos, chamadas e relatórios em um só lugar.</p>
+      </div>
 
       <div className="ebd-cards">
         <div className="ebd-card" onClick={() => navigate("/ebd/alunos")}>

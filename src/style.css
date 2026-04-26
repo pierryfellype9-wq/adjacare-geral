@@ -995,6 +995,123 @@ label {
   }
 }
 
+.ebd-alerta-topo {
+  background: #fef3c7;
+  border: 2px solid #facc15;
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  animation: piscar 1s infinite alternate;
+}
+
+.ebd-alerta-contador {
+  min-width: 54px;
+  height: 54px;
+  background: #dc2626;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 900;
+  animation: pulsar 0.8s infinite alternate;
+}
+
+.ebd-alerta-topo h3 {
+  margin: 0 0 10px;
+  color: #92400e;
+}
+
+.ebd-alerta-item-topo {
+  font-weight: 700;
+  color: #78350f;
+  margin-bottom: 4px;
+}
+
+.alerta-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.alerta-modal {
+  background: #fff7ed;
+  border: 3px solid #facc15;
+  border-radius: 22px;
+  padding: 28px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+  text-align: center;
+}
+
+.alerta-modal-icon {
+  font-size: 54px;
+  animation: pulsar 0.7s infinite alternate;
+}
+
+.alerta-modal h2 {
+  margin: 8px 0;
+  color: #92400e;
+  font-size: 30px;
+}
+
+.alerta-modal p {
+  color: #78350f;
+  font-size: 16px;
+}
+
+.alerta-modal-lista {
+  background: white;
+  border-radius: 14px;
+  padding: 14px;
+  margin: 16px 0;
+  text-align: left;
+  border: 1px solid #fde68a;
+}
+
+.alerta-modal-lista div {
+  margin-bottom: 8px;
+  color: #78350f;
+}
+
+.alerta-modal button {
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@keyframes piscar {
+  from {
+    box-shadow: 0 0 0 rgba(250, 204, 21, 0.4);
+  }
+  to {
+    box-shadow: 0 0 22px rgba(250, 204, 21, 0.95);
+  }
+}
+
+@keyframes pulsar {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}
+
 /* MOBILE */
 
 @media (max-width: 600px) {

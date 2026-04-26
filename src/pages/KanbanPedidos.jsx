@@ -122,7 +122,7 @@ export default function KanbanPedidos({ user }) {
 
         <DragDropContext onDragEnd={onDragEnd}>
 
-          <div className="kanban-board">
+          <div className="kanban">
 
             {/* PENDENTE */}
             <Droppable droppableId="PENDENTE">

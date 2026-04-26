@@ -12,6 +12,10 @@ import KanbanPedidos from "./pages/KanbanPedidos"
 import EscalaMidia from "./pages/EscalaMidia"
 import SenhasAplicativos from "./pages/SenhasAplicativos"
 import CustosFixos from "./pages/CustosFixos"
+import EBD from "./pages/EBD"
+import EBDAlunos from "./pages/EBDAlunos"
+import EBDChamada from "./pages/EBDChamada"
+import EBDRelatorios from "./pages/EBDRelatorios"
 
 import Sidebar from "./components/Sidebar"
 

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 
-export default function EBDAlunos() {
+export default function EBDAlunos({ user }) {
+  const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")
+
   const [turmas, setTurmas] = useState([])
   const [alunos, setAlunos] = useState([])
 
@@ -13,6 +15,15 @@ export default function EBDAlunos() {
   const [observacao, setObservacao] = useState("")
   const [carregando, setCarregando] = useState(false)
 
+  const podeVerTudoEBD =
+    usuario?.role === "Administrador" ||
+    usuario?.role === "Dirigente" ||
+    (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
+
+  const professorEBD =
+    usuario?.role === "EBD" &&
+    usuario?.turma_ebd !== "Superintendente"
+
   useEffect(() => {
     carregarDados()
   }, [])
@@ -23,12 +34,31 @@ export default function EBDAlunos() {
       .select("*")
       .order("idade_min", { ascending: true })
 
-    const { data: alunosData } = await supabase
+    setTurmas(turmasData || [])
+
+    let query = supabase
       .from("ebd_alunos")
       .select("*, ebd_turmas(nome)")
       .order("nome", { ascending: true })
 
-    setTurmas(turmasData || [])
+    if (professorEBD) {
+      const turmaProfessor = turmasData?.find(
+        (t) => t.nome === usuario.turma_ebd
+      )
+
+      if (turmaProfessor) {
+        query = query.eq("turma_id", turmaProfessor.id)
+      }
+    }
+
+    const { data: alunosData, error } = await query
+
+    if (error) {
+      console.error(error)
+      alert("Erro ao carregar alunos.")
+      return
+    }
+
     setAlunos(alunosData || [])
   }
 
@@ -75,6 +105,11 @@ export default function EBDAlunos() {
       return
     }
 
+    if (professorEBD && turmaAutomatica.nome !== usuario.turma_ebd) {
+      alert("Você só pode cadastrar alunos da sua turma.")
+      return
+    }
+
     setCarregando(true)
 
     const { error } = await supabase.from("ebd_alunos").insert({
@@ -84,7 +119,7 @@ export default function EBDAlunos() {
       nome_pai: menorDeIdade ? nomePai : null,
       nome_mae: menorDeIdade ? nomeMae : null,
       contato,
-      observacao
+      observacao,
     })
 
     setCarregando(false)
@@ -107,6 +142,11 @@ export default function EBDAlunos() {
   }
 
   async function excluirAluno(id) {
+    if (!podeVerTudoEBD) {
+      alert("Apenas administradores, dirigentes ou superintendente podem excluir alunos.")
+      return
+    }
+
     const confirmar = confirm("Deseja excluir este aluno?")
     if (!confirmar) return
 
@@ -201,7 +241,10 @@ export default function EBDAlunos() {
       </form>
 
       <div className="list-card">
-        <h2>Alunos cadastrados</h2>
+        <h2>
+          Alunos cadastrados
+          {professorEBD && ` — ${usuario.turma_ebd}`}
+        </h2>
 
         {alunos.length === 0 && <p>Nenhum aluno cadastrado.</p>}
 
@@ -216,9 +259,11 @@ export default function EBDAlunos() {
               <p>Contato: {aluno.contato || "Não informado"}</p>
             </div>
 
-            <button className="btn-danger" onClick={() => excluirAluno(aluno.id)}>
-              Excluir
-            </button>
+            {podeVerTudoEBD && (
+              <button className="btn-danger" onClick={() => excluirAluno(aluno.id)}>
+                Excluir
+              </button>
+            )}
           </div>
         ))}
       </div>

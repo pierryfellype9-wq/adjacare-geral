@@ -11,6 +11,14 @@ export default function EBD() {
       </div>
 
       <div className="ebd-cards">
+
+        {/* DASHBOARD */}
+        <div className="ebd-card" onClick={() => navigate("/ebd/dashboard")}>
+          <div className="icon">📊</div>
+          <h3>Dashboard</h3>
+          <p>Resumo geral da EBD em tempo real.</p>
+        </div>
+
         <div className="ebd-card" onClick={() => navigate("/ebd/alunos")}>
           <div className="icon">👥</div>
           <h3>Alunos</h3>
@@ -24,10 +32,11 @@ export default function EBD() {
         </div>
 
         <div className="ebd-card" onClick={() => navigate("/ebd/relatorios")}>
-          <div className="icon">📊</div>
+          <div className="icon">📈</div>
           <h3>Relatórios</h3>
           <p>Visualizar frequência e faltas.</p>
         </div>
+
       </div>
     </div>
   )

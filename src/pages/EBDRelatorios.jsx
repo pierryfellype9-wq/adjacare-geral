@@ -76,7 +76,6 @@ export default function EBDRelatorios({ user }) {
       const faltas = presencas.filter((p) => p.status === "falta").length
       const justificadas = presencas.filter((p) => p.status === "justificado").length
       const total = presencas.length
-
       const frequencia = total > 0 ? Math.round((presentes / total) * 100) : 0
 
       return {
@@ -96,8 +95,6 @@ export default function EBDRelatorios({ user }) {
 
   return (
     <div className="page">
-
-      {/* BOTÃO VOLTAR */}
       <button className="btn-voltar" onClick={() => navigate("/ebd")}>
         ← Voltar
       </button>
@@ -133,40 +130,26 @@ export default function EBDRelatorios({ user }) {
         {dados.length === 0 && <p>Nenhum dado encontrado.</p>}
 
         <div className="relatorio-grid">
-  {dados.map((item) => {
-    return (
-      <div className="relatorio-card" key={item.id}>
-        <div className="relatorio-card-top">
-          <div>
-            <h3>{item.nome}</h3>
-            <span className="badge-turma">{item.turma}</span>
-          </div>
+          {dados.map((item) => (
+            <div className="relatorio-card" key={item.id}>
+              <div className="relatorio-card-top">
+                <div>
+                  <h3>{item.nome}</h3>
+                  <span className="badge-turma">{item.turma}</span>
+                </div>
 
-          <div className="frequencia">
-            {item.frequencia}%
-          </div>
+                <div className="frequencia">
+                  {item.frequencia}%
+                </div>
+              </div>
+
+              <p>Presentes: {item.presentes}</p>
+              <p>Faltas: {item.faltas}</p>
+              <p>Justificadas: {item.justificadas}</p>
+              <p>Total de chamadas: {item.total}</p>
+            </div>
+          ))}
         </div>
-
-        <p>Presentes: {item.presentes}</p>
-        <p>Faltas: {item.faltas}</p>
-        <p>Justificadas: {item.justificadas}</p>
-        <p>Total de chamadas: {item.total}</p>
-      </div>
-    )
-  })}
-</div>
-              <strong>{item.nome}</strong>
-              <p>{item.turma}</p>
-              <p>
-                Presentes: {item.presentes} | Faltas: {item.faltas} | Justificadas: {item.justificadas}
-              </p>
-            </div>
-
-            <div className="frequencia">
-              {item.frequencia}%
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   )

@@ -729,6 +729,144 @@ label {
   }
 }
 
+/* SENHAS APLICATIVOS */
+
+.senhas-page {
+  padding: 24px;
+  background: #eef2f7;
+  min-height: 100vh;
+}
+
+.senhas-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+.senhas-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.senhas-topo h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #1e293b;
+}
+
+.senhas-topo p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.senhas-filtros {
+  margin-bottom: 20px;
+  max-width: 260px;
+}
+
+.senhas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.acesso-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.acesso-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.acesso-header h3 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 20px;
+}
+
+.badge-categoria {
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.acesso-linha {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  color: #334155;
+}
+
+.acesso-linha strong {
+  color: #0f172a;
+}
+
+.acesso-linha a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.acesso-linha a:hover {
+  text-decoration: underline;
+}
+
+.acesso-observacao span {
+  white-space: pre-wrap;
+}
+
+.acesso-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-secundario {
+  background: #e2e8f0;
+  color: #0f172a;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secundario:hover {
+  background: #cbd5e1;
+}
+
+@media (max-width: 768px) {
+  .senhas-page {
+    padding: 16px;
+  }
+
+  .senhas-card {
+    padding: 18px;
+  }
+
+  .senhas-topo h1 {
+    font-size: 22px;
+  }
+}
+
 /* MOBILE */
 
 @media (max-width: 600px) {

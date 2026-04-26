@@ -1203,6 +1203,13 @@ label {
   font-size: 20px;
 }
 
+.info-login {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
 /* MOBILE */
 
 @media (max-width: 600px) {

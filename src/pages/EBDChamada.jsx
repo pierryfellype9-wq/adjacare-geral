@@ -13,6 +13,7 @@ export default function EBDChamada({ user }) {
   const [observacoes, setObservacoes] = useState({})
   const [dataChamada, setDataChamada] = useState(new Date().toISOString().split("T")[0])
   const [carregando, setCarregando] = useState(false)
+  const [chamadaExistente, setChamadaExistente] = useState(false)
 
   const podeVerTudoEBD =
     usuario?.role === "Administrador" ||
@@ -33,7 +34,7 @@ export default function EBDChamada({ user }) {
     if (turmaSelecionada) {
       carregarAlunos()
     }
-  }, [turmaSelecionada])
+  }, [turmaSelecionada, dataChamada])
 
   async function carregarTurmas() {
     const { data } = await supabase
@@ -50,20 +51,53 @@ export default function EBDChamada({ user }) {
   }
 
   async function carregarAlunos() {
-    const { data } = await supabase
+    const { data: alunosData, error: erroAlunos } = await supabase
       .from("ebd_alunos")
       .select("*")
       .eq("turma_id", turmaSelecionada)
       .order("nome", { ascending: true })
 
-    setAlunos(data || [])
+    if (erroAlunos) {
+      console.error(erroAlunos)
+      alert("Erro ao carregar alunos.")
+      return
+    }
+
+    setAlunos(alunosData || [])
+
+    const { data: aulaExistente } = await supabase
+      .from("ebd_aulas")
+      .select("*")
+      .eq("turma_id", turmaSelecionada)
+      .eq("data", dataChamada)
+      .maybeSingle()
 
     const presencasIniciais = {}
-    data?.forEach((aluno) => {
+    const observacoesIniciais = {}
+
+    alunosData?.forEach((aluno) => {
       presencasIniciais[aluno.id] = "presente"
+      observacoesIniciais[aluno.id] = ""
     })
 
+    if (aulaExistente) {
+      setChamadaExistente(true)
+
+      const { data: presencasExistentes } = await supabase
+        .from("ebd_presencas")
+        .select("*")
+        .eq("aula_id", aulaExistente.id)
+
+      presencasExistentes?.forEach((p) => {
+        presencasIniciais[p.aluno_id] = p.status
+        observacoesIniciais[p.aluno_id] = p.observacao || ""
+      })
+    } else {
+      setChamadaExistente(false)
+    }
+
     setPresencas(presencasIniciais)
+    setObservacoes(observacoesIniciais)
   }
 
   function alterarPresenca(alunoId, status) {
@@ -95,12 +129,19 @@ export default function EBDChamada({ user }) {
 
     let aulaId = null
 
-    const { data: aulaExistente } = await supabase
+    const { data: aulaExistente, error: erroBuscaAula } = await supabase
       .from("ebd_aulas")
       .select("*")
       .eq("turma_id", turmaSelecionada)
       .eq("data", dataChamada)
       .maybeSingle()
+
+    if (erroBuscaAula) {
+      console.error(erroBuscaAula)
+      alert("Erro ao verificar aula existente.")
+      setCarregando(false)
+      return
+    }
 
     if (aulaExistente) {
       aulaId = aulaExistente.id
@@ -124,11 +165,6 @@ export default function EBDChamada({ user }) {
       aulaId = novaAula.id
     }
 
-    await supabase
-      .from("ebd_presencas")
-      .delete()
-      .eq("aula_id", aulaId)
-
     const registros = alunos.map((aluno) => ({
       aula_id: aulaId,
       aluno_id: aluno.id,
@@ -138,7 +174,9 @@ export default function EBDChamada({ user }) {
 
     const { error } = await supabase
       .from("ebd_presencas")
-      .insert(registros)
+      .upsert(registros, {
+        onConflict: "aula_id,aluno_id",
+      })
 
     setCarregando(false)
 
@@ -148,6 +186,7 @@ export default function EBDChamada({ user }) {
       return
     }
 
+    setChamadaExistente(true)
     alert("Chamada salva com sucesso!")
   }
 
@@ -180,6 +219,14 @@ export default function EBDChamada({ user }) {
             </option>
           ))}
         </select>
+
+        {turmaSelecionada && (
+          <div className="info-box">
+            {chamadaExistente
+              ? "Esta chamada já existe. As alterações serão atualizadas sem duplicar."
+              : "Nova chamada para esta data."}
+          </div>
+        )}
       </div>
 
       <div className="list-card">

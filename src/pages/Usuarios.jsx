@@ -137,7 +137,7 @@ export default function Usuarios({ user }) {
         email,
         senha,
         role,
-        turma_ebd: role === "EBD" ? turmaEbd : null,
+        turma_ebd: turmaEbd || "Não permitido",
         primeiro_acesso: true,
       },
     ])
@@ -242,7 +242,7 @@ export default function Usuarios({ user }) {
         email,
         senha,
         role,
-        turma_ebd: role === "EBD" ? turmaEbd : null,
+        turma_ebd: turmaEbd || "Não permitido",
       })
       .eq("id", usuarioId)
 
@@ -430,11 +430,8 @@ export default function Usuarios({ user }) {
 
                 <select
                   value={role}
-                  onChange={(e) => {
-                    setRole(e.target.value)
-                    if (e.target.value !== "EBD") {
-                      setTurmaEbd("")
-                    }
+                  onChange={(e) => setRole(e.target.value)}
+                  
                   }}
                   style={{
                     width: "100%",
@@ -455,29 +452,27 @@ export default function Usuarios({ user }) {
                   ))}
                 </select>
 
-                {role === "EBD" && (
-                  <select
-                    value={turmaEbd}
-                    onChange={(e) => setTurmaEbd(e.target.value)}
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      borderRadius: "8px",
-                      border: "1px solid #ddd",
-                      boxSizing: "border-box",
-                      fontSize: "14px",
-                      background: "white",
-                    }}
-                  >
-                    <option value="">Selecione a turma da EBD</option>
+                <select
+  value={turmaEbd}
+  onChange={(e) => setTurmaEbd(e.target.value)}
+  style={{
+    width: "100%",
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid #ddd",
+    boxSizing: "border-box",
+    fontSize: "14px",
+    background: "white",
+  }}
+>
+  <option value="">Selecione a permissão da EBD</option>
 
-                    {turmas.map((t) => (
-                      <option key={t.id} value={t.nome}>
-                        {t.nome}
-                      </option>
-                    ))}
-                  </select>
-                )}
+  {turmas.map((t) => (
+    <option key={t.id} value={t.nome}>
+      {t.nome}
+    </option>
+  ))}
+</select>
               </div>
 
               <div
@@ -627,7 +622,7 @@ export default function Usuarios({ user }) {
                       </td>
 
                       <td style={tdStyle}>
-                        {u.role === "EBD" ? u.turma_ebd || "Não definida" : "-"}
+                        {u.turma_ebd || "Não permitido"}
                       </td>
 
                       {isAdmin && (

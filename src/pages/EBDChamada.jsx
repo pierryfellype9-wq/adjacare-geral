@@ -6,6 +6,10 @@ export default function EBDChamada({ user }) {
   const navigate = useNavigate()
   const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")
 
+  const temAcessoEBD =
+    usuario?.turma_ebd &&
+    usuario?.turma_ebd !== "Não permitido"
+
   const [turmas, setTurmas] = useState([])
   const [turmaSelecionada, setTurmaSelecionada] = useState("")
   const [alunos, setAlunos] = useState([])
@@ -21,17 +25,20 @@ export default function EBDChamada({ user }) {
     (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
 
   const professorEBD =
-    usuario?.role === "EBD" &&
-    usuario?.turma_ebd !== "Superintendente"
+    usuario?.turma_ebd &&
+    usuario?.turma_ebd !== "Superintendente" &&
+    usuario?.turma_ebd !== "Não permitido"
 
   const podeEscolherTurma = podeVerTudoEBD
 
   useEffect(() => {
-    carregarTurmas()
+    if (temAcessoEBD) {
+      carregarTurmas()
+    }
   }, [])
 
   useEffect(() => {
-    if (turmaSelecionada) {
+    if (turmaSelecionada && temAcessoEBD) {
       carregarAlunos()
     }
   }, [turmaSelecionada, dataChamada])
@@ -51,17 +58,11 @@ export default function EBDChamada({ user }) {
   }
 
   async function carregarAlunos() {
-    const { data: alunosData, error: erroAlunos } = await supabase
+    const { data: alunosData } = await supabase
       .from("ebd_alunos")
       .select("*")
       .eq("turma_id", turmaSelecionada)
       .order("nome", { ascending: true })
-
-    if (erroAlunos) {
-      console.error(erroAlunos)
-      alert("Erro ao carregar alunos.")
-      return
-    }
 
     setAlunos(alunosData || [])
 
@@ -101,6 +102,8 @@ export default function EBDChamada({ user }) {
   }
 
   function alterarPresenca(alunoId, status) {
+    if (!temAcessoEBD) return
+
     setPresencas((prev) => ({
       ...prev,
       [alunoId]: status,
@@ -108,6 +111,8 @@ export default function EBDChamada({ user }) {
   }
 
   function alterarObservacao(alunoId, texto) {
+    if (!temAcessoEBD) return
+
     setObservacoes((prev) => ({
       ...prev,
       [alunoId]: texto,
@@ -115,6 +120,11 @@ export default function EBDChamada({ user }) {
   }
 
   async function salvarChamada() {
+    if (!temAcessoEBD) {
+      alert("Você não possui permissão para alterar esta área.")
+      return
+    }
+
     if (!turmaSelecionada) {
       alert("Selecione uma turma.")
       return
@@ -129,24 +139,17 @@ export default function EBDChamada({ user }) {
 
     let aulaId = null
 
-    const { data: aulaExistente, error: erroBuscaAula } = await supabase
+    const { data: aulaExistente } = await supabase
       .from("ebd_aulas")
       .select("*")
       .eq("turma_id", turmaSelecionada)
       .eq("data", dataChamada)
       .maybeSingle()
 
-    if (erroBuscaAula) {
-      console.error(erroBuscaAula)
-      alert("Erro ao verificar aula existente.")
-      setCarregando(false)
-      return
-    }
-
     if (aulaExistente) {
       aulaId = aulaExistente.id
     } else {
-      const { data: novaAula, error: erroAula } = await supabase
+      const { data: novaAula } = await supabase
         .from("ebd_aulas")
         .insert({
           turma_id: turmaSelecionada,
@@ -154,13 +157,6 @@ export default function EBDChamada({ user }) {
         })
         .select()
         .single()
-
-      if (erroAula) {
-        console.error(erroAula)
-        alert("Erro ao criar aula.")
-        setCarregando(false)
-        return
-      }
 
       aulaId = novaAula.id
     }
@@ -188,6 +184,22 @@ export default function EBDChamada({ user }) {
 
     setChamadaExistente(true)
     alert("Chamada salva com sucesso!")
+  }
+
+  // 🔒 BLOQUEIO TOTAL
+  if (!temAcessoEBD) {
+    return (
+      <div className="page">
+        <button className="btn-voltar" onClick={() => navigate("/ebd")}>
+          ← Voltar
+        </button>
+
+        <div className="form-card">
+          <h2>Acesso não permitido</h2>
+          <p>Você não possui permissão para acessar a chamada da EBD.</p>
+        </div>
+      </div>
+    )
   }
 
   return (

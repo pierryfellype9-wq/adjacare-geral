@@ -3,12 +3,16 @@ import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
 
 export default function EBDRelatorios({ user }) {
+  const navigate = useNavigate()
   const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")
+
+  const temAcessoEBD =
+    usuario?.turma_ebd &&
+    usuario?.turma_ebd !== "Não permitido"
 
   const [dados, setDados] = useState([])
   const [turmas, setTurmas] = useState([])
   const [turmaFiltro, setTurmaFiltro] = useState("")
-  const navigate = useNavigate()
 
   const podeVerTudoEBD =
     usuario?.role === "Administrador" ||
@@ -16,15 +20,20 @@ export default function EBDRelatorios({ user }) {
     (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
 
   const professorEBD =
-    usuario?.role === "EBD" &&
-    usuario?.turma_ebd !== "Superintendente"
+    usuario?.turma_ebd &&
+    usuario?.turma_ebd !== "Superintendente" &&
+    usuario?.turma_ebd !== "Não permitido"
 
   useEffect(() => {
-    carregarTurmas()
+    if (temAcessoEBD) {
+      carregarTurmas()
+    }
   }, [])
 
   useEffect(() => {
-    carregarRelatorio()
+    if (temAcessoEBD) {
+      carregarRelatorio()
+    }
   }, [turmaFiltro, turmas])
 
   async function carregarTurmas() {
@@ -91,6 +100,21 @@ export default function EBDRelatorios({ user }) {
     })
 
     setDados(formatado)
+  }
+
+  if (!temAcessoEBD) {
+    return (
+      <div className="page">
+        <button className="btn-voltar" onClick={() => navigate("/ebd")}>
+          ← Voltar
+        </button>
+
+        <div className="form-card">
+          <h2>Acesso não permitido</h2>
+          <p>Você não possui permissão para acessar os relatórios da EBD.</p>
+        </div>
+      </div>
+    )
   }
 
   return (

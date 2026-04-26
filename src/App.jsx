@@ -12,20 +12,19 @@ import KanbanPedidos from "./pages/KanbanPedidos"
 import EscalaMidia from "./pages/EscalaMidia"
 import SenhasAplicativos from "./pages/SenhasAplicativos"
 import CustosFixos from "./pages/CustosFixos"
+
 import EBD from "./pages/EBD"
 import EBDAlunos from "./pages/EBDAlunos"
 import EBDChamada from "./pages/EBDChamada"
 import EBDRelatorios from "./pages/EBDRelatorios"
 
 import Sidebar from "./components/Sidebar"
-
 import { supabase } from "./lib/supabase"
 
 export default function App() {
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
   const [user, setUser] = useState(null)
-
   const [menuOpen, setMenuOpen] = useState(false)
 
   async function login(e) {
@@ -49,12 +48,17 @@ export default function App() {
 
     setUser(data)
     localStorage.setItem("loginTime", Date.now())
+    localStorage.setItem("user", JSON.stringify(data)) // 👈 importante pra EBD funcionar
   }
 
   useEffect(() => {
+    const userSalvo = localStorage.getItem("user")
+    if (userSalvo) {
+      setUser(JSON.parse(userSalvo))
+    }
+
     const interval = setInterval(() => {
       const loginTime = localStorage.getItem("loginTime")
-
       if (!loginTime) return
 
       const agora = Date.now()
@@ -64,6 +68,7 @@ export default function App() {
       if (tempo > cincoMinutos) {
         setUser(null)
         localStorage.removeItem("loginTime")
+        localStorage.removeItem("user")
       }
     }, 10000)
 
@@ -135,6 +140,7 @@ export default function App() {
             onClick={() => {
               setUser(null)
               localStorage.removeItem("loginTime")
+              localStorage.removeItem("user")
             }}
             className="logout-btn"
           >
@@ -186,6 +192,12 @@ export default function App() {
               : <Navigate to="/dashboard" replace />
           }
         />
+
+        {/* EBD */}
+        <Route path="/ebd" element={<EBD />} />
+        <Route path="/ebd/alunos" element={<EBDAlunos />} />
+        <Route path="/ebd/chamada" element={<EBDChamada user={user} />} />
+        <Route path="/ebd/relatorios" element={<EBDRelatorios />} />
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

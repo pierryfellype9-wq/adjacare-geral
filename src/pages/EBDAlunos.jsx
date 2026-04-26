@@ -6,6 +6,10 @@ export default function EBDAlunos({ user }) {
   const navigate = useNavigate()
   const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")
 
+  const temAcessoEBD =
+    usuario?.turma_ebd &&
+    usuario?.turma_ebd !== "Não permitido"
+
   const [turmas, setTurmas] = useState([])
   const [alunos, setAlunos] = useState([])
 
@@ -26,11 +30,14 @@ export default function EBDAlunos({ user }) {
     (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
 
   const professorEBD =
-    usuario?.role === "EBD" &&
-    usuario?.turma_ebd !== "Superintendente"
+    usuario?.turma_ebd &&
+    usuario?.turma_ebd !== "Superintendente" &&
+    usuario?.turma_ebd !== "Não permitido"
 
   useEffect(() => {
-    carregarDados()
+    if (temAcessoEBD) {
+      carregarDados()
+    }
   }, [])
 
   async function carregarDados() {
@@ -127,6 +134,11 @@ export default function EBDAlunos({ user }) {
   async function cadastrarAluno(e) {
     e.preventDefault()
 
+    if (!temAcessoEBD) {
+      alert("Você não possui permissão para alterar esta área.")
+      return
+    }
+
     if (!nome || !dataNascimento) {
       alert("Preencha o nome e a data de nascimento.")
       return
@@ -208,6 +220,21 @@ export default function EBDAlunos({ user }) {
     carregarDados()
   }
 
+  if (!temAcessoEBD) {
+    return (
+      <div className="page">
+        <button className="btn-voltar" onClick={() => navigate("/ebd")}>
+          ← Voltar
+        </button>
+
+        <div className="form-card">
+          <h2>Acesso não permitido</h2>
+          <p>Você não possui permissão para acessar esta área da EBD.</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="page">
       <button className="btn-voltar" onClick={() => navigate("/ebd")}>
@@ -232,20 +259,12 @@ export default function EBDAlunos({ user }) {
         <div className="form-grid-ebd">
           <div>
             <label>Nome do aluno</label>
-            <input
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Digite o nome"
-            />
+            <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Digite o nome" />
           </div>
 
           <div>
             <label>Data de nascimento</label>
-            <input
-              type="date"
-              value={dataNascimento}
-              onChange={(e) => setDataNascimento(e.target.value)}
-            />
+            <input type="date" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} />
           </div>
         </div>
 
@@ -267,29 +286,17 @@ export default function EBDAlunos({ user }) {
           <div className="form-grid-ebd">
             <div>
               <label>Nome do pai</label>
-              <input
-                value={nomePai}
-                onChange={(e) => setNomePai(e.target.value)}
-                placeholder="Nome do pai"
-              />
+              <input value={nomePai} onChange={(e) => setNomePai(e.target.value)} placeholder="Nome do pai" />
             </div>
 
             <div>
               <label>Nome da mãe</label>
-              <input
-                value={nomeMae}
-                onChange={(e) => setNomeMae(e.target.value)}
-                placeholder="Nome da mãe"
-              />
+              <input value={nomeMae} onChange={(e) => setNomeMae(e.target.value)} placeholder="Nome da mãe" />
             </div>
 
             <div>
               <label>Contato do responsável</label>
-              <input
-                value={contato}
-                onChange={(e) => setContato(e.target.value)}
-                placeholder="Telefone do responsável"
-              />
+              <input value={contato} onChange={(e) => setContato(e.target.value)} placeholder="Telefone do responsável" />
             </div>
           </div>
         )}
@@ -297,30 +304,18 @@ export default function EBDAlunos({ user }) {
         {idade !== null && idade >= 18 && (
           <div>
             <label>Contato do aluno</label>
-            <input
-              value={contato}
-              onChange={(e) => setContato(e.target.value)}
-              placeholder="Telefone do aluno"
-            />
+            <input value={contato} onChange={(e) => setContato(e.target.value)} placeholder="Telefone do aluno" />
           </div>
         )}
 
         <div>
           <label>Observação</label>
-          <textarea
-            value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
-            placeholder="Observações, se houver"
-          />
+          <textarea value={observacao} onChange={(e) => setObservacao(e.target.value)} placeholder="Observações, se houver" />
         </div>
 
         <div className="form-actions">
           <button disabled={carregando}>
-            {carregando
-              ? "Salvando..."
-              : editando
-                ? "Salvar alterações"
-                : "Cadastrar aluno"}
+            {carregando ? "Salvando..." : editando ? "Salvar alterações" : "Cadastrar aluno"}
           </button>
 
           {editando && (
@@ -350,9 +345,7 @@ export default function EBDAlunos({ user }) {
               <div className="aluno-card-top">
                 <div>
                   <h3>{aluno.nome}</h3>
-                  <span className="badge-turma">
-                    {aluno.ebd_turmas?.nome || "Sem turma"}
-                  </span>
+                  <span className="badge-turma">{aluno.ebd_turmas?.nome || "Sem turma"}</span>
                 </div>
 
                 <div className="idade-circle">
@@ -365,15 +358,11 @@ export default function EBDAlunos({ user }) {
                 <p><strong>Contato:</strong> {aluno.contato || "Não informado"}</p>
                 <p><strong>Cadastrado por:</strong> {aluno.criado_por || "Não informado"}</p>
 
-                {aluno.observacao && (
-                  <p><strong>Obs.:</strong> {aluno.observacao}</p>
-                )}
+                {aluno.observacao && <p><strong>Obs.:</strong> {aluno.observacao}</p>}
               </div>
 
               <div className="aluno-acoes">
-                <button onClick={() => iniciarEdicao(aluno)}>
-                  Editar
-                </button>
+                <button onClick={() => iniciarEdicao(aluno)}>Editar</button>
 
                 {podeVerTudoEBD && (
                   <button className="btn-danger" onClick={() => excluirAluno(aluno.id)}>

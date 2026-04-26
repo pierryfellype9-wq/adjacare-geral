@@ -197,7 +197,7 @@ export default function App() {
         <Route path="/ebd" element={<EBD />} />
         <Route path="/ebd/alunos" element={<EBDAlunos user={user} />} />
         <Route path="/ebd/chamada" element={<EBDChamada user={user} />} />
-        <Route path="/ebd/relatorios" element={<EBDRelatorios />} />
+        <Route path="/ebd/relatorios" element={<EBDRelatorios user={user} />} />
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

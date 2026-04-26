@@ -1,10 +1,9 @@
 import { useNavigate } from "react-router-dom"
 
 export default function Sidebar({ open, setOpen, user }) {
-
   const navigate = useNavigate()
 
-  function navegar(pagina){
+  function navegar(pagina) {
     navigate(pagina)
     setOpen(false)
   }
@@ -22,59 +21,68 @@ export default function Sidebar({ open, setOpen, user }) {
     user?.role === "Administrador" ||
     user?.role === "Mídia" ||
     user?.role === "Dirigente"
-  
+
+  const podeVerEBD =
+    user?.role === "Administrador" ||
+    user?.role === "Dirigente" ||
+    user?.role === "EBD"
+
   return (
     <div className={`sidebar ${open ? "open" : ""}`}>
-
       <div className="sidebar-header">
         Sistema Geral ADJACARÉ
 
         <span
-          style={{cursor:"pointer"}}
-          onClick={()=>setOpen(false)}
+          style={{ cursor: "pointer" }}
+          onClick={() => setOpen(false)}
         >
           ←
         </span>
       </div>
 
-      <div className="menu-item" onClick={()=>navegar("/dashboard")}>
+      <div className="menu-item" onClick={() => navegar("/dashboard")}>
         Início
       </div>
 
-      <div className="menu-item" onClick={()=>navegar("/pedidos")}>
+      <div className="menu-item" onClick={() => navegar("/pedidos")}>
         Pedidos
       </div>
 
       {podeVerEscala && (
-        <div className="menu-item" onClick={()=>navegar("/escala-midia")}>
+        <div className="menu-item" onClick={() => navegar("/escala-midia")}>
           Escala da Mídia
         </div>
       )}
 
-      <div className="menu-item" onClick={()=>navegar("/agenda")}>
+      {podeVerEBD && (
+        <div className="menu-item" onClick={() => navegar("/ebd")}>
+          EBD
+        </div>
+      )}
+
+      <div className="menu-item" onClick={() => navegar("/agenda")}>
         Agenda
       </div>
 
-      <div className="menu-item" onClick={()=>navegar("/avisos")}>
+      <div className="menu-item" onClick={() => navegar("/avisos")}>
         Avisos
       </div>
 
-      <div className="menu-item" onClick={()=>navegar("/usuarios")}>
+      <div className="menu-item" onClick={() => navegar("/usuarios")}>
         Usuários
       </div>
 
       {podeVerSenhas && (
-        <div className="menu-item" onClick={()=>navegar("/senhas-aplicativos")}>
+        <div className="menu-item" onClick={() => navegar("/senhas-aplicativos")}>
           Senhas de Aplicativos e Softwares
         </div>
       )}
 
       {podeVerCustosFixos && (
-        <div className="menu-item" onClick={()=>navegar("/custos-fixos")}>
+        <div className="menu-item" onClick={() => navegar("/custos-fixos")}>
           Assinaturas e Pagamentos Mídia
         </div>
       )}
-
     </div>
   )
 }

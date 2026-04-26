@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
 
 export default function EBDAlunos({ user }) {
+  const navigate = useNavigate()
   const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")
 
   const [turmas, setTurmas] = useState([])
@@ -209,6 +210,10 @@ export default function EBDAlunos({ user }) {
 
   return (
     <div className="page">
+      <button className="btn-voltar" onClick={() => navigate("/ebd")}>
+        ← Voltar
+      </button>
+
       <div className="ebd-header">
         <div>
           <h1>Alunos da EBD</h1>

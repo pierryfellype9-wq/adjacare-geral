@@ -635,6 +635,22 @@ label {
   color: #64748b;
 }
 
+.ebd-hero {
+  margin-bottom: 30px;
+}
+
+.ebd-hero h1 {
+  font-size: 32px;
+  margin: 0;
+  color: #0f172a;
+}
+
+.ebd-hero p {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 15px;
+}
+
 /* MOBILE */
 
 @media (max-width: 600px) {

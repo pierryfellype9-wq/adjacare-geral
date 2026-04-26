@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
+import { useNavigate } from "react-router-dom"
 
 export default function EBDAlunos({ user }) {
   const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")

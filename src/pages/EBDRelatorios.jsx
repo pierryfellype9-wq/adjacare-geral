@@ -8,6 +8,7 @@ export default function EBDRelatorios({ user }) {
   const [dados, setDados] = useState([])
   const [turmas, setTurmas] = useState([])
   const [turmaFiltro, setTurmaFiltro] = useState("")
+  const navigate = useNavigate()
 
   const podeVerTudoEBD =
     usuario?.role === "Administrador" ||
@@ -95,6 +96,12 @@ export default function EBDRelatorios({ user }) {
 
   return (
     <div className="page">
+
+      {/* BOTÃO VOLTAR */}
+      <button className="btn-voltar" onClick={() => navigate("/ebd")}>
+        ← Voltar
+      </button>
+
       <h1>Relatórios da EBD</h1>
 
       <div className="form-card">

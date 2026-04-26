@@ -431,8 +431,7 @@ export default function Usuarios({ user }) {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  
-                  }}
+                
                   style={{
                     width: "100%",
                     padding: "12px",

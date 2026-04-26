@@ -63,13 +63,13 @@ export default function App() {
 
       const agora = Date.now()
       const tempo = agora - loginTime
-      const cincoMinutos = 5 * 60 * 1000
+      const oitoHoras = 8 * 60 * 60 * 1000
 
-      if (tempo > cincoMinutos) {
-        setUser(null)
-        localStorage.removeItem("loginTime")
+      if (tempo > oitoHoras) {
+       setUser(null)
+         localStorage.removeItem("loginTime")
         localStorage.removeItem("user")
-      }
+    }
     }, 10000)
 
     return () => clearInterval(interval)

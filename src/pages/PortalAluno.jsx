@@ -106,6 +106,11 @@ export default function PortalAluno() {
             onChange={(e) => setSenha(e.target.value)}
           />
 
+          <p className="info-login">
+  A senha é a data de nascimento do aluno.<br />
+  Exemplo: 01/01/2000 → 01012000 (sem traços)
+</p>
+          
           {erro && <p className="erro">{erro}</p>}
 
           <button disabled={carregando}>

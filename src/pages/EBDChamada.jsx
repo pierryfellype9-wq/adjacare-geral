@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
 
 export default function EBDChamada({ user }) {
+  const navigate = useNavigate()
   const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")
 
   const [turmas, setTurmas] = useState([])
@@ -42,7 +43,6 @@ export default function EBDChamada({ user }) {
 
     setTurmas(data || [])
 
-    // Se for professor, trava na turma dele
     if (professorEBD && usuario?.turma_ebd) {
       const turmaDoUsuario = data?.find((t) => t.nome === usuario.turma_ebd)
       if (turmaDoUsuario) setTurmaSelecionada(turmaDoUsuario.id)
@@ -69,14 +69,14 @@ export default function EBDChamada({ user }) {
   function alterarPresenca(alunoId, status) {
     setPresencas((prev) => ({
       ...prev,
-      [alunoId]: status
+      [alunoId]: status,
     }))
   }
 
   function alterarObservacao(alunoId, texto) {
     setObservacoes((prev) => ({
       ...prev,
-      [alunoId]: texto
+      [alunoId]: texto,
     }))
   }
 
@@ -109,7 +109,7 @@ export default function EBDChamada({ user }) {
         .from("ebd_aulas")
         .insert({
           turma_id: turmaSelecionada,
-          data: dataChamada
+          data: dataChamada,
         })
         .select()
         .single()
@@ -133,7 +133,7 @@ export default function EBDChamada({ user }) {
       aula_id: aulaId,
       aluno_id: aluno.id,
       status: presencas[aluno.id] || "presente",
-      observacao: observacoes[aluno.id] || null
+      observacao: observacoes[aluno.id] || null,
     }))
 
     const { error } = await supabase
@@ -153,6 +153,10 @@ export default function EBDChamada({ user }) {
 
   return (
     <div className="page">
+      <button className="btn-voltar" onClick={() => navigate("/ebd")}>
+        ← Voltar
+      </button>
+
       <h1>Chamada da EBD</h1>
 
       <div className="form-card">

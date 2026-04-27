@@ -14,6 +14,7 @@ import SenhasAplicativos from "./pages/SenhasAplicativos"
 import CustosFixos from "./pages/CustosFixos"
 import EBDDashboard from "./pages/EBDDashboard"
 import PortalAluno from "./pages/PortalAluno"
+import EBDFinanceiro from "./pages/EBDFinanceiro"
 
 import EBD from "./pages/EBD"
 import EBDAlunos from "./pages/EBDAlunos"
@@ -179,6 +180,7 @@ export default function App() {
                 <Route path="/avisos" element={<Avisos />} />
                 <Route path="/usuarios" element={<Usuarios user={user} />} />
                 <Route path="/trocar-senha" element={<TrocarSenha />} />
+                <Route path="/ebd/financeiro" element={<EBDFinanceiro user={user} />} />
 
                 <Route
                   path="/escala-midia"

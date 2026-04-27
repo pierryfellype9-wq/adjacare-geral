@@ -1210,6 +1210,36 @@ label {
   text-align: left;
 }
 
+.portal-card-maior {
+  max-width: 640px;
+}
+
+.portal-menu {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.portal-menu button {
+  background: #eaf1ff;
+  color: #1d4ed8;
+}
+
+.financeiro-item {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 14px;
+  text-align: left;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+  .portal-menu {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 /* MOBILE */
 
 @media (max-width: 600px) {

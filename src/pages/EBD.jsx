@@ -56,7 +56,6 @@ export default function EBD({ user }) {
       }
 
       const presencas = aluno.ebd_presencas || []
-
       const presentes = presencas.filter((p) => p.status === "presente").length
       const total = presencas.length
       const frequencia = total > 0 ? Math.round((presentes / total) * 100) : 0
@@ -127,7 +126,7 @@ export default function EBD({ user }) {
 
       <div className="ebd-hero">
         <h1>Escola Bíblica Dominical</h1>
-        <p>Gerencie alunos, chamadas e relatórios em um só lugar.</p>
+        <p>Gerencie alunos, chamadas, relatórios e financeiro em um só lugar.</p>
       </div>
 
       <div className="ebd-cards">
@@ -135,6 +134,12 @@ export default function EBD({ user }) {
           <div className="icon">📊</div>
           <h3>Dashboard</h3>
           <p>Resumo geral da EBD em tempo real.</p>
+        </div>
+
+        <div className="ebd-card" onClick={() => navigate("/ebd/financeiro")}>
+          <div className="icon">💰</div>
+          <h3>Financeiro</h3>
+          <p>Controle de revistas e pagamentos.</p>
         </div>
 
         <div className="ebd-card" onClick={() => navigate("/ebd/alunos")}>

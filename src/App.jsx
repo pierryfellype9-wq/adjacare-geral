@@ -95,7 +95,7 @@ export default function App() {
     <Routes>
 
       {/* 🔓 PORTAL DO ALUNO (SEM LOGIN) */}
-      <Route path="/portal-aluno" element={<PortalAluno />} />
+      <Route path="/portal-aluno/*" element={<PortalAluno />} />
 
       {/* 🔒 SE NÃO ESTIVER LOGADO */}
       {!user ? (

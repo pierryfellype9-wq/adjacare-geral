@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
+import jsPDF from "jspdf"
+import QRCode from "qrcode"
 
 export default function EBDAlunos({ user }) {
   const navigate = useNavigate()
@@ -137,6 +139,60 @@ export default function EBDAlunos({ user }) {
     return null
   }
 
+  async function imprimirEtiqueta(aluno) {
+    const largura = 90
+    const altura = 50
+    const linkPortal = "https://sistema.adjacare.org/portal-aluno"
+
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: [largura, altura],
+    })
+
+    const turma = aluno.ebd_turmas?.nome || "Sem turma"
+    const login = aluno.email_portal || gerarEmailPortal(aluno.nome)
+    const senha = aluno.senha_portal || gerarSenhaPortal(aluno.data_nascimento)
+
+    const qrCode = await QRCode.toDataURL(linkPortal, {
+      width: 300,
+      margin: 1,
+    })
+
+    doc.setDrawColor(0)
+    doc.roundedRect(2, 2, largura - 4, altura - 4, 2, 2)
+
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(9)
+    doc.text("ESCOLA BÍBLICA DOMINICAL", 6, 7)
+
+    doc.setFontSize(13)
+    const nomeQuebrado = doc.splitTextToSize(aluno.nome || "Sem nome", 55)
+    doc.text(nomeQuebrado, 6, 15)
+
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(8)
+    doc.text(`Classe: ${turma}`, 6, 25)
+
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(8)
+    doc.text("Portal do aluno", 6, 32)
+
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(7)
+    doc.text(`Login: ${login || "Não gerado"}`, 6, 37)
+    doc.text(`Senha: ${senha || "Não gerada"}`, 6, 42)
+
+    doc.addImage(qrCode, "PNG", 65, 12, 20, 20)
+
+    doc.setFontSize(6)
+    doc.text("Aponte a câmera para acessar", 75, 36, {
+      align: "center",
+    })
+
+    doc.save(`etiqueta-${aluno.nome || "aluno"}.pdf`)
+  }
+
   const idade = dataNascimento ? calcularIdade(dataNascimento) : null
   const emailPortal = gerarEmailPortal(nome)
   const senhaPortal = gerarSenhaPortal(dataNascimento)
@@ -147,8 +203,6 @@ export default function EBDAlunos({ user }) {
   const turmaFinal = turmaSelecionada
     ? turmas.find((t) => String(t.id) === String(turmaSelecionada))
     : turmaAutomatica
-
-  const menorDeIdade = idade !== null && idade < 18
 
   function limparFormulario() {
     setNome("")
@@ -542,6 +596,10 @@ export default function EBDAlunos({ user }) {
 
               <div className="aluno-acoes">
                 <button onClick={() => iniciarEdicao(aluno)}>Editar</button>
+
+                <button type="button" onClick={() => imprimirEtiqueta(aluno)}>
+                  Imprimir etiqueta
+                </button>
 
                 {podeVerTudoEBD && (
                   <button

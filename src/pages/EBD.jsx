@@ -7,7 +7,6 @@ export default function EBD({ user }) {
   const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")
 
   const [alertas, setAlertas] = useState([])
-  const [mostrarModal, setMostrarModal] = useState(false)
 
   const podeVerTudo =
     usuario?.role === "Administrador" ||
@@ -22,14 +21,6 @@ export default function EBD({ user }) {
   useEffect(() => {
     carregarAlertas()
   }, [])
-
-  function tocarAlerta() {
-    const audio = new Audio("/alerta.mp3")
-    audio.volume = 0.5
-    audio.play().catch(() => {
-      console.log("Som bloqueado pelo navegador até interação do usuário.")
-    })
-  }
 
   async function carregarAlertas() {
     if (!podeVerTudo && !professor) {
@@ -71,41 +62,10 @@ export default function EBD({ user }) {
     })
 
     setAlertas(alertasTemp)
-
-    if (alertasTemp.length > 0) {
-      setMostrarModal(true)
-      tocarAlerta()
-    }
   }
 
   return (
     <div className="page">
-      {mostrarModal && alertas.length > 0 && (
-        <div className="alerta-modal-overlay">
-          <div className="alerta-modal">
-            <div className="alerta-modal-icon">⚠️</div>
-
-            <h2>Atenção!</h2>
-            <p>
-              Existem <strong>{alertas.length}</strong> aluno
-              {alertas.length !== 1 ? "s" : ""} com frequência baixa.
-            </p>
-
-            <div className="alerta-modal-lista">
-              {alertas.slice(0, 5).map((a) => (
-                <div key={a.id}>
-                  ❗ <strong>{a.nome}</strong> — {a.turma} ({a.frequencia}%)
-                </div>
-              ))}
-            </div>
-
-            <button onClick={() => setMostrarModal(false)}>
-              Entendi
-            </button>
-          </div>
-        </div>
-      )}
-
       {alertas.length > 0 && (
         <div className="ebd-alerta-topo">
           <div className="ebd-alerta-contador">

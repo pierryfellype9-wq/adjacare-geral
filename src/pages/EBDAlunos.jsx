@@ -188,22 +188,12 @@ export default function EBDAlunos({ user }) {
       return
     }
 
-    if (!nome || !dataNascimento) {
-      alert("Nome e data de nascimento são obrigatórios.")
+    if (!nome.trim()) {
+      alert("Informe o nome do aluno.")
       return
     }
 
-    if (menorDeIdade && (!nomePai || !nomeMae || !contato)) {
-      alert("Para menores de idade, é obrigatório informar pai, mãe e contato.")
-      return
-    }
-
-    if (!turmaFinal) {
-      alert("Selecione uma classe.")
-      return
-    }
-
-    if (professorEBD && turmaFinal.nome !== usuario.turma_ebd) {
+    if (professorEBD && turmaFinal && turmaFinal.nome !== usuario.turma_ebd) {
       alert("Você só pode cadastrar alunos da sua turma.")
       return
     }
@@ -211,15 +201,15 @@ export default function EBDAlunos({ user }) {
     setCarregando(true)
 
     const dadosAluno = {
-      nome,
-      data_nascimento: dataNascimento,
-      turma_id: turmaFinal.id,
-      nome_pai: menorDeIdade ? nomePai : null,
-      nome_mae: menorDeIdade ? nomeMae : null,
-      contato,
-      observacao,
-      email_portal: emailPortal,
-      senha_portal: senhaPortal,
+      nome: nome.trim(),
+      data_nascimento: dataNascimento || null,
+      turma_id: turmaFinal?.id || null,
+      nome_pai: nomePai || null,
+      nome_mae: nomeMae || null,
+      contato: contato || null,
+      observacao: observacao || null,
+      email_portal: emailPortal || null,
+      senha_portal: senhaPortal || null,
     }
 
     let error
@@ -300,7 +290,7 @@ export default function EBDAlunos({ user }) {
       <div className="ebd-header">
         <div>
           <h1>Alunos da EBD</h1>
-          <p>Cadastro e organização dos alunos por classe.</p>
+          <p>Cadastro rápido dos alunos para uso na chamada.</p>
         </div>
       </div>
 
@@ -308,13 +298,16 @@ export default function EBDAlunos({ user }) {
         <div className="form-title-row">
           <div>
             <h2>{editando ? "Editar aluno" : "Cadastrar aluno"}</h2>
-            <p>O sistema sugere a classe pela idade, mas permite alterar manualmente.</p>
+            <p>
+              Por enquanto, apenas o nome é obrigatório. Os demais dados poderão
+              ser preenchidos depois.
+            </p>
           </div>
         </div>
 
         <div className="form-grid-ebd">
           <div>
-            <label>Nome do aluno</label>
+            <label>Nome do aluno *</label>
             <input
               required
               value={nome}
@@ -326,7 +319,6 @@ export default function EBDAlunos({ user }) {
           <div>
             <label>Data de nascimento</label>
             <input
-              required
               type="date"
               value={dataNascimento}
               onChange={(e) => {
@@ -341,7 +333,7 @@ export default function EBDAlunos({ user }) {
           </div>
         </div>
 
-        {nome && dataNascimento && (
+        {nome && (
           <div className="info-box ebd-info-box">
             <div>
               <span>Login do aluno</span>
@@ -350,7 +342,9 @@ export default function EBDAlunos({ user }) {
 
             <div>
               <span>Senha inicial</span>
-              <strong>{senhaPortal}</strong>
+              <strong>
+                {senhaPortal || "Será gerada após informar a data de nascimento"}
+              </strong>
             </div>
           </div>
         )}
@@ -403,50 +397,52 @@ export default function EBDAlunos({ user }) {
           </>
         )}
 
-        {menorDeIdade && (
-          <div className="form-grid-ebd">
-            <div>
-              <label>Nome do pai</label>
-              <input
-                required
-                value={nomePai}
-                onChange={(e) => setNomePai(e.target.value)}
-                placeholder="Nome do pai"
-              />
-            </div>
+        {idade === null && (
+          <div>
+            <label>Classe</label>
+            <select
+              value={turmaSelecionada}
+              onChange={(e) => setTurmaSelecionada(e.target.value)}
+            >
+              <option value="">Selecione a classe, se quiser</option>
 
-            <div>
-              <label>Nome da mãe</label>
-              <input
-                required
-                value={nomeMae}
-                onChange={(e) => setNomeMae(e.target.value)}
-                placeholder="Nome da mãe"
-              />
-            </div>
-
-            <div>
-              <label>Contato do responsável</label>
-              <input
-                required
-                value={contato}
-                onChange={(e) => setContato(e.target.value)}
-                placeholder="Telefone do responsável"
-              />
-            </div>
+              {turmas.map((turma) => (
+                <option key={turma.id} value={turma.id}>
+                  {turma.nome}
+                </option>
+              ))}
+            </select>
           </div>
         )}
 
-        {idade !== null && idade >= 18 && (
+        <div className="form-grid-ebd">
           <div>
-            <label>Contato do aluno</label>
+            <label>Nome do pai</label>
+            <input
+              value={nomePai}
+              onChange={(e) => setNomePai(e.target.value)}
+              placeholder="Nome do pai"
+            />
+          </div>
+
+          <div>
+            <label>Nome da mãe</label>
+            <input
+              value={nomeMae}
+              onChange={(e) => setNomeMae(e.target.value)}
+              placeholder="Nome da mãe"
+            />
+          </div>
+
+          <div>
+            <label>Contato</label>
             <input
               value={contato}
               onChange={(e) => setContato(e.target.value)}
-              placeholder="Telefone do aluno"
+              placeholder="Telefone"
             />
           </div>
-        )}
+        </div>
 
         <div>
           <label>Observação</label>
@@ -506,7 +502,7 @@ export default function EBDAlunos({ user }) {
                 </div>
 
                 <div className="idade-circle">
-                  {calcularIdade(aluno.data_nascimento)}
+                  {calcularIdade(aluno.data_nascimento) ?? "--"}
                   <small>anos</small>
                 </div>
               </div>
@@ -523,13 +519,19 @@ export default function EBDAlunos({ user }) {
 
                 <p>
                   <strong>Senha:</strong>{" "}
-                  {aluno.senha_portal || gerarSenhaPortal(aluno.data_nascimento)}
+                  {aluno.senha_portal || "Não gerada"}
                 </p>
 
                 <p>
                   <strong>Cadastrado por:</strong>{" "}
                   {aluno.criado_por || "Não informado"}
                 </p>
+
+                {!aluno.data_nascimento && (
+                  <p>
+                    <strong>Status:</strong> Cadastro incompleto
+                  </p>
+                )}
 
                 {aluno.observacao && (
                   <p>

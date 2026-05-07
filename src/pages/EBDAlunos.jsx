@@ -14,6 +14,7 @@ export default function EBDAlunos({ user }) {
 
   const [turmas, setTurmas] = useState([])
   const [alunos, setAlunos] = useState([])
+  const [aba, setAba] = useState("ativos")
 
   const [nome, setNome] = useState("")
   const [dataNascimento, setDataNascimento] = useState("")
@@ -32,6 +33,8 @@ export default function EBDAlunos({ user }) {
     usuario?.role === "Administrador" ||
     usuario?.role === "Dirigente" ||
     (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
+
+  const podeGerenciarStatusAluno = podeVerTudoEBD
 
   const professorEBD =
     usuario?.turma_ebd &&
@@ -54,7 +57,7 @@ export default function EBDAlunos({ user }) {
 
     let query = supabase
       .from("ebd_alunos")
-      .select("*, ebd_turmas(nome)")
+      .select("*, ebd_turmas(id,nome)")
       .order("nome", { ascending: true })
 
     if (professorEBD) {
@@ -204,6 +207,11 @@ export default function EBDAlunos({ user }) {
     ? turmas.find((t) => String(t.id) === String(turmaSelecionada))
     : turmaAutomatica
 
+  const alunosAtivos = alunos.filter((aluno) => aluno.ativo !== false)
+  const alunosInativos = alunos.filter((aluno) => aluno.ativo === false)
+
+  const alunosFiltrados = aba === "ativos" ? alunosAtivos : alunosInativos
+
   function limparFormulario() {
     setNome("")
     setDataNascimento("")
@@ -228,6 +236,8 @@ export default function EBDAlunos({ user }) {
     setObservacao(aluno.observacao || "")
     setTurmaSelecionada(aluno.turma_id ? String(aluno.turma_id) : "")
 
+    setCasado(aluno.ebd_turmas?.nome === "Adultos" ? "Sim" : "Não")
+
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -247,8 +257,30 @@ export default function EBDAlunos({ user }) {
       return
     }
 
+    if (!dataNascimento) {
+      alert("Informe a data de nascimento do aluno.")
+      return
+    }
+
+    if (idade !== null && idade < 18) {
+      if (!nomePai.trim()) {
+        alert("Informe o nome do pai.")
+        return
+      }
+
+      if (!nomeMae.trim()) {
+        alert("Informe o nome da mãe.")
+        return
+      }
+
+      if (!contato.trim()) {
+        alert("Informe o contato do responsável.")
+        return
+      }
+    }
+
     if (professorEBD && turmaFinal && turmaFinal.nome !== usuario.turma_ebd) {
-      alert("Você só pode cadastrar alunos da sua turma.")
+      alert("Você só pode cadastrar ou editar alunos da sua turma.")
       return
     }
 
@@ -258,10 +290,10 @@ export default function EBDAlunos({ user }) {
       nome: nome.trim(),
       data_nascimento: dataNascimento || null,
       turma_id: turmaFinal?.id || null,
-      nome_pai: nomePai || null,
-      nome_mae: nomeMae || null,
-      contato: contato || null,
-      observacao: observacao || null,
+      nome_pai: nomePai.trim() || null,
+      nome_mae: nomeMae.trim() || null,
+      contato: contato.trim() || null,
+      observacao: observacao.trim() || null,
       email_portal: emailPortal || null,
       senha_portal: senhaPortal || null,
     }
@@ -273,11 +305,13 @@ export default function EBDAlunos({ user }) {
         .from("ebd_alunos")
         .update(dadosAluno)
         .eq("id", alunoId)
+        .select()
 
       error = resposta.error
     } else {
       const resposta = await supabase.from("ebd_alunos").insert({
         ...dadosAluno,
+        ativo: true,
         criado_por: usuario?.nome || "Não identificado",
       })
 
@@ -292,9 +326,40 @@ export default function EBDAlunos({ user }) {
       return
     }
 
+    await carregarDados()
     limparFormulario()
-    carregarDados()
+
     alert(editando ? "Aluno atualizado com sucesso!" : "Aluno cadastrado com sucesso!")
+  }
+
+  async function alterarStatusAluno(aluno) {
+    if (!podeGerenciarStatusAluno) {
+      alert("Apenas administradores, dirigentes ou superintendente podem alterar o status do aluno.")
+      return
+    }
+
+    const novoStatus = aluno.ativo === false ? true : false
+
+    const confirmar = confirm(
+      novoStatus
+        ? `Deseja ativar o aluno ${aluno.nome}?`
+        : `Deseja inativar o aluno ${aluno.nome}?`
+    )
+
+    if (!confirmar) return
+
+    const { error } = await supabase
+      .from("ebd_alunos")
+      .update({ ativo: novoStatus })
+      .eq("id", aluno.id)
+
+    if (error) {
+      console.error(error)
+      alert("Erro ao alterar status do aluno.")
+      return
+    }
+
+    await carregarDados()
   }
 
   async function excluirAluno(id) {
@@ -344,7 +409,7 @@ export default function EBDAlunos({ user }) {
       <div className="ebd-header">
         <div>
           <h1>Alunos da EBD</h1>
-          <p>Cadastro rápido dos alunos para uso na chamada.</p>
+          <p>Cadastro e gerenciamento dos alunos da Escola Bíblica Dominical.</p>
         </div>
       </div>
 
@@ -353,8 +418,8 @@ export default function EBDAlunos({ user }) {
           <div>
             <h2>{editando ? "Editar aluno" : "Cadastrar aluno"}</h2>
             <p>
-              Por enquanto, apenas o nome é obrigatório. Os demais dados poderão
-              ser preenchidos depois.
+              Nome e data de nascimento são obrigatórios. Para menores de 18 anos,
+              também é obrigatório informar pai, mãe e contato.
             </p>
           </div>
         </div>
@@ -371,17 +436,15 @@ export default function EBDAlunos({ user }) {
           </div>
 
           <div>
-            <label>Data de nascimento</label>
+            <label>Data de nascimento *</label>
             <input
+              required
               type="date"
               value={dataNascimento}
               onChange={(e) => {
                 setDataNascimento(e.target.value)
                 setCasado("Não")
                 setTurmaSelecionada("")
-                setNomePai("")
-                setNomeMae("")
-                setContato("")
               }}
             />
           </div>
@@ -451,24 +514,6 @@ export default function EBDAlunos({ user }) {
           </>
         )}
 
-        {idade === null && (
-          <div>
-            <label>Classe</label>
-            <select
-              value={turmaSelecionada}
-              onChange={(e) => setTurmaSelecionada(e.target.value)}
-            >
-              <option value="">Selecione a classe, se quiser</option>
-
-              {turmas.map((turma) => (
-                <option key={turma.id} value={turma.id}>
-                  {turma.nome}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
         <div className="form-grid-ebd">
           <div>
             <label>Nome do pai</label>
@@ -535,24 +580,57 @@ export default function EBDAlunos({ user }) {
               Alunos cadastrados
               {professorEBD && ` — ${usuario.turma_ebd}`}
             </h2>
+
             <p>
-              {alunos.length} aluno{alunos.length !== 1 ? "s" : ""} cadastrado
-              {alunos.length !== 1 ? "s" : ""}
+              {alunosAtivos.length} ativo{alunosAtivos.length !== 1 ? "s" : ""} ·{" "}
+              {alunosInativos.length} inativo{alunosInativos.length !== 1 ? "s" : ""}
             </p>
           </div>
         </div>
 
-        {alunos.length === 0 && <p>Nenhum aluno cadastrado.</p>}
+        <div className="form-actions" style={{ marginBottom: "20px" }}>
+          <button
+            type="button"
+            className={aba === "ativos" ? "" : "btn-cancelar"}
+            onClick={() => setAba("ativos")}
+          >
+            Ativos ({alunosAtivos.length})
+          </button>
+
+          <button
+            type="button"
+            className={aba === "inativos" ? "" : "btn-cancelar"}
+            onClick={() => setAba("inativos")}
+          >
+            Inativos ({alunosInativos.length})
+          </button>
+        </div>
+
+        {alunosFiltrados.length === 0 && (
+          <p>
+            Nenhum aluno {aba === "ativos" ? "ativo" : "inativo"} cadastrado.
+          </p>
+        )}
 
         <div className="alunos-grid">
-          {alunos.map((aluno) => (
-            <div className="aluno-card" key={aluno.id}>
+          {alunosFiltrados.map((aluno) => (
+            <div
+              className={`aluno-card ${aluno.ativo === false ? "aluno-inativo" : ""}`}
+              key={aluno.id}
+            >
               <div className="aluno-card-top">
                 <div>
                   <h3>{aluno.nome}</h3>
+
                   <span className="badge-turma">
                     {aluno.ebd_turmas?.nome || "Sem turma"}
                   </span>
+
+                  {aluno.ativo === false && (
+                    <span className="badge-turma" style={{ marginLeft: "8px" }}>
+                      Inativo
+                    </span>
+                  )}
                 </div>
 
                 <div className="idade-circle">
@@ -573,7 +651,7 @@ export default function EBDAlunos({ user }) {
 
                 <p>
                   <strong>Senha:</strong>{" "}
-                  {aluno.senha_portal || "Não gerada"}
+                  {aluno.senha_portal || gerarSenhaPortal(aluno.data_nascimento)}
                 </p>
 
                 <p>
@@ -581,9 +659,14 @@ export default function EBDAlunos({ user }) {
                   {aluno.criado_por || "Não informado"}
                 </p>
 
+                <p>
+                  <strong>Status:</strong>{" "}
+                  {aluno.ativo === false ? "Inativo" : "Ativo"}
+                </p>
+
                 {!aluno.data_nascimento && (
                   <p>
-                    <strong>Status:</strong> Cadastro incompleto
+                    <strong>Status do cadastro:</strong> Cadastro incompleto
                   </p>
                 )}
 
@@ -595,11 +678,25 @@ export default function EBDAlunos({ user }) {
               </div>
 
               <div className="aluno-acoes">
-                <button onClick={() => iniciarEdicao(aluno)}>Editar</button>
+                {aluno.ativo !== false && (
+                  <button onClick={() => iniciarEdicao(aluno)}>Editar</button>
+                )}
 
-                <button type="button" onClick={() => imprimirEtiqueta(aluno)}>
-                  Imprimir etiqueta
-                </button>
+                {aluno.ativo !== false && (
+                  <button type="button" onClick={() => imprimirEtiqueta(aluno)}>
+                    Imprimir etiqueta
+                  </button>
+                )}
+
+                {podeGerenciarStatusAluno && (
+                  <button
+                    type="button"
+                    className={aluno.ativo === false ? "" : "btn-danger"}
+                    onClick={() => alterarStatusAluno(aluno)}
+                  >
+                    {aluno.ativo === false ? "Ativar aluno" : "Inativar aluno"}
+                  </button>
+                )}
 
                 {podeVerTudoEBD && (
                   <button

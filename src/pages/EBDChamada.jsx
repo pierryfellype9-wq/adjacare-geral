@@ -59,10 +59,11 @@ export default function EBDChamada({ user }) {
 
   async function carregarAlunos() {
     const { data: alunosData } = await supabase
-      .from("ebd_alunos")
-      .select("*")
-      .eq("turma_id", turmaSelecionada)
-      .order("nome", { ascending: true })
+  .from("ebd_alunos")
+  .select("*")
+  .eq("turma_id", turmaSelecionada)
+  .eq("ativo", true)
+  .order("nome", { ascending: true })
 
     setAlunos(alunosData || [])
 

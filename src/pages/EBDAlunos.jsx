@@ -305,12 +305,18 @@ export default function EBDAlunos({ user }) {
 
     if (editando) {
       const resposta = await supabase
-        .from("ebd_alunos")
-        .update(dadosAluno)
-        .eq("id", alunoId)
-        .select()
+  .from("ebd_alunos")
+  .update(dadosAluno)
+  .eq("id", alunoId)
+  .select()
 
-      error = resposta.error
+error = resposta.error
+
+if (!resposta.data || resposta.data.length === 0) {
+  setCarregando(false)
+  alert("Nenhum aluno foi atualizado. Verifique as permissões do Supabase.")
+  return
+}
     } else {
       const resposta = await supabase.from("ebd_alunos").insert({
         ...dadosAluno,

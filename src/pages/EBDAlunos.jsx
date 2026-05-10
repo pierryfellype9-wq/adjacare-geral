@@ -34,7 +34,10 @@ export default function EBDAlunos({ user }) {
     usuario?.role === "Dirigente" ||
     (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
 
-  const podeGerenciarStatusAluno = podeVerTudoEBD
+  const podeGerenciarStatusAluno =
+  usuario?.role === "Administrador" ||
+  usuario?.role === "Dirigente" ||
+  usuario?.turma_ebd === "Superintendente"
 
   const professorEBD =
     usuario?.turma_ebd &&
@@ -333,34 +336,42 @@ export default function EBDAlunos({ user }) {
   }
 
   async function alterarStatusAluno(aluno) {
-    if (!podeGerenciarStatusAluno) {
-      alert("Apenas administradores, dirigentes ou superintendente podem alterar o status do aluno.")
-      return
-    }
-
-    const novoStatus = aluno.ativo === false ? true : false
-
-    const confirmar = confirm(
-      novoStatus
-        ? `Deseja ativar o aluno ${aluno.nome}?`
-        : `Deseja inativar o aluno ${aluno.nome}?`
-    )
-
-    if (!confirmar) return
-
-    const { error } = await supabase
-      .from("ebd_alunos")
-      .update({ ativo: novoStatus })
-      .eq("id", aluno.id)
-
-    if (error) {
-      console.error(error)
-      alert("Erro ao alterar status do aluno.")
-      return
-    }
-
-    await carregarDados()
+  if (!podeGerenciarStatusAluno) {
+    alert("Apenas administradores, dirigentes ou superintendente podem alterar o status do aluno.")
+    return
   }
+
+  const novoStatus = aluno.ativo === false ? true : false
+
+  const confirmar = confirm(
+    novoStatus
+      ? `Deseja ativar o aluno ${aluno.nome}?`
+      : `Deseja inativar o aluno ${aluno.nome}?`
+  )
+
+  if (!confirmar) return
+
+  const { data, error } = await supabase
+    .from("ebd_alunos")
+    .update({ ativo: novoStatus })
+    .eq("id", aluno.id)
+    .select()
+
+  if (error) {
+    console.error("Erro ao alterar status:", error)
+    alert("Erro ao alterar status do aluno: " + error.message)
+    return
+  }
+
+  if (!data || data.length === 0) {
+    alert("Nenhum aluno foi alterado. Verifique se a coluna ativo existe e se as permissões do Supabase permitem update.")
+    return
+  }
+
+  await carregarDados()
+
+  setAba(novoStatus ? "ativos" : "inativos")
+}
 
   async function excluirAluno(id) {
     if (!podeVerTudoEBD) {

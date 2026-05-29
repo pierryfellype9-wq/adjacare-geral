@@ -42,15 +42,17 @@ export default async function handler(req,res){
  try{
 
   const {
-   titulo,
-   descricao,
-   prioridade,
-   destino,
-   ministerio,
-   criado_por,
-   email,
-   telefone
-  } = req.body
+ titulo,
+ descricao,
+ prioridade,
+ destino,
+ ministerio,
+ criado_por,
+ email,
+ telefone,
+ origem = "site",
+ canal = "site"
+} = req.body
 
   // cria pasta no drive
   const linkDrive = await criarPastaDrive(titulo)

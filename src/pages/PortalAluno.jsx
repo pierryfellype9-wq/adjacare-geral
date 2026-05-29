@@ -67,6 +67,11 @@ export default function PortalAluno() {
     return (
       <div className="portal-page">
         <div className="portal-card">
+          <img
+  src="/logo-adjacare.jpg"
+  alt="Sistema ADJACARÉ"
+  className="portal-logo"
+/>
           <h1>Portal do Aluno</h1>
           <p className="sub">Acompanhe sua frequência e informações da EBD</p>
 

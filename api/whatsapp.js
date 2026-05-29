@@ -72,11 +72,13 @@ export default async function handler(req, res) {
       return res.status(200).send("ok");
     }
 
-    let { data: sessao } = await supabase
-      .from("whatsapp_sessoes")
-      .select("*")
-      .eq("telefone", telefone)
-      .single();
+    const { data: sessoes } = await supabase
+  .from("whatsapp_sessoes")
+  .select("*")
+  .eq("telefone", telefone)
+  .limit(1);
+
+let sessao = sessoes?.[0];
 
     if (!sessao) {
       const { data: novaSessao } = await supabase

@@ -55,10 +55,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const body = req.body;
-
-    const mensagem =
-      body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+    const mensagem = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
     if (!mensagem) {
       return res.status(200).send("Sem mensagem");
@@ -73,12 +70,12 @@ export default async function handler(req, res) {
     }
 
     const { data: sessoes } = await supabase
-  .from("whatsapp_sessoes")
-  .select("*")
-  .eq("telefone", telefone)
-  .limit(1);
+      .from("whatsapp_sessoes")
+      .select("*")
+      .eq("telefone", telefone)
+      .limit(1);
 
-let sessao = sessoes?.[0];
+    let sessao = sessoes?.[0];
 
     if (!sessao) {
       const { data: novaSessao } = await supabase
@@ -92,6 +89,7 @@ let sessao = sessoes?.[0];
         .single();
 
       sessao = novaSessao;
+
       await enviarMensagem(telefone, menuPrincipal());
       return res.status(200).send("ok");
     }
@@ -129,19 +127,17 @@ let sessao = sessoes?.[0];
       }
 
       if (texto === "2") {
-        await supabase
-          .from("whatsapp_sessoes")
-          .update({
-            etapa: sessao.autenticado
-              ? "consultando_status"
-              : "aguardando_email_status",
-            dados: {},
-          })
-          .eq("telefone", telefone);
-
         if (sessao.autenticado) {
-          await consultarStatus(telefone, sessao.usuario_nome);
+          await consultarStatus(telefone, sessao.usuario_email);
         } else {
+          await supabase
+            .from("whatsapp_sessoes")
+            .update({
+              etapa: "aguardando_email_status",
+              dados: {},
+            })
+            .eq("telefone", telefone);
+
           await enviarMensagem(
             telefone,
             "Para consultar seus pedidos, informe seu e-mail cadastrado:"
@@ -161,6 +157,7 @@ https://sistema.adjacare.org/agenda
 
 Digite "menu" para voltar.`
         );
+
         return res.status(200).send("ok");
       }
 
@@ -170,10 +167,10 @@ Digite "menu" para voltar.`
           `🎓 Suporte do Portal do Aluno
 
 Explique sua dúvida em uma mensagem.
-Exemplo: "Não consigo acessar o portal do aluno."
 
 Digite "menu" para voltar.`
         );
+
         return res.status(200).send("ok");
       }
 
@@ -207,23 +204,27 @@ Digite "menu" para voltar.`
       sessao.etapa === "aguardando_email_status" ||
       sessao.etapa === "aguardando_email_suporte_lider"
     ) {
-      const email = texto.toLowerCase();
+      const email = texto.trim().toLowerCase();
 
-      const { data: usuarios } = await supabase
-  .from("usuarios")
-  .select("*")
-  .ilike("email", email)
-  .limit(1);
+      const { data: usuarios, error } = await supabase
+        .from("users")
+        .select("*")
+        .ilike("email", email)
+        .limit(1);
 
-const usuario = usuarios?.[0];
+      console.log("BUSCA USERS:", { email, usuarios, error });
+
+      const usuario = usuarios?.[0];
 
       if (!usuario) {
         await enviarMensagem(
           telefone,
-          "Não encontrei esse e-mail no sistema ou o usuário está inativo."
+          "Não encontrei esse e-mail no sistema."
         );
         return res.status(200).send("ok");
       }
+
+      const nomeUsuario = usuario.nome || usuario.name || usuario.email;
 
       let proximaEtapa = "menu";
 
@@ -244,7 +245,7 @@ const usuario = usuarios?.[0];
         .update({
           autenticado: true,
           usuario_id: usuario.id,
-          usuario_nome: usuario.nome,
+          usuario_nome: nomeUsuario,
           usuario_email: usuario.email,
           etapa: proximaEtapa,
         })
@@ -253,7 +254,7 @@ const usuario = usuarios?.[0];
       if (proximaEtapa === "aguardando_titulo_pedido") {
         await enviarMensagem(
           telefone,
-          `Olá, ${usuario.nome}! ✅
+          `Olá, ${nomeUsuario}! ✅
 Acesso confirmado.
 
 Digite o título do pedido:`
@@ -261,13 +262,13 @@ Digite o título do pedido:`
       }
 
       if (proximaEtapa === "consultando_status") {
-        await consultarStatus(telefone, usuario.nome);
+        await consultarStatus(telefone, usuario.email);
       }
 
       if (proximaEtapa === "suporte_lider") {
         await enviarMensagem(
           telefone,
-          `Olá, ${usuario.nome}! ✅
+          `Olá, ${nomeUsuario}! ✅
 Acesso confirmado.
 
 Explique sua dúvida como líder/professor:`
@@ -364,6 +365,7 @@ Digite:
           prioridade: dados.prioridade || "Normal",
           ministerio: "WhatsApp",
           criado_por: sessao.usuario_nome || "WhatsApp",
+          usuario_email: sessao.usuario_email,
           status: "Pendente",
         });
 
@@ -404,7 +406,11 @@ Digite "menu" para voltar.`
         return res.status(200).send("ok");
       }
 
-      await enviarMensagem(telefone, "Digite 1 para confirmar ou 2 para cancelar.");
+      await enviarMensagem(
+        telefone,
+        "Digite 1 para confirmar ou 2 para cancelar."
+      );
+
       return res.status(200).send("ok");
     }
 
@@ -416,6 +422,7 @@ Digite "menu" para voltar.`
         prioridade: "Normal",
         ministerio: "Suporte",
         criado_por: sessao.usuario_nome || "WhatsApp",
+        usuario_email: sessao.usuario_email,
         status: "Pendente",
       });
 
@@ -447,11 +454,11 @@ Digite "menu" para voltar.`
   }
 }
 
-async function consultarStatus(telefone, usuarioNome) {
+async function consultarStatus(telefone, usuarioEmail) {
   const { data: pedidos } = await supabase
     .from("pedidos")
     .select("titulo, status, prioridade, criado_em")
-    .eq("criado_por", usuarioNome)
+    .eq("usuario_email", usuarioEmail)
     .order("criado_em", { ascending: false })
     .limit(5);
 

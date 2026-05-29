@@ -23,11 +23,15 @@ export default function Sidebar({ open, setOpen, user }) {
     user?.role === "Dirigente"
 
   const podeVerEBD = true
-    
+
   return (
     <div className={`sidebar ${open ? "open" : ""}`}>
       <div className="sidebar-header">
-        Sistema Geral ADJACARÉ
+        <div>
+          Sistema Geral
+          <br />
+          ADJACARÉ
+        </div>
 
         <span
           style={{ cursor: "pointer" }}
@@ -37,49 +41,78 @@ export default function Sidebar({ open, setOpen, user }) {
         </span>
       </div>
 
-      <div className="menu-item" onClick={() => navegar("/dashboard")}>
-        Início
-      </div>
-
-      <div className="menu-item" onClick={() => navegar("/pedidos")}>
-        Pedidos
-      </div>
-
-      {podeVerEscala && (
-        <div className="menu-item" onClick={() => navegar("/escala-midia")}>
-          Escala da Mídia
+      <div className="sidebar-scroll">
+        <div
+          className="menu-item"
+          onClick={() => navegar("/dashboard")}
+        >
+          Início
         </div>
-      )}
 
-      {podeVerEBD && (
-        <div className="menu-item" onClick={() => navegar("/ebd")}>
-          EBD
+        <div
+          className="menu-item"
+          onClick={() => navegar("/pedidos")}
+        >
+          Pedidos
         </div>
-      )}
 
-      <div className="menu-item" onClick={() => navegar("/agenda")}>
-        Agenda
-      </div>
+        {podeVerEscala && (
+          <div
+            className="menu-item"
+            onClick={() => navegar("/escala-midia")}
+          >
+            Escala da Mídia
+          </div>
+        )}
 
-      <div className="menu-item" onClick={() => navegar("/avisos")}>
-        Avisos
-      </div>
+        {podeVerEBD && (
+          <div
+            className="menu-item"
+            onClick={() => navegar("/ebd")}
+          >
+            EBD
+          </div>
+        )}
 
-      <div className="menu-item" onClick={() => navegar("/usuarios")}>
-        Usuários
-      </div>
-
-      {podeVerSenhas && (
-        <div className="menu-item" onClick={() => navegar("/senhas-aplicativos")}>
-          Senhas de Aplicativos e Softwares
+        <div
+          className="menu-item"
+          onClick={() => navegar("/agenda")}
+        >
+          Agenda
         </div>
-      )}
 
-      {podeVerCustosFixos && (
-        <div className="menu-item" onClick={() => navegar("/custos-fixos")}>
-          Assinaturas e Pagamentos Mídia
+        <div
+          className="menu-item"
+          onClick={() => navegar("/avisos")}
+        >
+          Avisos
         </div>
-      )}
+
+        <div
+          className="menu-item"
+          onClick={() => navegar("/usuarios")}
+        >
+          Usuários
+        </div>
+
+        {podeVerSenhas && (
+          <div
+            className="menu-item"
+            onClick={() => navegar("/senhas-aplicativos")}
+          >
+            Senhas de Aplicativos
+          </div>
+        )}
+
+        {podeVerCustosFixos && (
+          <div
+            className="menu-item"
+            onClick={() => navegar("/custos-fixos")}
+          >
+            Custos Fixos
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -4,8 +4,12 @@
 
   "rewrites": [
     {
+      "source": "/api/enviar-whatsapp-aluno",
+      "destination": "/src/lib/enviar-whatsapp-aluno.js"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
-} 
+}

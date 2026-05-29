@@ -19,15 +19,33 @@ export default async function handler(req, res) {
     const mensagem = `
 Olá! 👋
 
-O aluno ${nome} foi cadastrado na EBD ADJACARÉ.
+Este é o canal oficial do Sistema ADJACARÉ.
 
-Classe: ${turma}
+Utilizamos este número para:
+• EBD
+• Portal do Aluno
+• Pedidos
+• Avisos
+• Escalas
+• Suporte do sistema
 
-Acesso ao Portal do Aluno:
+⚠️ Este número não recebe respostas.
+
+O aluno ${nome} foi cadastrado com sucesso no sistema.
+
+📚 Classe:
+${turma}
+
+🔗 Portal do Aluno:
 https://sistema.adjacare.org/portal-aluno
 
-Login: ${login}
-Senha: ${senha}
+👤 Login:
+${login}
+
+🔑 Senha inicial:
+${senha}
+
+Guarde essas informações para futuros acessos.
 
 Sistema Geral ADJACARÉ
 `.trim()

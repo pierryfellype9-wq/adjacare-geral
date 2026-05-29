@@ -1258,11 +1258,6 @@ label {
   color: #92400e;
 }
 
-.status-atrasado {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
 .novo-layout {
   display: flex;
   justify-content: space-between;

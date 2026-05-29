@@ -27,9 +27,10 @@ export default function PortalAluno() {
         ebd_turmas(nome),
         ebd_presencas(status)
       `)
-      .eq("email_portal", email.toLowerCase())
-      .eq("senha_portal", senha)
-      .single()
+      .eq("email_portal", email.toLowerCase().trim())
+      .eq("senha_portal", senha.trim())
+      .limit(1)
+      .maybeSingle()
 
     if (error || !data) {
       setCarregando(false)
@@ -66,14 +67,17 @@ export default function PortalAluno() {
   if (!aluno) {
     return (
       <div className="portal-page">
-        <div className="portal-card">
+        <div className="portal-card portal-login-card">
           <img
-  src="/logo-adjacare.jpg"
-  alt="Sistema ADJACARÉ"
-  className="portal-logo"
-/>
+            src="/logo-adjacare.jpg"
+            alt="Sistema ADJACARÉ"
+            className="portal-logo"
+          />
+
           <h1>Portal do Aluno</h1>
-          <p className="sub">Acompanhe sua frequência e informações da EBD</p>
+          <p className="sub">
+            Acesse suas informações da Escola Bíblica Dominical.
+          </p>
 
           <form onSubmit={fazerLogin}>
             <input
@@ -89,15 +93,18 @@ export default function PortalAluno() {
               onChange={(e) => setSenha(e.target.value)}
             />
 
-            <p className="info-login">
-              A senha é a data de nascimento do aluno.<br />
-              Exemplo: 01/01/2000 → 01012000
-            </p>
+            <div className="info-login">
+              <strong>Primeiro acesso</strong>
+              <span>
+                A senha inicial é a data de nascimento do aluno, sem barras.
+                Exemplo: 01/01/2000 → 01012000.
+              </span>
+            </div>
 
             {erro && <p className="erro">{erro}</p>}
 
             <button disabled={carregando}>
-              {carregando ? "Entrando..." : "Entrar"}
+              {carregando ? "Entrando..." : "Entrar no portal"}
             </button>
           </form>
         </div>
@@ -107,50 +114,105 @@ export default function PortalAluno() {
 
   const presencas = aluno.ebd_presencas || []
   const presentes = presencas.filter((p) => p.status === "presente").length
-  const faltas = presencas.filter((p) => p.status === "falta").length
+  const faltas = presencas.filter(
+    (p) => p.status === "falta" || p.status === "atrasado"
+  ).length
+  const atrasados = presencas.filter((p) => p.status === "atrasado").length
   const justificadas = presencas.filter((p) => p.status === "justificado").length
   const frequencia = calcularFrequencia(presencas)
 
   return (
     <div className="portal-page">
-      <div className="portal-card portal-card-maior">
-        <h1>Portal do Aluno</h1>
-        <h2>{aluno.nome}</h2>
-        <p className="turma">{aluno.ebd_turmas?.nome}</p>
+      <div className="portal-dashboard">
+        <div className="portal-topo">
+          <div className="portal-identidade">
+            <img
+              src="/logo-adjacare.jpg"
+              alt="Sistema ADJACARÉ"
+              className="portal-logo-mini"
+            />
+
+            <div>
+              <span>Portal do Aluno</span>
+              <h1>{aluno.nome}</h1>
+              <p>{aluno.ebd_turmas?.nome || "Sem turma"}</p>
+            </div>
+          </div>
+
+          <button className="btn-sair-topo" onClick={sair}>
+            Sair
+          </button>
+        </div>
 
         <div className="portal-menu">
-          <button onClick={() => irPara("inicio")}>Início</button>
-          <button onClick={() => irPara("frequencia")}>Frequência</button>
-          <button onClick={() => irPara("financeiro")}>Financeiro</button>
-          <button onClick={() => irPara("ajuda")}>Ajuda</button>
+          <button
+            className={pagina === "inicio" ? "ativo" : ""}
+            onClick={() => irPara("inicio")}
+          >
+            Início
+          </button>
+
+          <button
+            className={pagina === "frequencia" ? "ativo" : ""}
+            onClick={() => irPara("frequencia")}
+          >
+            Frequência
+          </button>
+
+          <button
+            className={pagina === "financeiro" ? "ativo" : ""}
+            onClick={() => irPara("financeiro")}
+          >
+            Financeiro
+          </button>
+
+          <button
+            className={pagina === "ajuda" ? "ativo" : ""}
+            onClick={() => irPara("ajuda")}
+          >
+            Ajuda
+          </button>
         </div>
 
         {pagina === "inicio" && (
-          <>
-            <h3>Resumo</h3>
-            <p>Bem-vindo ao portal da EBD.</p>
+          <div className="portal-section">
+            <h2>Resumo do aluno</h2>
+            <p className="portal-texto">
+              Bem-vindo ao portal. Aqui você acompanha informações importantes
+              do cadastro e da EBD.
+            </p>
 
             <div className="stats">
-              <div className="stat">
+              <div className="stat destaque">
                 <span>Frequência</span>
                 <strong>{frequencia}%</strong>
               </div>
 
               <div className="stat">
                 <span>Turma</span>
-                <strong>{aluno.ebd_turmas?.nome}</strong>
+                <strong>{aluno.ebd_turmas?.nome || "Sem turma"}</strong>
+              </div>
+
+              <div className="stat">
+                <span>Presenças</span>
+                <strong>{presentes}</strong>
+              </div>
+
+              <div className="stat">
+                <span>Faltas</span>
+                <strong>{faltas}</strong>
               </div>
             </div>
-          </>
+          </div>
         )}
 
         {pagina === "frequencia" && (
-          <>
-            <h3>Frequência</h3>
+          <div className="portal-section">
+            <h2>Frequência</h2>
 
             <div className="stats">
-              <div className="stat">
-                <span>Frequência</span>
+              <div className="stat destaque">
+                <span>Frequência geral</span>
                 <strong>{frequencia}%</strong>
               </div>
 
@@ -165,19 +227,26 @@ export default function PortalAluno() {
               </div>
 
               <div className="stat">
+                <span>Atrasos</span>
+                <strong>{atrasados}</strong>
+              </div>
+
+              <div className="stat">
                 <span>Justificadas</span>
                 <strong>{justificadas}</strong>
               </div>
             </div>
-          </>
+          </div>
         )}
 
         {pagina === "financeiro" && (
-          <>
-            <h3>Financeiro</h3>
+          <div className="portal-section">
+            <h2>Financeiro</h2>
 
             {financeiro.length === 0 && (
-              <p>Nenhuma revista ou pagamento registrado.</p>
+              <div className="portal-empty">
+                Nenhuma revista ou pagamento registrado até o momento.
+              </div>
             )}
 
             {financeiro.map((item) => (
@@ -185,30 +254,43 @@ export default function PortalAluno() {
                 <strong>{item.descricao}</strong>
                 <p>Valor: R$ {Number(item.valor || 0).toFixed(2)}</p>
                 <p>Status: {item.status}</p>
-                {item.data_vencimento && <p>Vencimento: {item.data_vencimento}</p>}
+                {item.data_vencimento && (
+                  <p>Vencimento: {item.data_vencimento}</p>
+                )}
               </div>
             ))}
-          </>
+          </div>
         )}
 
         {pagina === "ajuda" && (
-          <>
-            <h3>Ajuda e informações</h3>
-            <p>
-              Use seu login gerado no cadastro da EBD.
-            </p>
-            <p>
-              A senha é sua data de nascimento completa, sem barras ou traços.
-            </p>
-            <p>
-              Exemplo: 01/01/2000 → 01012000.
-            </p>
-          </>
-        )}
+          <div className="portal-section">
+            <h2>Ajuda e informações</h2>
 
-        <button className="btn-sair" onClick={sair}>
-          Sair
-        </button>
+            <div className="ajuda-grid">
+              <div className="ajuda-card">
+                <strong>Login</strong>
+                <p>Use o login enviado pelo Sistema ADJACARÉ.</p>
+              </div>
+
+              <div className="ajuda-card">
+                <strong>Senha inicial</strong>
+                <p>
+                  A senha é a data de nascimento completa, sem barras ou traços.
+                </p>
+              </div>
+
+              <div className="ajuda-card">
+                <strong>Exemplo</strong>
+                <p>01/01/2000 → 01012000</p>
+              </div>
+
+              <div className="ajuda-card">
+                <strong>Suporte</strong>
+                <p>Em caso de erro, procure a equipe responsável pelo sistema.</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

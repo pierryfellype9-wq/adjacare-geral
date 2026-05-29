@@ -1263,6 +1263,59 @@ label {
   color: #b91c1c;
 }
 
+.novo-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px;
+  margin-bottom: 14px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.status-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-status {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  opacity: 0.5;
+}
+
+.btn-status.ativo {
+  opacity: 1;
+}
+
+.btn-status.presente {
+  background: #22c55e;
+  color: white;
+}
+
+.btn-status.atrasado {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-status.falta {
+  background: #ef4444;
+  color: white;
+}
+
+.resumo-chamada {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
 /* MOBILE */
 
 @media (max-width: 600px) {

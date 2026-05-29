@@ -175,11 +175,14 @@ label {
   top: 0;
   left: -260px;
   width: 260px;
-  height: 100%;
+  height: 100vh;
   background: #1f3c74;
   color: white;
   transition: 0.3s;
   z-index: 1000;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar.open {
@@ -190,19 +193,40 @@ label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+
+  padding: 22px 20px;
+
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 700;
+
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.22);
+  border-radius: 999px;
 }
 
 .menu-item {
-  padding: 14px 20px;
+  padding: 16px 20px;
   cursor: pointer;
   font-size: 16px;
+  line-height: 1.4;
+  transition: 0.2s;
 }
 
 .menu-item:hover {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.12);
 }
 
 /* DASHBOARD */

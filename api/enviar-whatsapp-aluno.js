@@ -19,19 +19,11 @@ export default async function handler(req, res) {
     const mensagem = `
 Olá! 👋
 
-Este é o canal oficial do Sistema ADJACARÉ.
-
-Utilizamos este número para:
-• EBD
-• Portal do Aluno
-• Pedidos
-• Avisos
-• Escalas
-• Suporte do sistema
+Este é o canal oficial do Sistema ADJACARÉ!
 
 ⚠️ Este número não recebe respostas.
 
-O aluno ${nome} foi cadastrado com sucesso no sistema.
+O aluno ${nome} foi cadastrado com sucesso no sistema!
 
 📚 Classe:
 ${turma}

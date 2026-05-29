@@ -6,6 +6,7 @@ export default function KanbanPedidos({ user }) {
 
   const [pedidos, setPedidos] = useState([])
   const [loading, setLoading] = useState(true)
+  const [aba, setAba] = useState("ativos")
 
   const podeEditar = user?.role === "Mídia"
 
@@ -27,7 +28,7 @@ export default function KanbanPedidos({ user }) {
       supabase.removeChannel(channel)
     }
 
-  }, [])
+  }, [aba])
 
   async function buscarPedidos() {
 
@@ -36,6 +37,7 @@ export default function KanbanPedidos({ user }) {
     const { data, error } = await supabase
       .from("pedidos")
       .select("*")
+      .eq("arquivado", aba === "arquivados")
       .order("data", { ascending: false })
 
     if (error) {
@@ -75,9 +77,42 @@ export default function KanbanPedidos({ user }) {
     }
   }
 
+  async function arquivarPedido(id) {
+    if (!podeEditar) return
+
+    const { error } = await supabase
+      .from("pedidos")
+      .update({ arquivado: true })
+      .eq("id", id)
+
+    if (error) {
+      console.log(error)
+      return
+    }
+
+    buscarPedidos()
+  }
+
+  async function desarquivarPedido(id) {
+    if (!podeEditar) return
+
+    const { error } = await supabase
+      .from("pedidos")
+      .update({ arquivado: false })
+      .eq("id", id)
+
+    if (error) {
+      console.log(error)
+      return
+    }
+
+    buscarPedidos()
+  }
+
   async function onDragEnd(result) {
 
     if (!podeEditar) return
+    if (aba === "arquivados") return
 
     const { source, destination } = result
 
@@ -114,6 +149,11 @@ export default function KanbanPedidos({ user }) {
 
         <h1 className="title">Kanban de Pedidos</h1>
 
+        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+          <button onClick={() => setAba("ativos")}>Ativos</button>
+          <button onClick={() => setAba("arquivados")}>Arquivados</button>
+        </div>
+
         {!podeEditar && (
           <p style={{ marginBottom: "20px", color: "#666" }}>
             Apenas o departamento de mídia pode alterar status.
@@ -146,7 +186,7 @@ export default function KanbanPedidos({ user }) {
                         key={pedido.id}
                         draggableId={pedido.id.toString()}
                         index={index}
-                        isDragDisabled={!podeEditar}
+                        isDragDisabled={!podeEditar || aba === "arquivados"}
                       >
 
                         {(provided) => (
@@ -159,6 +199,20 @@ export default function KanbanPedidos({ user }) {
                             <h4>{pedido.titulo}</h4>
                             <p>{pedido.descricao}</p>
                             <small>Ministério: {pedido.ministerio}</small>
+
+                            {podeEditar && (
+                              <div style={{ marginTop: "10px" }}>
+                                {aba === "ativos" ? (
+                                  <button onClick={() => arquivarPedido(pedido.id)}>
+                                    Arquivar
+                                  </button>
+                                ) : (
+                                  <button onClick={() => desarquivarPedido(pedido.id)}>
+                                    Desarquivar
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -197,7 +251,7 @@ export default function KanbanPedidos({ user }) {
                         key={pedido.id}
                         draggableId={pedido.id.toString()}
                         index={index}
-                        isDragDisabled={!podeEditar}
+                        isDragDisabled={!podeEditar || aba === "arquivados"}
                       >
 
                         {(provided) => (
@@ -210,6 +264,20 @@ export default function KanbanPedidos({ user }) {
                             <h4>{pedido.titulo}</h4>
                             <p>{pedido.descricao}</p>
                             <small>Ministério: {pedido.ministerio}</small>
+
+                            {podeEditar && (
+                              <div style={{ marginTop: "10px" }}>
+                                {aba === "ativos" ? (
+                                  <button onClick={() => arquivarPedido(pedido.id)}>
+                                    Arquivar
+                                  </button>
+                                ) : (
+                                  <button onClick={() => desarquivarPedido(pedido.id)}>
+                                    Desarquivar
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -248,7 +316,7 @@ export default function KanbanPedidos({ user }) {
                         key={pedido.id}
                         draggableId={pedido.id.toString()}
                         index={index}
-                        isDragDisabled={!podeEditar}
+                        isDragDisabled={!podeEditar || aba === "arquivados"}
                       >
 
                         {(provided) => (
@@ -261,6 +329,20 @@ export default function KanbanPedidos({ user }) {
                             <h4>{pedido.titulo}</h4>
                             <p>{pedido.descricao}</p>
                             <small>Ministério: {pedido.ministerio}</small>
+
+                            {podeEditar && (
+                              <div style={{ marginTop: "10px" }}>
+                                {aba === "ativos" ? (
+                                  <button onClick={() => arquivarPedido(pedido.id)}>
+                                    Arquivar
+                                  </button>
+                                ) : (
+                                  <button onClick={() => desarquivarPedido(pedido.id)}>
+                                    Desarquivar
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
                         )}
 

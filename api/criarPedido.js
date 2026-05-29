@@ -68,8 +68,8 @@ export default async function handler(req,res){
  criado_por,
  email,
  telefone,
- origem:"site",
- canal:"site",
+ origem,
+ canal,
  link_drive:linkDrive,
  status:"Pendente",
  data:new Date().toISOString()

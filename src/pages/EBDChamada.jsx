@@ -15,7 +15,9 @@ export default function EBDChamada({ user }) {
   const [alunos, setAlunos] = useState([])
   const [presencas, setPresencas] = useState({})
   const [observacoes, setObservacoes] = useState({})
-  const [dataChamada, setDataChamada] = useState(new Date().toISOString().split("T")[0])
+  const [dataChamada, setDataChamada] = useState(
+    new Date().toISOString().split("T")[0]
+  )
   const [carregando, setCarregando] = useState(false)
   const [chamadaExistente, setChamadaExistente] = useState(false)
 
@@ -32,15 +34,11 @@ export default function EBDChamada({ user }) {
   const podeEscolherTurma = podeVerTudoEBD
 
   useEffect(() => {
-    if (temAcessoEBD) {
-      carregarTurmas()
-    }
+    if (temAcessoEBD) carregarTurmas()
   }, [])
 
   useEffect(() => {
-    if (turmaSelecionada && temAcessoEBD) {
-      carregarAlunos()
-    }
+    if (turmaSelecionada && temAcessoEBD) carregarAlunos()
   }, [turmaSelecionada, dataChamada])
 
   async function carregarTurmas() {
@@ -59,11 +57,11 @@ export default function EBDChamada({ user }) {
 
   async function carregarAlunos() {
     const { data: alunosData } = await supabase
-  .from("ebd_alunos")
-  .select("*")
-  .eq("turma_id", turmaSelecionada)
-  .eq("ativo", true)
-  .order("nome", { ascending: true })
+      .from("ebd_alunos")
+      .select("*")
+      .eq("turma_id", turmaSelecionada)
+      .eq("ativo", true)
+      .order("nome", { ascending: true })
 
     setAlunos(alunosData || [])
 
@@ -78,7 +76,7 @@ export default function EBDChamada({ user }) {
     const observacoesIniciais = {}
 
     alunosData?.forEach((aluno) => {
-      presencasIniciais[aluno.id] = "presente"
+      presencasIniciais[aluno.id] = "falta"
       observacoesIniciais[aluno.id] = ""
     })
 
@@ -108,15 +106,6 @@ export default function EBDChamada({ user }) {
     setPresencas((prev) => ({
       ...prev,
       [alunoId]: status,
-    }))
-  }
-
-  function alterarObservacao(alunoId, texto) {
-    if (!temAcessoEBD) return
-
-    setObservacoes((prev) => ({
-      ...prev,
-      [alunoId]: texto,
     }))
   }
 
@@ -150,7 +139,7 @@ export default function EBDChamada({ user }) {
     if (aulaExistente) {
       aulaId = aulaExistente.id
     } else {
-      const { data: novaAula } = await supabase
+      const { data: novaAula, error: erroAula } = await supabase
         .from("ebd_aulas")
         .insert({
           turma_id: turmaSelecionada,
@@ -159,14 +148,24 @@ export default function EBDChamada({ user }) {
         .select()
         .single()
 
+      if (erroAula) {
+        console.error(erroAula)
+        alert("Erro ao criar aula.")
+        setCarregando(false)
+        return
+      }
+
       aulaId = novaAula.id
     }
 
     const registros = alunos.map((aluno) => ({
       aula_id: aulaId,
       aluno_id: aluno.id,
-      status: presencas[aluno.id] || "presente",
-      observacao: observacoes[aluno.id] || null,
+      status: presencas[aluno.id] || "falta",
+      observacao:
+        presencas[aluno.id] === "atrasado"
+          ? "Aluno chegou atrasado"
+          : observacoes[aluno.id] || null,
     }))
 
     const { error } = await supabase
@@ -179,7 +178,7 @@ export default function EBDChamada({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao salvar chamada.")
+      alert("Erro ao salvar chamada. Verifique se o status 'atrasado' está permitido no Supabase.")
       return
     }
 
@@ -187,7 +186,18 @@ export default function EBDChamada({ user }) {
     alert("Chamada salva com sucesso!")
   }
 
-  // 🔒 BLOQUEIO TOTAL
+  const totalPresentes = Object.values(presencas).filter(
+    (status) => status === "presente"
+  ).length
+
+  const totalAtrasados = Object.values(presencas).filter(
+    (status) => status === "atrasado"
+  ).length
+
+  const totalFaltas = Object.values(presencas).filter(
+    (status) => status === "falta" || status === "atrasado"
+  ).length
+
   if (!temAcessoEBD) {
     return (
       <div className="page">
@@ -242,53 +252,93 @@ export default function EBDChamada({ user }) {
         )}
       </div>
 
-      <div className="list-card">
-        <h2>
-          Lista de alunos
-          {professorEBD && ` — ${usuario.turma_ebd}`}
-        </h2>
+      <div className="list-card chamada-card">
+        <div className="chamada-topo">
+          <button
+            type="button"
+            className="marcar-todos presente"
+            onClick={() => {
+              const novo = {}
+              alunos.forEach((aluno) => {
+                novo[aluno.id] = "presente"
+              })
+              setPresencas(novo)
+            }}
+          >
+            Marcar todos presentes
+          </button>
+
+          <button
+            type="button"
+            className="marcar-todos falta"
+            onClick={() => {
+              const novo = {}
+              alunos.forEach((aluno) => {
+                novo[aluno.id] = "falta"
+              })
+              setPresencas(novo)
+            }}
+          >
+            Marcar todos faltas
+          </button>
+        </div>
 
         {alunos.length === 0 && <p>Nenhum aluno para chamada.</p>}
 
         {alunos.map((aluno) => (
-          <div className="chamada-item" key={aluno.id}>
+          <div className="chamada-item chamada-nova" key={aluno.id}>
             <strong>{aluno.nome}</strong>
 
             <div className="status-buttons">
               <button
-                className={presencas[aluno.id] === "presente" ? "ativo" : ""}
+                className={
+                  presencas[aluno.id] === "presente"
+                    ? "btn-status presente ativo"
+                    : "btn-status presente"
+                }
                 onClick={() => alterarPresenca(aluno.id, "presente")}
               >
                 Presente
               </button>
 
               <button
-                className={presencas[aluno.id] === "falta" ? "ativo falta" : ""}
-                onClick={() => alterarPresenca(aluno.id, "falta")}
+                className={
+                  presencas[aluno.id] === "atrasado"
+                    ? "btn-status atrasado ativo"
+                    : "btn-status atrasado"
+                }
+                onClick={() => alterarPresenca(aluno.id, "atrasado")}
               >
-                Falta
+                Atrasado
               </button>
 
               <button
-                className={presencas[aluno.id] === "justificado" ? "ativo justificado" : ""}
-                onClick={() => alterarPresenca(aluno.id, "justificado")}
+                className={
+                  presencas[aluno.id] === "falta"
+                    ? "btn-status falta ativo"
+                    : "btn-status falta"
+                }
+                onClick={() => alterarPresenca(aluno.id, "falta")}
               >
-                Justificado
+                Faltou
               </button>
             </div>
-
-            <input
-              placeholder="Observação"
-              value={observacoes[aluno.id] || ""}
-              onChange={(e) => alterarObservacao(aluno.id, e.target.value)}
-            />
           </div>
         ))}
 
         {alunos.length > 0 && (
-          <button onClick={salvarChamada} disabled={carregando}>
-            {carregando ? "Salvando..." : "Salvar chamada"}
-          </button>
+          <>
+            <div className="resumo-chamada">
+              <h3>Resumo rápido</h3>
+              <p>Presentes: {totalPresentes}</p>
+              <p>Atrasados: {totalAtrasados}</p>
+              <p>Faltas: {totalFaltas}</p>
+            </div>
+
+            <button onClick={salvarChamada} disabled={carregando}>
+              {carregando ? "Salvando..." : "Salvar chamada"}
+            </button>
+          </>
         )}
       </div>
     </div>

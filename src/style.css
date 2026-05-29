@@ -425,41 +425,6 @@ label {
   min-width: 120px;
 }
 
-/* CHAMADA */
-
-.chamada-item {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.status-buttons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.status-buttons button {
-  background: #64748b;
-}
-
-.status-buttons button.ativo {
-  background: #15803d;
-}
-
-.status-buttons button.falta {
-  background: #b91c1c;
-}
-
-.status-buttons button.justificado {
-  background: #ca8a04;
-}
-
 /* RELATÓRIOS */
 
 .list-item {
@@ -1258,57 +1223,133 @@ label {
   color: #92400e;
 }
 
-.novo-layout {
+/* CHAMADA */
+
+.chamada-card {
+  max-width: 720px;
+  margin: 20px auto;
+  padding: 32px;
+  border-radius: 32px;
+  background: #ffffff;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.chamada-topo {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.marcar-todos {
+  border: none;
+  padding: 12px 18px;
+  border-radius: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  background: transparent !important;
+}
+
+.marcar-todos.presente {
+  color: #15803d !important;
+}
+
+.marcar-todos.falta {
+  color: #dc2626 !important;
+}
+
+.chamada-nova {
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  padding: 18px;
-  margin-bottom: 14px;
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  gap: 20px;
+  padding: 22px 0;
+  border-bottom: 1px solid #eef2f7;
+  background: transparent !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-radius: 0 !important;
+}
+
+.chamada-nova strong {
+  font-size: 16px;
+  color: #334155;
+  font-weight: 800;
 }
 
 .status-buttons {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .btn-status {
-  border: none;
-  padding: 10px 18px;
-  border-radius: 12px;
-  font-weight: 600;
+  border: none !important;
+  padding: 13px 24px !important;
+  border-radius: 16px !important;
+  font-weight: 800 !important;
   cursor: pointer;
-  transition: 0.2s;
-  opacity: 0.5;
+  opacity: 0.18;
+  color: white !important;
 }
 
 .btn-status.ativo {
   opacity: 1;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
 }
 
 .btn-status.presente {
-  background: #22c55e;
-  color: white;
+  background: #16a34a !important;
 }
 
 .btn-status.atrasado {
-  background: #f59e0b;
-  color: white;
+  background: #f59e0b !important;
 }
 
 .btn-status.falta {
-  background: #ef4444;
-  color: white;
+  background: #dc2626 !important;
 }
 
 .resumo-chamada {
-  margin-top: 20px;
-  padding: 20px;
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  margin-top: 30px;
+  padding: 24px;
+  border-radius: 24px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.resumo-chamada h3 {
+  margin-top: 0;
+  color: #334155;
+}
+
+.resumo-chamada p {
+  font-weight: 800;
+  color: #334155;
+}
+
+@media (max-width: 700px) {
+  .chamada-card {
+    padding: 22px;
+  }
+
+  .chamada-topo {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .chamada-nova {
+    grid-template-columns: 1fr;
+  }
+
+  .status-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .btn-status {
+    padding: 12px 8px !important;
+  }
 }
 
 /* MOBILE */

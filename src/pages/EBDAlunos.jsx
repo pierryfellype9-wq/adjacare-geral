@@ -335,6 +335,26 @@ if (!resposta.data || resposta.data.length === 0) {
       return
     }
 
+    if (!editando && contato?.trim()) {
+  try {
+    await fetch("/api/enviar-whatsapp-aluno", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nome: nome.trim(),
+        contato: contato.trim(),
+        login: emailPortal,
+        senha: senhaPortal,
+        turma: turmaFinal?.nome || "Sem turma",
+      }),
+    })
+  } catch (erroWhatsapp) {
+    console.error("Erro ao enviar WhatsApp:", erroWhatsapp)
+  }
+}
+    
     await carregarDados()
     limparFormulario()
 

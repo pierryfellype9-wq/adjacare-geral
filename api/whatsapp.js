@@ -390,16 +390,39 @@ Digite:
       if (texto === "1") {
         const dados = sessao.dados;
 
-        const { error: erroPedido } = await supabase.from("pedidos").insert({
-          titulo: dados.titulo,
-          descricao: dados.descricao,
-          destino: dados.destino || "Mídia",
-          prioridade: dados.prioridade || "Normal",
-          ministerio: dados.ministerio || "Não informado",
-          criado_por: sessao.usuario_nome || "WhatsApp",
-          telefone_whatsapp: telefone,
-          status: "Pendente",
-        });
+        const respostaPedido = await fetch(
+  `${process.env.SITE_URL}/api/criarPedido`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      titulo: dados.titulo,
+      descricao: dados.descricao,
+      destino: dados.destino || "Mídia",
+      prioridade: dados.prioridade || "Normal",
+      ministerio: dados.ministerio || "Não informado",
+      criado_por: sessao.usuario_nome || "WhatsApp",
+      email: sessao.usuario_email,
+      telefone: telefone,
+      origem: "whatsapp",
+      canal: "whatsapp",
+    }),
+  }
+);
+
+const resultadoPedido = await respostaPedido.json();
+
+if (!respostaPedido.ok || !resultadoPedido.ok) {
+  await enviarMensagem(
+    telefone,
+    `Erro ao salvar o pedido no sistema.
+
+Detalhe: ${resultadoPedido.erro || "Erro desconhecido"}`
+  );
+  return res.status(200).send("ok");
+}
 
         if (erroPedido) {
           await enviarMensagem(

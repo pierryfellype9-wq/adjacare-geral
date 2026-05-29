@@ -209,12 +209,13 @@ Digite "menu" para voltar.`
     ) {
       const email = texto.toLowerCase();
 
-      const { data: usuario } = await supabase
-        .from("usuarios")
-        .select("id, nome, email, role, ativo")
-        .eq("email", email)
-        .eq("ativo", true)
-        .single();
+      const { data: usuarios } = await supabase
+  .from("usuarios")
+  .select("*")
+  .ilike("email", email)
+  .limit(1);
+
+const usuario = usuarios?.[0];
 
       if (!usuario) {
         await enviarMensagem(

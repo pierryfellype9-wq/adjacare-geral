@@ -361,6 +361,42 @@ if (!resposta.data || resposta.data.length === 0) {
     alert(editando ? "Aluno atualizado com sucesso!" : "Aluno cadastrado com sucesso!")
   }
 
+  async function enviarWhatsappAluno(aluno) {
+  try {
+    const resposta = await fetch("/api/enviar-whatsapp-aluno", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nome: aluno.nome,
+        contato: aluno.contato,
+        login:
+          aluno.email_portal ||
+          gerarEmailPortal(aluno.nome),
+
+        senha:
+          aluno.senha_portal ||
+          gerarSenhaPortal(aluno.data_nascimento),
+
+        turma:
+          aluno.ebd_turmas?.nome ||
+          "Sem turma",
+      }),
+    })
+
+    if (!resposta.ok) {
+      alert("Erro ao enviar mensagem.")
+      return
+    }
+
+    alert("Mensagem enviada com sucesso.")
+  } catch (error) {
+    console.error(error)
+    alert("Erro ao enviar WhatsApp.")
+  }
+}
+  
   async function alterarStatusAluno(aluno) {
   if (!podeGerenciarStatusAluno) {
     alert("Apenas administradores, dirigentes ou superintendente podem alterar o status do aluno.")
@@ -724,6 +760,15 @@ if (!resposta.data || resposta.data.length === 0) {
                     Imprimir etiqueta
                   </button>
                 )}
+
+                {aluno.ativo !== false && (
+  <button
+    type="button"
+    onClick={() => enviarWhatsappAluno(aluno)}
+  >
+    Enviar acesso
+  </button>
+)}
 
                 {podeGerenciarStatusAluno && (
                   <button

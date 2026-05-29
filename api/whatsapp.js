@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     let sessao = sessoes?.[0];
 
     if (!sessao) {
-      const { data: novaSessao } = await supabase
+      const { data: novaSessao, error } = await supabase
         .from("whatsapp_sessoes")
         .insert({
           telefone,
@@ -88,8 +88,13 @@ export default async function handler(req, res) {
         .select()
         .single();
 
-      sessao = novaSessao;
+      if (error) {
+        console.error("ERRO AO CRIAR SESSÃO:", error);
+        await enviarMensagem(telefone, `Erro ao iniciar sessão: ${error.message}`);
+        return res.status(200).send("ok");
+      }
 
+      sessao = novaSessao;
       await enviarMensagem(telefone, menuPrincipal());
       return res.status(200).send("ok");
     }
@@ -128,7 +133,7 @@ export default async function handler(req, res) {
 
       if (texto === "2") {
         if (sessao.autenticado) {
-          await consultarStatus(telefone, sessao.usuario_email);
+          await consultarStatus(telefone, sessao.usuario_nome);
         } else {
           await supabase
             .from("whatsapp_sessoes")
@@ -217,10 +222,7 @@ Digite "menu" para voltar.`
       const usuario = usuarios?.[0];
 
       if (!usuario) {
-        await enviarMensagem(
-          telefone,
-          "Não encontrei esse e-mail no sistema."
-        );
+        await enviarMensagem(telefone, "Não encontrei esse e-mail no sistema.");
         return res.status(200).send("ok");
       }
 
@@ -262,7 +264,7 @@ Digite o título do pedido:`
       }
 
       if (proximaEtapa === "consultando_status") {
-        await consultarStatus(telefone, usuario.email);
+        await consultarStatus(telefone, nomeUsuario);
       }
 
       if (proximaEtapa === "suporte_lider") {
@@ -358,16 +360,32 @@ Digite:
       if (texto === "1") {
         const dados = sessao.dados;
 
-        await supabase.from("pedidos").insert({
-          titulo: dados.titulo,
-          descricao: dados.descricao,
-          destino: dados.destino || "Mídia",
-          prioridade: dados.prioridade || "Normal",
-          ministerio: "WhatsApp",
-          criado_por: sessao.usuario_nome || "WhatsApp",
-          usuario_email: sessao.usuario_email,
-          status: "Pendente",
-        });
+        const { data: pedidoCriado, error: erroPedido } = await supabase
+          .from("pedidos")
+          .insert({
+            titulo: dados.titulo,
+            descricao: dados.descricao,
+            destino: dados.destino || "Mídia",
+            prioridade: dados.prioridade || "Normal",
+            ministerio: "WhatsApp",
+            criado_por: sessao.usuario_nome || "WhatsApp",
+            status: "Pendente",
+          })
+          .select()
+          .single();
+
+        console.log("PEDIDO CRIADO:", pedidoCriado);
+        console.log("ERRO PEDIDO:", erroPedido);
+
+        if (erroPedido) {
+          await enviarMensagem(
+            telefone,
+            `Erro ao salvar o pedido no sistema.
+
+Detalhe: ${erroPedido.message}`
+          );
+          return res.status(200).send("ok");
+        }
 
         await supabase
           .from("whatsapp_sessoes")
@@ -398,33 +416,34 @@ Digite "menu" para voltar.`
           })
           .eq("telefone", telefone);
 
-        await enviarMensagem(
-          telefone,
-          "Pedido cancelado.\n\n" + menuPrincipal()
-        );
-
+        await enviarMensagem(telefone, "Pedido cancelado.\n\n" + menuPrincipal());
         return res.status(200).send("ok");
       }
 
-      await enviarMensagem(
-        telefone,
-        "Digite 1 para confirmar ou 2 para cancelar."
-      );
-
+      await enviarMensagem(telefone, "Digite 1 para confirmar ou 2 para cancelar.");
       return res.status(200).send("ok");
     }
 
     if (sessao.etapa === "suporte_lider") {
-      await supabase.from("pedidos").insert({
+      const { error: erroSuporte } = await supabase.from("pedidos").insert({
         titulo: "Suporte para líder/professor",
         descricao: texto,
         destino: "Mídia",
         prioridade: "Normal",
         ministerio: "Suporte",
         criado_por: sessao.usuario_nome || "WhatsApp",
-        usuario_email: sessao.usuario_email,
         status: "Pendente",
       });
+
+      if (erroSuporte) {
+        await enviarMensagem(
+          telefone,
+          `Erro ao enviar suporte.
+
+Detalhe: ${erroSuporte.message}`
+        );
+        return res.status(200).send("ok");
+      }
 
       await supabase
         .from("whatsapp_sessoes")
@@ -454,13 +473,23 @@ Digite "menu" para voltar.`
   }
 }
 
-async function consultarStatus(telefone, usuarioEmail) {
-  const { data: pedidos } = await supabase
+async function consultarStatus(telefone, nomeUsuario) {
+  const { data: pedidos, error } = await supabase
     .from("pedidos")
     .select("titulo, status, prioridade, criado_em")
-    .eq("usuario_email", usuarioEmail)
+    .eq("criado_por", nomeUsuario)
     .order("criado_em", { ascending: false })
     .limit(5);
+
+  if (error) {
+    await enviarMensagem(
+      telefone,
+      `Erro ao consultar pedidos.
+
+Detalhe: ${error.message}`
+    );
+    return;
+  }
 
   if (!pedidos || pedidos.length === 0) {
     await enviarMensagem(

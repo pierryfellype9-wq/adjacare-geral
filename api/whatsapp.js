@@ -32,9 +32,7 @@ Digite uma opção:
 
 1️⃣ Fazer pedido para a Mídia (Login necessário)
 2️⃣ Consultar status do pedido (Login necessário)
-3️⃣ Consultar agenda da igreja
-4️⃣ Suporte do Portal do Aluno
-5️⃣ Suporte para Líderes e Professores (Login necessário)`;
+3️⃣ Consultar agenda da igreja;
 }
 
 export default async function handler(req, res) {
@@ -167,38 +165,6 @@ https://sistema.adjacare.org/agenda
 
 Digite "menu" para voltar.`
         );
-        return res.status(200).send("ok");
-      }
-
-      if (texto === "4") {
-        await enviarMensagem(
-          telefone,
-          `🎓 Suporte do Portal do Aluno
-
-Explique sua dúvida em uma mensagem.
-
-Digite "menu" para voltar.`
-        );
-        return res.status(200).send("ok");
-      }
-
-      if (texto === "5") {
-        await supabase
-          .from("whatsapp_sessoes")
-          .update({
-            etapa: "aguardando_email_suporte_lider",
-            autenticado: false,
-            usuario_id: null,
-            usuario_nome: null,
-            usuario_email: null,
-            dados: {},
-          })
-          .eq("telefone", telefone);
-
-        await enviarMensagem(
-          telefone,
-          "Para continuar, informe seu e-mail cadastrado:"
-        );
 
         return res.status(200).send("ok");
       }
@@ -209,8 +175,7 @@ Digite "menu" para voltar.`
 
     if (
       sessao.etapa === "aguardando_email_pedido" ||
-      sessao.etapa === "aguardando_email_status" ||
-      sessao.etapa === "aguardando_email_suporte_lider"
+      sessao.etapa === "aguardando_email_status"
     ) {
       const email = texto.trim().toLowerCase();
 
@@ -241,19 +206,10 @@ Digite "menu" para voltar.`
         usuario.role ||
         "Não informado";
 
-      let proximaEtapa = "menu";
-
-      if (sessao.etapa === "aguardando_email_pedido") {
-        proximaEtapa = "aguardando_titulo_pedido";
-      }
-
-      if (sessao.etapa === "aguardando_email_status") {
-        proximaEtapa = "consultando_status";
-      }
-
-      if (sessao.etapa === "aguardando_email_suporte_lider") {
-        proximaEtapa = "suporte_lider";
-      }
+      const proximaEtapa =
+        sessao.etapa === "aguardando_email_pedido"
+          ? "aguardando_titulo_pedido"
+          : "consultando_status";
 
       await supabase
         .from("whatsapp_sessoes")
@@ -294,16 +250,6 @@ Digite o título do pedido:`
             dados: {},
           })
           .eq("telefone", telefone);
-      }
-
-      if (proximaEtapa === "suporte_lider") {
-        await enviarMensagem(
-          telefone,
-          `Olá, ${nomeUsuario}! ✅
-Acesso confirmado.
-
-Explique sua dúvida como líder/professor:`
-        );
       }
 
       return res.status(200).send("ok");
@@ -397,6 +343,7 @@ Digite:
           prioridade: dados.prioridade || "Normal",
           ministerio: dados.ministerio || "Não informado",
           criado_por: sessao.usuario_nome || "WhatsApp",
+          telefone_whatsapp: telefone,
           status: "Pendente",
         });
 
@@ -458,49 +405,6 @@ Conversa encerrada. Para uma nova solicitação, envie "menu".`
       }
 
       await enviarMensagem(telefone, "Digite 1 para confirmar ou 2 para cancelar.");
-      return res.status(200).send("ok");
-    }
-
-    if (sessao.etapa === "suporte_lider") {
-      const { error: erroSuporte } = await supabase.from("pedidos").insert({
-        titulo: "Suporte para líder/professor",
-        descricao: texto,
-        destino: "Mídia",
-        prioridade: "Normal",
-        ministerio: sessao.dados?.ministerio || "Não informado",
-        criado_por: sessao.usuario_nome || "WhatsApp",
-        status: "Pendente",
-      });
-
-      if (erroSuporte) {
-        await enviarMensagem(
-          telefone,
-          `Erro ao enviar suporte.
-
-Detalhe: ${erroSuporte.message}`
-        );
-        return res.status(200).send("ok");
-      }
-
-      await supabase
-        .from("whatsapp_sessoes")
-        .update({
-          etapa: "menu",
-          autenticado: false,
-          usuario_id: null,
-          usuario_nome: null,
-          usuario_email: null,
-          dados: {},
-        })
-        .eq("telefone", telefone);
-
-      await enviarMensagem(
-        telefone,
-        `✅ Solicitação enviada com sucesso!
-
-Conversa encerrada. Para uma nova solicitação, envie "menu" e faça a autenticação novamente.`
-      );
-
       return res.status(200).send("ok");
     }
 

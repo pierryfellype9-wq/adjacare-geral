@@ -387,93 +387,79 @@ Digite:
     }
 
     if (sessao.etapa === "confirmando_pedido") {
-  if (texto === "1") {
-    const dados = sessao.dados;
+      if (texto === "1") {
+        const dados = sessao.dados;
 
-    const respostaPedido = await fetch(
-      "https://sistema.adjacare.org/api/criarPedido",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        const { error: erroPedido } = await supabase.from("pedidos").insert({
           titulo: dados.titulo,
           descricao: dados.descricao,
           destino: dados.destino || "Mídia",
           prioridade: dados.prioridade || "Normal",
           ministerio: dados.ministerio || "Não informado",
           criado_por: sessao.usuario_nome || "WhatsApp",
-          email: sessao.usuario_email,
-          telefone: telefone,
-          origem: "whatsapp",
-          canal: "whatsapp",
-        }),
-      }
-    );
+          status: "Pendente",
+        });
 
-    const resultadoPedido = await respostaPedido.json().catch(() => ({}));
+        if (erroPedido) {
+          await enviarMensagem(
+            telefone,
+            `Erro ao salvar o pedido no sistema.
 
-    if (!respostaPedido.ok || resultadoPedido.erro) {
-      await enviarMensagem(
-        telefone,
-        `Erro ao salvar o pedido no sistema.
+Detalhe: ${erroPedido.message}`
+          );
+          return res.status(200).send("ok");
+        }
 
-Detalhe: ${resultadoPedido.erro || "Erro desconhecido"}`
-      );
-      return res.status(200).send("ok");
-    }
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "menu",
+            autenticado: false,
+            usuario_id: null,
+            usuario_nome: null,
+            usuario_email: null,
+            dados: {},
+          })
+          .eq("telefone", telefone);
 
-    await supabase
-      .from("whatsapp_sessoes")
-      .update({
-        etapa: "menu",
-        autenticado: false,
-        usuario_id: null,
-        usuario_nome: null,
-        usuario_email: null,
-        dados: {},
-      })
-      .eq("telefone", telefone);
-
-    await enviarMensagem(
-      telefone,
-      `✅ Pedido criado com sucesso!
+        await enviarMensagem(
+          telefone,
+          `✅ Pedido criado com sucesso!
 
 Status inicial: Pendente.
 
 Conversa encerrada. Para uma nova solicitação, envie "menu" e faça a autenticação novamente.`
-    );
+        );
 
-    return res.status(200).send("ok");
-  }
+        return res.status(200).send("ok");
+      }
 
-  if (texto === "2") {
-    await supabase
-      .from("whatsapp_sessoes")
-      .update({
-        etapa: "menu",
-        autenticado: false,
-        usuario_id: null,
-        usuario_nome: null,
-        usuario_email: null,
-        dados: {},
-      })
-      .eq("telefone", telefone);
+      if (texto === "2") {
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "menu",
+            autenticado: false,
+            usuario_id: null,
+            usuario_nome: null,
+            usuario_email: null,
+            dados: {},
+          })
+          .eq("telefone", telefone);
 
-    await enviarMensagem(
-      telefone,
-      `Pedido cancelado.
+        await enviarMensagem(
+          telefone,
+          `Pedido cancelado.
 
 Conversa encerrada. Para uma nova solicitação, envie "menu".`
-    );
+        );
 
-    return res.status(200).send("ok");
-  }
+        return res.status(200).send("ok");
+      }
 
-  await enviarMensagem(telefone, "Digite 1 para confirmar ou 2 para cancelar.");
-  return res.status(200).send("ok");
-}
+      await enviarMensagem(telefone, "Digite 1 para confirmar ou 2 para cancelar.");
+      return res.status(200).send("ok");
+    }
 
     if (sessao.etapa === "suporte_lider") {
       const { error: erroSuporte } = await supabase.from("pedidos").insert({
@@ -483,7 +469,6 @@ Conversa encerrada. Para uma nova solicitação, envie "menu".`
         prioridade: "Normal",
         ministerio: sessao.dados?.ministerio || "Não informado",
         criado_por: sessao.usuario_nome || "WhatsApp",
-        telefone_whatsapp: telefone,
         status: "Pendente",
       });
 

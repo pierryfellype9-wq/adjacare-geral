@@ -390,9 +390,9 @@ Digite:
       if (texto === "1") {
         const dados = sessao.dados;
 
-        const respostaPedido = await fetch(
-  `${process.env.SITE_URL}/api/criarPedido`,
-  {
+       const respostaPedido = await fetch(
+  "https://sistema.adjacare.org/api/criarPedido",
+         {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

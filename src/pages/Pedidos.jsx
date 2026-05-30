@@ -14,6 +14,7 @@ export default function Pedidos({ user }) {
   const [comentariosInput, setComentariosInput] = useState({})
   const [aba, setAba] = useState("lista")
   const [enviando, setEnviando] = useState(false)
+  const [mostrarArquivados, setMostrarArquivados] = useState(false)
 
   const podeEditar =
     user?.role === "Mídia" ||
@@ -45,13 +46,19 @@ export default function Pedidos({ user }) {
       supabase.removeChannel(channelPedidos)
       supabase.removeChannel(channelComentarios)
     }
-  }, [])
-
+}, [mostrarArquivados])
+  
   async function carregarPedidos() {
     let query = supabase
-      .from("pedidos")
-      .select("*")
-      .order("data", { ascending: false })
+  .from("pedidos")
+  .select("*")
+  .order("data", { ascending: false })
+
+if (mostrarArquivados) {
+  query = query.eq("arquivado", true)
+} else {
+  query = query.or("arquivado.is.null,arquivado.eq.false")
+}
 
     if (
       user?.role !== "Administrador" &&
@@ -408,10 +415,42 @@ export default function Pedidos({ user }) {
             </form>
 
             <h2 className="subtitle" style={{ marginTop: "35px" }}>
-              Pedidos
-            </h2>
+  Pedidos
+</h2>
 
-            <div style={{ marginTop: "20px", display: "grid", gap: "16px" }}>
+<div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+  <button
+    onClick={() => setMostrarArquivados(false)}
+    style={{
+      padding: "10px 16px",
+      borderRadius: "8px",
+      border: "none",
+      background: !mostrarArquivados ? "#2563eb" : "#e5e7eb",
+      color: !mostrarArquivados ? "white" : "#333",
+      cursor: "pointer",
+      fontWeight: "600"
+    }}
+  >
+    Ativos
+  </button>
+
+  <button
+    onClick={() => setMostrarArquivados(true)}
+    style={{
+      padding: "10px 16px",
+      borderRadius: "8px",
+      border: "none",
+      background: mostrarArquivados ? "#2563eb" : "#e5e7eb",
+      color: mostrarArquivados ? "white" : "#333",
+      cursor: "pointer",
+      fontWeight: "600"
+    }}
+  >
+    Arquivados
+  </button>
+</div>
+
+<div style={{ marginTop: "20px", display: "grid", gap: "16px" }}>
               {pedidos.map(p => (
                 <div
                   key={p.id}

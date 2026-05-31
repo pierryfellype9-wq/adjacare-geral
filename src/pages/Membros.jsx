@@ -185,7 +185,7 @@ export default function Membros({ user }) {
             <option value="Solteiro">Solteiro</option>
             <option value="Casado">Casado</option>
             <option value="Divorciado">Divorciado</option>
-            <option value="Viuvo">Divorciado</option>
+            <option value="Viuvo">Viuvo</option>
           </select>
 
           <select

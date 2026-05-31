@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 
 export default function Membros({ user }) {
+  const navigate = useNavigate()
+
   const [membros, setMembros] = useState([])
   const [loading, setLoading] = useState(false)
   const [filtroSituacao, setFiltroSituacao] = useState("Ativo")
   const [editandoId, setEditandoId] = useState(null)
   const [pesquisa, setPesquisa] = useState("")
   const [limite, setLimite] = useState(12)
+  const [foto, setFoto] = useState(null)
 
   const formLimpo = {
     nome: "",
@@ -17,7 +21,8 @@ export default function Membros({ user }) {
     estado_civil: "",
     batizado_aguas: false,
     situacao_cadastral: "Ativo",
-    observacao: ""
+    observacao: "",
+    foto_url: ""
   }
 
   const [form, setForm] = useState(formLimpo)
@@ -30,7 +35,7 @@ export default function Membros({ user }) {
       .select("*")
       .order("nome")
 
-    if (!error) setMembros(data)
+    if (!error) setMembros(data || [])
 
     setLoading(false)
   }
@@ -41,16 +46,45 @@ export default function Membros({ user }) {
 
   function limparFormulario() {
     setForm(formLimpo)
+    setFoto(null)
     setEditandoId(null)
+  }
+
+  async function uploadFoto() {
+    if (!foto) return null
+
+    const extensao = foto.name.split(".").pop()
+    const nomeArquivo = `fotos/${Date.now()}-${Math.random()}.${extensao}`
+
+    const { error } = await supabase.storage
+      .from("membros")
+      .upload(nomeArquivo, foto)
+
+    if (error) {
+      console.log(error)
+      alert("Erro ao enviar foto")
+      return null
+    }
+
+    const { data } = supabase.storage
+      .from("membros")
+      .getPublicUrl(nomeArquivo)
+
+    return data.publicUrl
   }
 
   async function salvarMembro(e) {
     e.preventDefault()
 
+    const fotoUrl = await uploadFoto()
+
     if (editandoId) {
       const { error } = await supabase
         .from("membros")
-        .update(form)
+        .update({
+          ...form,
+          foto_url: fotoUrl || form.foto_url
+        })
         .eq("id", editandoId)
 
       if (error) {
@@ -65,6 +99,7 @@ export default function Membros({ user }) {
         .insert([
           {
             ...form,
+            foto_url: fotoUrl || "",
             criado_por: user?.nome || user?.email
           }
         ])
@@ -92,10 +127,17 @@ export default function Membros({ user }) {
       estado_civil: membro.estado_civil || "",
       batizado_aguas: membro.batizado_aguas || false,
       situacao_cadastral: membro.situacao_cadastral || "Ativo",
-      observacao: membro.observacao || ""
+      observacao: membro.observacao || "",
+      foto_url: membro.foto_url || ""
     })
 
+    setFoto(null)
     window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  function criarAcesso(membro) {
+    localStorage.setItem("membroSelecionado", JSON.stringify(membro))
+    navigate("/usuarios")
   }
 
   function formatarData(data) {
@@ -203,6 +245,12 @@ export default function Membros({ user }) {
             <option value="Sim">Batizado nas águas? Sim</option>
           </select>
 
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFoto(e.target.files[0])}
+          />
+
           <textarea
             placeholder="Observação"
             value={form.observacao}
@@ -211,6 +259,20 @@ export default function Membros({ user }) {
             }
           />
         </div>
+
+        {form.foto_url && (
+          <img
+            src={form.foto_url}
+            alt="Foto atual"
+            style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
+              objectFit: "cover",
+              marginTop: "12px"
+            }}
+          />
+        )}
 
         <div className="form-actions">
           <button type="submit">
@@ -303,51 +365,70 @@ export default function Membros({ user }) {
             {membrosFiltrados.map((membro) => (
               <div key={membro.id} className="membro-card">
                 <div className="membro-card-top">
-                  <div>
-                    <h3>{membro.nome}</h3>
-                    <span className="badge-turma">
-                      {membro.situacao_cadastral}
-                    </span>
-                  </div>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                    {membro.foto_url ? (
+                      <img
+                        src={membro.foto_url}
+                        alt={membro.nome}
+                        style={{
+                          width: "58px",
+                          height: "58px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          border: "2px solid #e5e7eb"
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "58px",
+                          height: "58px",
+                          borderRadius: "50%",
+                          background: "#dbeafe",
+                          color: "#1d4ed8",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontWeight: "800"
+                        }}
+                      >
+                        {membro.nome?.charAt(0)}
+                      </div>
+                    )}
 
+                    <div>
+                      <h3>{membro.nome}</h3>
+                      <span className="badge-turma">
+                        {membro.situacao_cadastral}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="membro-info">
+                  <p><strong>Nascimento:</strong> {formatarData(membro.data_nascimento)}</p>
+                  <p><strong>Telefone:</strong> {membro.telefone || "Não informado"}</p>
+                  <p><strong>Sexo:</strong> {membro.sexo || "Não informado"}</p>
+                  <p><strong>Estado civil:</strong> {membro.estado_civil || "Não informado"}</p>
+                  <p><strong>Batizado:</strong> {membro.batizado_aguas ? "Sim" : "Não"}</p>
+                  <p><strong>Criado por:</strong> {membro.criado_por || "Não informado"}</p>
+                </div>
+
+                <div className="form-actions" style={{ marginTop: "12px" }}>
                   <button
                     type="button"
                     onClick={() => editarMembro(membro)}
                   >
                     Editar
                   </button>
-                </div>
 
-                <div className="membro-info">
-                  <p>
-                    <strong>Nascimento:</strong>{" "}
-                    {formatarData(membro.data_nascimento)}
-                  </p>
-
-                  <p>
-                    <strong>Telefone:</strong>{" "}
-                    {membro.telefone || "Não informado"}
-                  </p>
-
-                  <p>
-                    <strong>Sexo:</strong>{" "}
-                    {membro.sexo || "Não informado"}
-                  </p>
-
-                  <p>
-                    <strong>Estado civil:</strong>{" "}
-                    {membro.estado_civil || "Não informado"}
-                  </p>
-
-                  <p>
-                    <strong>Batizado:</strong>{" "}
-                    {membro.batizado_aguas ? "Sim" : "Não"}
-                  </p>
-
-                  <p>
-                    <strong>Criado por:</strong>{" "}
-                    {membro.criado_por || "Não informado"}
-                  </p>
+                  <button
+                    type="button"
+                    className="btn-secundario"
+                    onClick={() => criarAcesso(membro)}
+                  >
+                    Criar acesso
+                  </button>
                 </div>
               </div>
             ))}

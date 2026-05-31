@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase"
 export default function Membros({ user }) {
   const [membros, setMembros] = useState([])
   const [loading, setLoading] = useState(false)
+  const [filtroSituacao, setFiltroSituacao] = useState("Ativo")
 
   const [form, setForm] = useState({
     nome: "",
@@ -67,6 +68,10 @@ export default function Membros({ user }) {
 
     buscarMembros()
   }
+
+  const membrosFiltrados = membros.filter(
+    (membro) => membro.situacao_cadastral === filtroSituacao
+  )
 
   return (
     <div className="page">
@@ -163,19 +168,18 @@ export default function Membros({ user }) {
             <option value="Bloqueado">Bloqueado</option>
           </select>
 
-          <label>
-            <input
-              type="checkbox"
-              checked={form.batizado_aguas}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  batizado_aguas: e.target.checked
-                })
-              }
-            />
-            Batizado nas águas
-          </label>
+          <select
+            value={form.batizado_aguas ? "Sim" : "Não"}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                batizado_aguas: e.target.value === "Sim"
+              })
+            }
+          >
+            <option value="Não">Batizado nas águas? Não</option>
+            <option value="Sim">Batizado nas águas? Sim</option>
+          </select>
 
           <textarea
             placeholder="Observação"
@@ -204,15 +208,38 @@ export default function Membros({ user }) {
           </div>
         </div>
 
+        <div className="form-actions" style={{ marginBottom: "18px" }}>
+          <button
+            type="button"
+            onClick={() => setFiltroSituacao("Ativo")}
+            className={filtroSituacao === "Ativo" ? "" : "btn-secundario"}
+          >
+            Ativos
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFiltroSituacao("Desativado")}
+            className={filtroSituacao === "Desativado" ? "" : "btn-secundario"}
+          >
+            Desativados
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFiltroSituacao("Bloqueado")}
+            className={filtroSituacao === "Bloqueado" ? "" : "btn-secundario"}
+          >
+            Bloqueados
+          </button>
+        </div>
+
         {loading ? (
           <p>Carregando...</p>
         ) : (
           <div className="alunos-grid">
-            {membros.map((membro) => (
-              <div
-                key={membro.id}
-                className="aluno-card"
-              >
+            {membrosFiltrados.map((membro) => (
+              <div key={membro.id} className="aluno-card">
                 <div className="aluno-card-top">
                   <div>
                     <h3>{membro.nome}</h3>

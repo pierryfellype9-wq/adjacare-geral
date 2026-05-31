@@ -9,6 +9,9 @@ export default function PortalAluno() {
   const [erro, setErro] = useState("")
   const [carregando, setCarregando] = useState(false)
   const [pagina, setPagina] = useState("inicio")
+  const [dataConfirmacao, setDataConfirmacao] = useState("")
+const [novaSenha, setNovaSenha] = useState("")
+const [confirmarSenha, setConfirmarSenha] = useState("")
 
   function irPara(p) {
     setPagina(p)
@@ -49,6 +52,52 @@ export default function PortalAluno() {
     setCarregando(false)
   }
 
+  async function trocarSenha(e) {
+  e.preventDefault()
+  setErro("")
+  setCarregando(true)
+
+  if (novaSenha.trim() !== confirmarSenha.trim()) {
+    setCarregando(false)
+    setErro("As senhas não conferem.")
+    return
+  }
+
+  const { data, error } = await supabase
+    .from("ebd_alunos")
+    .select("*")
+    .eq("email_portal", email.toLowerCase().trim())
+    .eq("data_nascimento", dataConfirmacao)
+    .limit(1)
+    .maybeSingle()
+
+  if (error || !data) {
+    setCarregando(false)
+    setErro("Login ou data de nascimento inválidos.")
+    return
+  }
+
+  const { error: erroUpdate } = await supabase
+    .from("ebd_alunos")
+    .update({ senha_portal: novaSenha.trim() })
+    .eq("id", data.id)
+
+  setCarregando(false)
+
+  if (erroUpdate) {
+    setErro("Erro ao atualizar senha.")
+    return
+  }
+
+  alert("Senha criada com sucesso! Agora faça login.")
+
+  setPagina("inicio")
+  setSenha("")
+  setNovaSenha("")
+  setConfirmarSenha("")
+  setDataConfirmacao("")
+}
+  
   function sair() {
     setAluno(null)
     setEmail("")
@@ -79,34 +128,83 @@ export default function PortalAluno() {
             Acesse suas informações da Escola Bíblica Dominical.
           </p>
 
-          <form onSubmit={fazerLogin}>
-            <input
-              placeholder="Login"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+          {pagina === "inicio" && (
+  <form onSubmit={fazerLogin}>
+    <input
+      placeholder="Login"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+    />
 
-            <input
-              type="password"
-              placeholder="Senha"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-            />
+    <input
+      type="password"
+      placeholder="Senha"
+      value={senha}
+      onChange={(e) => setSenha(e.target.value)}
+    />
 
-            <div className="info-login">
-              <strong>Primeiro acesso</strong>
-              <span>
-                A senha inicial é a data de nascimento do aluno, sem barras.
-                Exemplo: 01/01/2000 → 01012000.
-              </span>
-            </div>
+    <div className="info-login">
+      <strong>Primeiro acesso?</strong>
+      <span>
+        Clique em “Primeiro acesso” e confirme sua data de nascimento para criar uma nova senha.
+      </span>
+    </div>
 
-            {erro && <p className="erro">{erro}</p>}
+    {erro && <p className="erro">{erro}</p>}
 
-            <button disabled={carregando}>
-              {carregando ? "Entrando..." : "Entrar no portal"}
-            </button>
-          </form>
+    <button disabled={carregando}>
+      {carregando ? "Entrando..." : "Fazer login"}
+    </button>
+
+    <button
+      type="button"
+      className="btn-secundario"
+      onClick={() => setPagina("primeiro-acesso")}
+    >
+      Primeiro acesso / trocar senha
+    </button>
+  </form>
+)}
+
+{pagina === "primeiro-acesso" && (
+  <form onSubmit={trocarSenha}>
+    <input
+      placeholder="Login"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+    />
+
+    <input
+      type="date"
+      value={dataConfirmacao}
+      onChange={(e) => setDataConfirmacao(e.target.value)}
+    />
+
+    <input
+      type="password"
+      placeholder="Nova senha"
+      value={novaSenha}
+      onChange={(e) => setNovaSenha(e.target.value)}
+    />
+
+    <input
+      type="password"
+      placeholder="Confirmar nova senha"
+      value={confirmarSenha}
+      onChange={(e) => setConfirmarSenha(e.target.value)}
+    />
+
+    {erro && <p className="erro">{erro}</p>}
+
+    <button disabled={carregando}>
+      {carregando ? "Salvando..." : "Criar nova senha"}
+    </button>
+
+    <button type="button" onClick={() => setPagina("inicio")}>
+      Voltar para login
+    </button>
+  </form>
+)}
         </div>
       </div>
     )

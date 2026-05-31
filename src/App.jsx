@@ -105,8 +105,17 @@ export default function App() {
           element={
             <div className="login-page">
               <div className="login-card">
-                <div className="logo-title">
-<img
+<div
+  className="logo-title"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "20px",
+    marginBottom: "30px",
+  }}
+>
+  <img
   src="/logo.png"
   alt="Logo"
   style={{

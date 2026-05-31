@@ -4,7 +4,9 @@ import { supabase } from "../lib/supabase"
 export default function Usuarios({ user }) {
   const [usuarios, setUsuarios] = useState([])
   const [turmas, setTurmas] = useState([])
+  const [membros, setMembros] = useState([])
 
+  const [membroId, setMembroId] = useState("")
   const [nome, setNome] = useState("")
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
@@ -73,6 +75,7 @@ export default function Usuarios({ user }) {
   useEffect(() => {
     carregarUsuarios()
     carregarTurmas()
+    carregarMembros()
   }, [])
 
   async function carregarUsuarios() {
@@ -103,7 +106,23 @@ export default function Usuarios({ user }) {
     setTurmas(data || [])
   }
 
+  async function carregarMembros() {
+    const { data, error } = await supabase
+      .from("membros")
+      .select("*")
+      .eq("situacao_cadastral", "Ativo")
+      .order("nome", { ascending: true })
+
+    if (error) {
+      console.log(error)
+      return
+    }
+
+    setMembros(data || [])
+  }
+
   function limparFormulario() {
+    setMembroId("")
     setNome("")
     setEmail("")
     setSenha("")
@@ -111,6 +130,16 @@ export default function Usuarios({ user }) {
     setTurmaEbd("")
     setEditando(false)
     setUsuarioId(null)
+  }
+
+  function selecionarMembro(id) {
+    setMembroId(id)
+
+    const membroSelecionado = membros.find((m) => m.id === id)
+
+    if (membroSelecionado) {
+      setNome(membroSelecionado.nome)
+    }
   }
 
   async function criarUsuario(e) {
@@ -133,6 +162,7 @@ export default function Usuarios({ user }) {
 
     const { error } = await supabase.from("users").insert([
       {
+        membro_id: membroId || null,
         nome,
         email,
         senha,
@@ -203,6 +233,7 @@ export default function Usuarios({ user }) {
       return
     }
 
+    setMembroId(u.membro_id || "")
     setNome(u.nome || "")
     setEmail(u.email || "")
     setSenha(u.senha || "")
@@ -238,6 +269,7 @@ export default function Usuarios({ user }) {
     const { error } = await supabase
       .from("users")
       .update({
+        membro_id: membroId || null,
         nome,
         email,
         senha,
@@ -409,6 +441,19 @@ export default function Usuarios({ user }) {
                   gap: "12px",
                 }}
               >
+                <select
+                  value={membroId}
+                  onChange={(e) => selecionarMembro(e.target.value)}
+                >
+                  <option value="">Selecione um membro</option>
+
+                  {membros.map((membro) => (
+                    <option key={membro.id} value={membro.id}>
+                      {membro.nome}
+                    </option>
+                  ))}
+                </select>
+
                 <input
                   placeholder="Nome"
                   value={nome}
@@ -431,7 +476,6 @@ export default function Usuarios({ user }) {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                
                   style={{
                     width: "100%",
                     padding: "12px",
@@ -452,26 +496,26 @@ export default function Usuarios({ user }) {
                 </select>
 
                 <select
-  value={turmaEbd}
-  onChange={(e) => setTurmaEbd(e.target.value)}
-  style={{
-    width: "100%",
-    padding: "12px",
-    borderRadius: "8px",
-    border: "1px solid #ddd",
-    boxSizing: "border-box",
-    fontSize: "14px",
-    background: "white",
-  }}
->
-  <option value="">Selecione a permissão da EBD</option>
+                  value={turmaEbd}
+                  onChange={(e) => setTurmaEbd(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border: "1px solid #ddd",
+                    boxSizing: "border-box",
+                    fontSize: "14px",
+                    background: "white",
+                  }}
+                >
+                  <option value="">Selecione a permissão da EBD</option>
 
-  {turmas.map((t) => (
-    <option key={t.id} value={t.nome}>
-      {t.nome}
-    </option>
-  ))}
-</select>
+                  {turmas.map((t) => (
+                    <option key={t.id} value={t.nome}>
+                      {t.nome}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div
@@ -601,7 +645,6 @@ export default function Usuarios({ user }) {
                       }}
                     >
                       <td style={tdNomeStyle}>{u.nome}</td>
-
                       <td style={tdStyle}>{u.email}</td>
 
                       <td style={tdStyle}>

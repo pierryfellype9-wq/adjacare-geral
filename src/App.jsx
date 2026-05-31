@@ -124,8 +124,12 @@ export default function App() {
     objectFit: "contain",
   }}
 />   
-                  <h2>Sistema Geral ADJACARÉ</h2>
-                </div>
+<h2 style={{ margin: 0, lineHeight: "1.2" }}>
+  Sistema Geral
+  <br />
+  ADJACARÉ
+</h2>               
+</div>
 
                 <form onSubmit={login}>
                   <input

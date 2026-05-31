@@ -95,6 +95,13 @@ export default function Sidebar({ open, setOpen, user }) {
           Usuários
         </div>
 
+        <div
+  className="menu-item"
+  onClick={() => navegar("/trocar-senha")}
+>
+  Alterar Senha
+</div>
+        
         {podeVerSenhas && (
           <div
             className="menu-item"

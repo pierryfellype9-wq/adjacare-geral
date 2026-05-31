@@ -42,10 +42,7 @@ export default function TrocarSenha({ user, setUser }) {
       return
     }
 
-    const usuarioAtualizado = {
-      ...user,
-      senha,
-    }
+    const usuarioAtualizado = { ...user, senha }
 
     localStorage.setItem("user", JSON.stringify(usuarioAtualizado))
     setUser(usuarioAtualizado)
@@ -56,35 +53,64 @@ export default function TrocarSenha({ user, setUser }) {
 
   return (
     <div className="page">
-      <div className="form-card">
-        <h2>Alterar senha</h2>
+      <button className="btn-voltar" onClick={() => navigate("/dashboard")}>
+        ← Voltar
+      </button>
+
+      <div
+        className="form-card"
+        style={{
+          maxWidth: "520px",
+          margin: "40px auto",
+          padding: "32px",
+        }}
+      >
+        <h2 style={{ marginBottom: "8px" }}>Alterar senha</h2>
+
+        <p style={{ marginBottom: "24px", color: "#64748b" }}>
+          Crie uma nova senha para acessar o Sistema Geral ADJACARÉ.
+        </p>
 
         <form onSubmit={salvar}>
-          <input
-            type="password"
-            placeholder="Nova senha"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-          />
+          <div style={{ marginBottom: "16px" }}>
+            <label>Nova senha</label>
+            <input
+              type="password"
+              placeholder="Digite a nova senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+            />
+          </div>
 
-          <input
-            type="password"
-            placeholder="Confirmar nova senha"
-            value={confirmar}
-            onChange={(e) => setConfirmar(e.target.value)}
-          />
+          <div style={{ marginBottom: "24px" }}>
+            <label>Confirmar nova senha</label>
+            <input
+              type="password"
+              placeholder="Digite novamente a senha"
+              value={confirmar}
+              onChange={(e) => setConfirmar(e.target.value)}
+            />
+          </div>
 
-          <button disabled={carregando}>
-            {carregando ? "Salvando..." : "Salvar nova senha"}
-          </button>
-
-          <button
-            type="button"
-            className="btn-cancelar"
-            onClick={() => navigate("/dashboard")}
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              flexWrap: "wrap",
+            }}
           >
-            Voltar
-          </button>
+            <button disabled={carregando}>
+              {carregando ? "Salvando..." : "Salvar nova senha"}
+            </button>
+
+            <button
+              type="button"
+              className="btn-cancelar"
+              onClick={() => navigate("/dashboard")}
+            >
+              Cancelar
+            </button>
+          </div>
         </form>
       </div>
     </div>

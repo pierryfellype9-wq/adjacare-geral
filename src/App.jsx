@@ -179,8 +179,17 @@ export default function App() {
                 <Route path="/agenda" element={<Agenda />} />
                 <Route path="/avisos" element={<Avisos />} />
                 <Route path="/usuarios" element={<Usuarios user={user} />} />
-                <Route path="/trocar-senha" element={<TrocarSenha />} />
                 <Route path="/ebd/financeiro" element={<EBDFinanceiro user={user} />} />
+              
+                <Route
+  path="/trocar-senha"
+  element={
+    <TrocarSenha
+      user={user}
+      setUser={setUser}
+    />
+  }
+/>
 
                 <Route
                   path="/escala-midia"

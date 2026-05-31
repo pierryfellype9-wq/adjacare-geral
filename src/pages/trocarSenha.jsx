@@ -1,64 +1,90 @@
 import { useState } from "react"
+import { supabase } from "../lib/supabase"
 
-export default function TrocarSenha({user,setUser,setPage}){
+export default function TrocarSenha({ user, setUser, setPage }) {
+  const [senha, setSenha] = useState("")
+  const [confirmar, setConfirmar] = useState("")
+  const [carregando, setCarregando] = useState(false)
 
-const [senha,setSenha] = useState("")
-const [confirmar,setConfirmar] = useState("")
+  async function salvar(e) {
+    e.preventDefault()
 
-function salvar(e){
-e.preventDefault()
+    if (!user?.id) {
+      alert("Usuário não encontrado.")
+      return
+    }
 
-if(senha.length < 4){
-alert("A senha deve ter pelo menos 4 caracteres")
-return
-}
+    if (senha.length < 4) {
+      alert("A senha deve ter pelo menos 4 caracteres.")
+      return
+    }
 
-if(senha !== confirmar){
-alert("As senhas não coincidem")
-return
-}
+    if (senha !== confirmar) {
+      alert("As senhas não coincidem.")
+      return
+    }
 
-localStorage.setItem(user.email,senha)
+    setCarregando(true)
 
-alert("Senha alterada com sucesso!")
+    const { error } = await supabase
+      .from("users")
+      .update({ senha })
+      .eq("id", user.id)
 
-setPage("dashboard")
-}
+    setCarregando(false)
 
-return(
+    if (error) {
+      console.error(error)
+      alert("Erro ao alterar senha.")
+      return
+    }
 
-<div className="login-page">
+    const usuarioAtualizado = {
+      ...user,
+      senha,
+    }
 
-<div className="login-card">
+    localStorage.setItem("user", JSON.stringify(usuarioAtualizado))
+    setUser(usuarioAtualizado)
 
-<h2>Alterar Senha</h2>
+    alert("Senha alterada com sucesso!")
+    setPage("dashboard")
+  }
 
-<form onSubmit={salvar}>
+  return (
+    <div className="login-page">
+      <div className="login-card">
+        <h2>Alterar senha</h2>
 
-<input
-type="password"
-placeholder="Nova senha"
-value={senha}
-onChange={e=>setSenha(e.target.value)}
-/>
+        <form onSubmit={salvar}>
+          <input
+            type="password"
+            placeholder="Nova senha"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+          />
 
-<input
-type="password"
-placeholder="Confirmar senha"
-value={confirmar}
-onChange={e=>setConfirmar(e.target.value)}
-/>
+          <input
+            type="password"
+            placeholder="Confirmar nova senha"
+            value={confirmar}
+            onChange={(e) => setConfirmar(e.target.value)}
+          />
 
-<button className="login-btn">
-Salvar nova senha
-</button>
+          <button className="login-btn" disabled={carregando}>
+            {carregando ? "Salvando..." : "Salvar nova senha"}
+          </button>
 
-</form>
-
-</div>
-
-</div>
-
-)
-
+          <button
+            type="button"
+            className="login-btn"
+            onClick={() => setPage("dashboard")}
+            style={{ marginTop: "10px" }}
+          >
+            Voltar
+          </button>
+        </form>
+      </div>
+    </div>
+  )
 }

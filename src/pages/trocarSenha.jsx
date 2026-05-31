@@ -1,7 +1,10 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 
-export default function TrocarSenha({ user, setUser, setPage }) {
+export default function TrocarSenha({ user, setUser }) {
+  const navigate = useNavigate()
+
   const [senha, setSenha] = useState("")
   const [confirmar, setConfirmar] = useState("")
   const [carregando, setCarregando] = useState(false)
@@ -48,12 +51,12 @@ export default function TrocarSenha({ user, setUser, setPage }) {
     setUser(usuarioAtualizado)
 
     alert("Senha alterada com sucesso!")
-    setPage("dashboard")
+    navigate("/dashboard")
   }
 
   return (
-    <div className="login-page">
-      <div className="login-card">
+    <div className="page">
+      <div className="form-card">
         <h2>Alterar senha</h2>
 
         <form onSubmit={salvar}>
@@ -71,15 +74,14 @@ export default function TrocarSenha({ user, setUser, setPage }) {
             onChange={(e) => setConfirmar(e.target.value)}
           />
 
-          <button className="login-btn" disabled={carregando}>
+          <button disabled={carregando}>
             {carregando ? "Salvando..." : "Salvar nova senha"}
           </button>
 
           <button
             type="button"
-            className="login-btn"
-            onClick={() => setPage("dashboard")}
-            style={{ marginTop: "10px" }}
+            className="btn-cancelar"
+            onClick={() => navigate("/dashboard")}
           >
             Voltar
           </button>

@@ -15,6 +15,7 @@ export default function EBDAlunos({ user }) {
   const [turmas, setTurmas] = useState([])
   const [alunos, setAlunos] = useState([])
   const [aba, setAba] = useState("ativos")
+  const [busca, setBusca] = useState("")
 
   const [nome, setNome] = useState("")
   const [dataNascimento, setDataNascimento] = useState("")
@@ -213,8 +214,12 @@ export default function EBDAlunos({ user }) {
   const alunosAtivos = alunos.filter((aluno) => aluno.ativo !== false)
   const alunosInativos = alunos.filter((aluno) => aluno.ativo === false)
 
-  const alunosFiltrados = aba === "ativos" ? alunosAtivos : alunosInativos
+const alunosDaAba = aba === "ativos" ? alunosAtivos : alunosInativos
 
+const alunosFiltrados = alunosDaAba.filter((aluno) =>
+  aluno.nome?.toLowerCase().includes(busca.toLowerCase())
+)
+  
   function limparFormulario() {
     setNome("")
     setDataNascimento("")
@@ -662,6 +667,20 @@ if (!resposta.data || resposta.data.length === 0) {
         </div>
 
         <div className="form-actions" style={{ marginBottom: "20px" }}>
+          <input
+  type="text"
+  placeholder="Pesquisar aluno..."
+  value={busca}
+  onChange={(e) => setBusca(e.target.value)}
+  style={{
+    width: "100%",
+    padding: "12px",
+    borderRadius: "10px",
+    border: "1px solid #ccc",
+    marginBottom: "15px",
+  }}
+/>
+        
           <button
             type="button"
             className={aba === "ativos" ? "" : "btn-cancelar"}

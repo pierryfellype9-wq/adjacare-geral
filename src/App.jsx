@@ -15,6 +15,7 @@ import CustosFixos from "./pages/CustosFixos"
 import EBDDashboard from "./pages/EBDDashboard"
 import PortalAluno from "./pages/PortalAluno"
 import EBDFinanceiro from "./pages/EBDFinanceiro"
+import Membros from "./pages/Membros"
 
 import EBD from "./pages/EBD"
 import EBDAlunos from "./pages/EBDAlunos"
@@ -240,6 +241,7 @@ export default function App() {
                 <Route path="/ebd/chamada" element={<EBDChamada user={user} />} />
                 <Route path="/ebd/relatorios" element={<EBDRelatorios user={user} />} />
                 <Route path="/ebd/dashboard" element={<EBDDashboard user={user} />} />
+                <Route path="/membros" element={<Membros user={user} />} />
               </Routes>
             </div>
           }

@@ -1615,6 +1615,80 @@ label {
   }
 }
 
+/* MEMBROS - AJUSTE FINAL */
+
+.membros-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 360px)) !important;
+  gap: 18px !important;
+}
+
+.membro-card {
+  background: #ffffff !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 18px !important;
+  padding: 18px !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06) !important;
+}
+
+.membro-card-top {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  margin-bottom: 14px !important;
+}
+
+.membro-card h3 {
+  margin: 0 0 8px !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+}
+
+.membro-card-top button {
+  width: auto !important;
+  padding: 8px 14px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+}
+
+.membro-info {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  padding: 12px 14px !important;
+}
+
+.membro-info p {
+  margin: 6px 0 !important;
+  font-size: 13px !important;
+}
+
+/* FORMULÁRIO MEMBROS MAIS COMPACTO */
+
+.form-card {
+  padding: 22px !important;
+}
+
+.form-grid-ebd input,
+.form-grid-ebd select,
+.form-grid-ebd textarea {
+  height: 46px !important;
+  padding: 10px 12px !important;
+  margin-top: 0 !important;
+  border-radius: 12px !important;
+}
+
+.form-grid-ebd textarea {
+  height: 46px !important;
+  min-height: 46px !important;
+  resize: none !important;
+}
+
+.form-grid-ebd {
+  gap: 14px !important;
+}
+
 /* MOBILE */
 
 @media (max-width: 600px) {

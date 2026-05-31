@@ -5,8 +5,9 @@ export default function Membros({ user }) {
   const [membros, setMembros] = useState([])
   const [loading, setLoading] = useState(false)
   const [filtroSituacao, setFiltroSituacao] = useState("Ativo")
+  const [editandoId, setEditandoId] = useState(null)
 
-  const [form, setForm] = useState({
+  const formLimpo = {
     nome: "",
     data_nascimento: "",
     telefone: "",
@@ -15,7 +16,9 @@ export default function Membros({ user }) {
     batizado_aguas: false,
     situacao_cadastral: "Ativo",
     observacao: ""
-  })
+  }
+
+  const [form, setForm] = useState(formLimpo)
 
   async function buscarMembros() {
     setLoading(true)
@@ -25,9 +28,7 @@ export default function Membros({ user }) {
       .select("*")
       .order("nome")
 
-    if (!error) {
-      setMembros(data)
-    }
+    if (!error) setMembros(data)
 
     setLoading(false)
   }
@@ -36,37 +37,63 @@ export default function Membros({ user }) {
     buscarMembros()
   }, [])
 
+  function limparFormulario() {
+    setForm(formLimpo)
+    setEditandoId(null)
+  }
+
   async function salvarMembro(e) {
     e.preventDefault()
 
-    const { error } = await supabase
-      .from("membros")
-      .insert([
-        {
-          ...form,
-          criado_por: user?.nome || user?.email
-        }
-      ])
+    if (editandoId) {
+      const { error } = await supabase
+        .from("membros")
+        .update(form)
+        .eq("id", editandoId)
 
-    if (error) {
-      alert("Erro ao salvar membro")
-      return
+      if (error) {
+        alert("Erro ao atualizar membro")
+        return
+      }
+
+      alert("Membro atualizado!")
+    } else {
+      const { error } = await supabase
+        .from("membros")
+        .insert([
+          {
+            ...form,
+            criado_por: user?.nome || user?.email
+          }
+        ])
+
+      if (error) {
+        alert("Erro ao salvar membro")
+        return
+      }
+
+      alert("Membro cadastrado!")
     }
 
-    alert("Membro cadastrado!")
+    limparFormulario()
+    buscarMembros()
+  }
+
+  function editarMembro(membro) {
+    setEditandoId(membro.id)
 
     setForm({
-      nome: "",
-      data_nascimento: "",
-      telefone: "",
-      sexo: "",
-      estado_civil: "",
-      batizado_aguas: false,
-      situacao_cadastral: "Ativo",
-      observacao: ""
+      nome: membro.nome || "",
+      data_nascimento: membro.data_nascimento || "",
+      telefone: membro.telefone || "",
+      sexo: membro.sexo || "",
+      estado_civil: membro.estado_civil || "",
+      batizado_aguas: membro.batizado_aguas || false,
+      situacao_cadastral: membro.situacao_cadastral || "Ativo",
+      observacao: membro.observacao || ""
     })
 
-    buscarMembros()
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const membrosFiltrados = membros.filter(
@@ -84,7 +111,7 @@ export default function Membros({ user }) {
 
       <form onSubmit={salvarMembro} className="form-card">
         <div className="form-title-row">
-          <h2>Novo membro</h2>
+          <h2>{editandoId ? "Editar membro" : "Novo membro"}</h2>
           <p>Preencha os dados principais do cadastro.</p>
         </div>
 
@@ -94,10 +121,7 @@ export default function Membros({ user }) {
             placeholder="Nome"
             value={form.nome}
             onChange={(e) =>
-              setForm({
-                ...form,
-                nome: e.target.value.toUpperCase()
-              })
+              setForm({ ...form, nome: e.target.value.toUpperCase() })
             }
             required
           />
@@ -106,10 +130,7 @@ export default function Membros({ user }) {
             type="date"
             value={form.data_nascimento}
             onChange={(e) =>
-              setForm({
-                ...form,
-                data_nascimento: e.target.value
-              })
+              setForm({ ...form, data_nascimento: e.target.value })
             }
           />
 
@@ -118,20 +139,14 @@ export default function Membros({ user }) {
             placeholder="Telefone"
             value={form.telefone}
             onChange={(e) =>
-              setForm({
-                ...form,
-                telefone: e.target.value
-              })
+              setForm({ ...form, telefone: e.target.value })
             }
           />
 
           <select
             value={form.sexo}
             onChange={(e) =>
-              setForm({
-                ...form,
-                sexo: e.target.value
-              })
+              setForm({ ...form, sexo: e.target.value })
             }
           >
             <option value="">Sexo</option>
@@ -142,10 +157,7 @@ export default function Membros({ user }) {
           <select
             value={form.estado_civil}
             onChange={(e) =>
-              setForm({
-                ...form,
-                estado_civil: e.target.value
-              })
+              setForm({ ...form, estado_civil: e.target.value })
             }
           >
             <option value="">Estado civil</option>
@@ -157,10 +169,7 @@ export default function Membros({ user }) {
           <select
             value={form.situacao_cadastral}
             onChange={(e) =>
-              setForm({
-                ...form,
-                situacao_cadastral: e.target.value
-              })
+              setForm({ ...form, situacao_cadastral: e.target.value })
             }
           >
             <option value="Ativo">Ativo</option>
@@ -185,18 +194,25 @@ export default function Membros({ user }) {
             placeholder="Observação"
             value={form.observacao}
             onChange={(e) =>
-              setForm({
-                ...form,
-                observacao: e.target.value
-              })
+              setForm({ ...form, observacao: e.target.value })
             }
           />
         </div>
 
         <div className="form-actions">
           <button type="submit">
-            Salvar membro
+            {editandoId ? "Salvar alterações" : "Salvar membro"}
           </button>
+
+          {editandoId && (
+            <button
+              type="button"
+              className="btn-secundario"
+              onClick={limparFormulario}
+            >
+              Cancelar edição
+            </button>
+          )}
         </div>
       </form>
 
@@ -237,44 +253,31 @@ export default function Membros({ user }) {
         {loading ? (
           <p>Carregando...</p>
         ) : (
-          <div className="alunos-grid">
+          <div className="membros-grid">
             {membrosFiltrados.map((membro) => (
-              <div key={membro.id} className="aluno-card">
-                <div className="aluno-card-top">
+              <div key={membro.id} className="membro-card">
+                <div className="membro-card-top">
                   <div>
                     <h3>{membro.nome}</h3>
-
                     <span className="badge-turma">
                       {membro.situacao_cadastral}
                     </span>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => editarMembro(membro)}
+                  >
+                    Editar
+                  </button>
                 </div>
 
-                <div className="aluno-info">
-                  <p>
-                    <strong>Telefone:</strong>{" "}
-                    {membro.telefone || "Não informado"}
-                  </p>
-
-                  <p>
-                    <strong>Sexo:</strong>{" "}
-                    {membro.sexo || "Não informado"}
-                  </p>
-
-                  <p>
-                    <strong>Estado civil:</strong>{" "}
-                    {membro.estado_civil || "Não informado"}
-                  </p>
-
-                  <p>
-                    <strong>Batizado:</strong>{" "}
-                    {membro.batizado_aguas ? "Sim" : "Não"}
-                  </p>
-
-                  <p>
-                    <strong>Criado por:</strong>{" "}
-                    {membro.criado_por || "Não informado"}
-                  </p>
+                <div className="membro-info">
+                  <p><strong>Telefone:</strong> {membro.telefone || "Não informado"}</p>
+                  <p><strong>Sexo:</strong> {membro.sexo || "Não informado"}</p>
+                  <p><strong>Estado civil:</strong> {membro.estado_civil || "Não informado"}</p>
+                  <p><strong>Batizado:</strong> {membro.batizado_aguas ? "Sim" : "Não"}</p>
+                  <p><strong>Criado por:</strong> {membro.criado_por || "Não informado"}</p>
                 </div>
               </div>
             ))}

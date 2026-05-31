@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 
 export default function Membros({ user }) {
-  
+  const navigate = useNavigate()
+
   const [membros, setMembros] = useState([])
   const [loading, setLoading] = useState(false)
   const [filtroSituacao, setFiltroSituacao] = useState("Ativo")
@@ -42,10 +44,9 @@ export default function Membros({ user }) {
 
   function limparFormulario() {
     setForm(formLimpo)
-    setFoto(null)
     setEditandoId(null)
   }
-  
+
   async function salvarMembro(e) {
     e.preventDefault()
 
@@ -53,8 +54,6 @@ export default function Membros({ user }) {
       const { error } = await supabase
         .from("membros")
         .update(form)
-        }
-      
         .eq("id", editandoId)
 
       if (error) {
@@ -99,6 +98,7 @@ export default function Membros({ user }) {
       observacao: membro.observacao || "",
     })
 
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   function criarAcesso(membro) {
@@ -313,20 +313,20 @@ export default function Membros({ user }) {
                 <div className="membro-card-top">
                   <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                     <div
-  style={{
-    width: "58px",
-    height: "58px",
-    borderRadius: "50%",
-    background: "#dbeafe",
-    color: "#1d4ed8",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "800"
-  }}
->
-  {membro.nome?.charAt(0)}
-</div>
+                      style={{
+                        width: "58px",
+                        height: "58px",
+                        borderRadius: "50%",
+                        background: "#dbeafe",
+                        color: "#1d4ed8",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: "800"
+                      }}
+                    >
+                      {membro.nome?.charAt(0)}
+                    </div>
 
                     <div>
                       <h3>{membro.nome}</h3>

@@ -143,8 +143,15 @@ const [confirmarSenha, setConfirmarSenha] = useState("")
       onChange={(e) => setSenha(e.target.value)}
     />
 
-    <div className="info-login">
-      <strong>Primeiro acesso?</strong>
+<div
+  className="info-login"
+  style={{
+    marginTop: "16px",
+    marginBottom: "16px",
+    lineHeight: "1.5",
+  }}
+>
+  <strong>Primeiro acesso?</strong>
       <span>
         Clique em “Primeiro acesso” e confirme sua data de nascimento para criar uma nova senha.
       </span>
@@ -157,10 +164,13 @@ const [confirmarSenha, setConfirmarSenha] = useState("")
     </button>
 
     <button
-      type="button"
-      className="btn-secundario"
-      onClick={() => setPagina("primeiro-acesso")}
-    >
+  type="button"
+  className="btn-secundario"
+  onClick={() => setPagina("primeiro-acesso")}
+  style={{
+    marginTop: "12px",
+  }}
+>
       Primeiro acesso / trocar senha
     </button>
   </form>
@@ -200,8 +210,14 @@ const [confirmarSenha, setConfirmarSenha] = useState("")
       {carregando ? "Salvando..." : "Criar nova senha"}
     </button>
 
-    <button type="button" onClick={() => setPagina("inicio")}>
-      Voltar para login
+<button
+  type="button"
+  onClick={() => setPagina("inicio")}
+  style={{
+    marginTop: "12px",
+  }}
+>
+  Voltar para login
     </button>
   </form>
 )}

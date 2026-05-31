@@ -66,8 +66,8 @@ export default function EBD({ user }) {
 
   return (
     <div className="page">
-      {alertas.length > 0 && (
-        <div className="ebd-alerta-topo">
+{false && (
+  <div className="ebd-alerta-topo">
           <div className="ebd-alerta-contador">
             {alertas.length}
           </div>

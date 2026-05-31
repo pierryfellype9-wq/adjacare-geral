@@ -106,7 +106,15 @@ export default function App() {
             <div className="login-page">
               <div className="login-card">
                 <div className="logo-title">
-                  <img src="/logo.png" alt="Logo" />
+<img
+  src="/logo.png"
+  alt="Logo"
+  style={{
+    width: "90px",
+    height: "90px",
+    objectFit: "contain",
+  }}
+/>   
                   <h2>Sistema Geral ADJACARÉ</h2>
                 </div>
 

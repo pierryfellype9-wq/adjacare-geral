@@ -1712,3 +1712,100 @@ label {
     width: 100%;
   }
 }
+
+/* =========================
+   AJUSTES MOBILE GERAIS
+========================= */
+
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+    background: #f4f6f8;
+  }
+
+  .app,
+  .layout,
+  .main,
+  .content,
+  .page {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px !important;
+    box-sizing: border-box;
+  }
+
+  h1 {
+    font-size: 22px !important;
+    line-height: 1.2;
+  }
+
+  h2 {
+    font-size: 18px !important;
+  }
+
+  p,
+  label,
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 15px !important;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100% !important;
+    min-height: 44px;
+    border-radius: 12px !important;
+  }
+
+  button {
+    min-height: 44px;
+    border-radius: 12px !important;
+  }
+
+  .card,
+  .box,
+  .painel,
+  .container,
+  .form-card {
+    width: 100% !important;
+    border-radius: 16px !important;
+    padding: 14px !important;
+    margin-bottom: 12px !important;
+    box-sizing: border-box;
+  }
+
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .grid,
+  .cards,
+  .dashboard-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .actions,
+  .botoes,
+  .filters,
+  .filtros {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100%;
+  }
+
+  .actions button,
+  .botoes button,
+  .filters button,
+  .filtros button {
+    width: 100% !important;
+  }
+}

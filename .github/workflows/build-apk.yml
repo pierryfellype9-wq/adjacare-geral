@@ -37,13 +37,14 @@ jobs:
       - name: Sincronizar Capacitor
         run: npx cap sync android
 
+      - name: Forçar Java 21 no Gradle
+        run: echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
+
       - name: Permissão Gradle
         run: chmod +x android/gradlew
 
       - name: Gerar APK
         run: |
-          export JAVA_HOME=$JAVA_HOME_21_X64
-          export PATH=$JAVA_HOME/bin:$PATH
           cd android
           ./gradlew assembleDebug
 

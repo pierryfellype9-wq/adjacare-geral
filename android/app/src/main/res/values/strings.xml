@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Sistema Geral ADJACARÉ</string>
-    <string name="title_activity_main">Sistema Geral ADJACARÉ</string>
+    <string name="app_name">ADJACARÉ</string>
+    <string name="title_activity_main">ADJACARÉ</string>
     <string name="package_name">br.org.adjacare.sistema</string>
     <string name="custom_url_scheme">br.org.adjacare.sistema</string>
 </resources>

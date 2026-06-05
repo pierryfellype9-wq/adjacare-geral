@@ -43,13 +43,13 @@ jobs:
       - name: Permissão Gradle
         run: chmod +x android/gradlew
 
-      - name: Gerar APK
+      - name: Gerar APK Release
         run: |
           cd android
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
 
-      - name: Salvar APK
+      - name: Salvar APK Release
         uses: actions/upload-artifact@v4
         with:
-          name: ADJACARE-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: ADJACARE-APK-RELEASE
+          path: android/app/build/outputs/apk/release/app-release.apk

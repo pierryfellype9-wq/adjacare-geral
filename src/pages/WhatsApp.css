@@ -187,3 +187,44 @@
   margin-bottom: 6px;
   color: #075e54;
 }
+
+.whatsapp-conversa em {
+  display: block;
+  margin: 4px 0;
+  font-size: 12px;
+  color: #128c7e;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.whatsapp-chat-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.whatsapp-chat-topo p {
+  margin: 4px 0 0;
+  color: #666;
+  font-size: 13px;
+}
+
+.whatsapp-acoes {
+  display: flex;
+  gap: 8px;
+}
+
+.whatsapp-acoes button {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #128c7e;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.whatsapp-acoes .finalizar {
+  background: #dc3545;
+}

@@ -5,6 +5,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+async function salvarMensagem(telefone, direcao, mensagem) {
+  await supabase.from("whatsapp_mensagens").insert({
+    telefone,
+    direcao,
+    mensagem,
+  });
+}
+
 async function enviarMensagem(telefone, texto) {
   await fetch(
     `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
@@ -22,6 +30,8 @@ async function enviarMensagem(telefone, texto) {
       }),
     }
   );
+
+  await salvarMensagem(telefone, "enviada", texto);
 }
 
 function menuPrincipal() {
@@ -61,6 +71,10 @@ export default async function handler(req, res) {
 
     const telefone = mensagem.from;
     const texto = mensagem.text?.body?.trim();
+
+    if (texto) {
+      await salvarMensagem(telefone, "recebida", texto);
+    }
 
     if (!texto) {
       await enviarMensagem(telefone, "Envie uma mensagem em texto.");

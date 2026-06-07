@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
-  const { telefone, mensagem } = req.body;
+  const { telefone, mensagem, enviado_por, role } = req.body;
 
   if (!telefone || !mensagem) {
     return res.status(400).json({ error: "Telefone e mensagem são obrigatórios." });
@@ -44,6 +44,9 @@ export default async function handler(req, res) {
       telefone,
       direcao: "enviada",
       mensagem,
+      enviado_por: enviado_por || "Sistema",
+      role: role || "",
+      criado_em: new Date().toISOString(),
     });
 
     return res.status(200).json({ ok: true });

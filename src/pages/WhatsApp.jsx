@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import "./WhatsApp.css";
 
-export default function WhatsApp() {
+export default function WhatsApp({ user }) {
   const [mensagens, setMensagens] = useState([]);
   const [telefoneSelecionado, setTelefoneSelecionado] = useState(null);
   const [texto, setTexto] = useState("");
@@ -66,9 +66,10 @@ export default function WhatsApp() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          telefone: telefoneSelecionado,
-          mensagem: texto.trim(),
-        }),
+  telefone: telefoneSelecionado,
+  mensagem: texto.trim(),
+  enviado_por: user?.nome || "Sistema",
+}),
       });
 
       if (!resposta.ok) {
@@ -138,7 +139,14 @@ export default function WhatsApp() {
                   >
                     <p>{msg.mensagem}</p>
                     <small>
-                      {new Date(msg.criado_em).toLocaleString("pt-BR")}
+{new Date(msg.criado_em).toLocaleString("pt-BR", {
+  timeZone: "America/Sao_Paulo",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+})}
                     </small>
                   </div>
                 ))}

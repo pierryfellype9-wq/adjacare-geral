@@ -394,11 +394,6 @@ const [confirmarSenha, setConfirmarSenha] = useState("")
               </div>
 
               <div className="ajuda-card">
-                <strong>Exemplo</strong>
-                <p>01/01/2000 → 01012000</p>
-              </div>
-
-              <div className="ajuda-card">
                 <strong>Suporte</strong>
                 <p>Em caso de erro, contate o suporte através do e-mail: ti@adjacare.org ou suporte@adjacare.org</p>
               </div>

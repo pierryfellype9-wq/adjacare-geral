@@ -19,9 +19,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const mensagemCompleta = `*${enviado_por || "Sistema"}${
-      role ? ` • ${role}` : ""
-    }*
+    const mensagemCompleta = `*${enviado_por || "Sistema"}*
 
 ${mensagem}`;
 

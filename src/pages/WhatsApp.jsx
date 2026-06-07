@@ -8,6 +8,17 @@ export default function WhatsApp({ user }) {
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
 
+  function formatarData(data) {
+    return new Date(data).toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
   async function carregarMensagens() {
     const { data, error } = await supabase
       .from("whatsapp_mensagens")
@@ -66,11 +77,11 @@ export default function WhatsApp({ user }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-  telefone: telefoneSelecionado,
-  mensagem: texto.trim(),
-  enviado_por: user?.nome || "Sistema",
-  role: user?.role || "",
-}),
+          telefone: telefoneSelecionado,
+          mensagem: texto.trim(),
+          enviado_por: user?.nome || "Sistema",
+          role: user?.role || "",
+        }),
       });
 
       if (!resposta.ok) {
@@ -138,25 +149,16 @@ export default function WhatsApp({ user }) {
                         : "whatsapp-balao recebida"
                     }
                   >
-                    
                     {msg.direcao === "enviada" && msg.enviado_por && (
-  <strong className="whatsapp-enviado-por">
-    {msg.enviado_por} {msg.role ? `• ${msg.role}` : ""}
-  </strong>
-)}
+                      <strong className="whatsapp-enviado-por">
+                        {msg.enviado_por}
+                        {msg.role ? ` • ${msg.role}` : ""}
+                      </strong>
+                    )}
 
-<p>{msg.mensagem}
                     <p>{msg.mensagem}</p>
-                    <small>
-{new Date(msg.criado_em).toLocaleString("pt-BR", {
-  timeZone: "America/Sao_Paulo",
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-})}
-                    </small>
+
+                    <small>{formatarData(msg.criado_em)}</small>
                   </div>
                 ))}
               </div>

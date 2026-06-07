@@ -18,11 +18,13 @@ export default async function handler(req, res) {
     });
   }
 
-  try {
-    const mensagemCompleta = `👤*${enviado_por || "Sistema"}*
+  const nomeAtendente = enviado_por || "Atendente";
+
+  const mensagemCompleta = `${nomeAtendente}:
 
 ${mensagem}`;
 
+  try {
     const response = await fetch(
       `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
       {
@@ -37,6 +39,7 @@ ${mensagem}`;
           type: "text",
           text: {
             body: mensagemCompleta,
+            preview_url: false,
           },
         }),
       }
@@ -45,7 +48,7 @@ ${mensagem}`;
     const data = await response.json();
 
     if (!response.ok) {
-      console.error(data);
+      console.error("Erro Meta:", data);
       return res.status(400).json(data);
     }
 
@@ -53,17 +56,14 @@ ${mensagem}`;
       telefone,
       direcao: "enviada",
       mensagem,
-      enviado_por: enviado_por || "Sistema",
+      enviado_por: nomeAtendente,
       role: role || "",
       criado_em: new Date().toISOString(),
     });
 
-    return res.status(200).json({
-      ok: true,
-    });
+    return res.status(200).json({ ok: true });
   } catch (error) {
-    console.error(error);
-
+    console.error("Erro interno:", error);
     return res.status(500).json({
       error: "Erro interno ao enviar mensagem.",
     });

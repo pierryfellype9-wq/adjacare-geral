@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const mensagemCompleta = `*${enviado_por || "Sistema"}*
+    const mensagemCompleta = `👤*${enviado_por || "Sistema"}*
 
 ${mensagem}`;
 

@@ -13,10 +13,18 @@ export default async function handler(req, res) {
   const { telefone, mensagem, enviado_por, role } = req.body;
 
   if (!telefone || !mensagem) {
-    return res.status(400).json({ error: "Telefone e mensagem são obrigatórios." });
+    return res.status(400).json({
+      error: "Telefone e mensagem são obrigatórios.",
+    });
   }
 
   try {
+    const mensagemCompleta = `*${enviado_por || "Sistema"}${
+      role ? ` • ${role}` : ""
+    }*
+
+${mensagem}`;
+
     const response = await fetch(
       `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
       {
@@ -29,7 +37,9 @@ export default async function handler(req, res) {
           messaging_product: "whatsapp",
           to: telefone,
           type: "text",
-          text: { body: mensagem },
+          text: {
+            body: mensagemCompleta,
+          },
         }),
       }
     );
@@ -37,6 +47,7 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
+      console.error(data);
       return res.status(400).json(data);
     }
 
@@ -49,8 +60,14 @@ export default async function handler(req, res) {
       criado_em: new Date().toISOString(),
     });
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({
+      ok: true,
+    });
   } catch (error) {
-    return res.status(500).json({ error: "Erro interno ao enviar mensagem." });
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Erro interno ao enviar mensagem.",
+    });
   }
 }

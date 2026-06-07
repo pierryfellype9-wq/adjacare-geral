@@ -93,7 +93,7 @@ export default function WhatsApp({ user }) {
   async function iniciarConversa() {
     if (!telefoneSelecionado) return;
 
-    await fetch("/api/whatsapp-atendimento", {
+    const resposta = await fetch("/api/whatsapp-atendimento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -103,20 +103,31 @@ export default function WhatsApp({ user }) {
       }),
     });
 
+    if (!resposta.ok) {
+      alert("Erro ao iniciar atendimento.");
+      return;
+    }
+
     carregarTudo();
   }
 
   async function finalizarConversa() {
     if (!telefoneSelecionado) return;
 
-    await fetch("/api/whatsapp-atendimento", {
+    const resposta = await fetch("/api/whatsapp-atendimento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         telefone: telefoneSelecionado,
         acao: "finalizar",
+        atendente_nome: user?.nome || "Atendente",
       }),
     });
+
+    if (!resposta.ok) {
+      alert("Erro ao finalizar atendimento.");
+      return;
+    }
 
     carregarTudo();
   }
@@ -133,14 +144,17 @@ export default function WhatsApp({ user }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-  telefone: telefoneSelecionado,
-  acao: "finalizar",
-  atendente_nome: user?.nome || "Atendente",
-}),
+          telefone: telefoneSelecionado,
+          mensagem: texto.trim(),
+          enviado_por: user?.nome || "Sistema",
+          role: user?.role || "",
+        }),
       });
 
       if (!resposta.ok) {
         alert("Erro ao enviar mensagem.");
+        setEnviando(false);
+        return;
       }
 
       setTexto("");

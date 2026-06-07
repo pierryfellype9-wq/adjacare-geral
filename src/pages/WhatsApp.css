@@ -1,0 +1,153 @@
+.whatsapp-page {
+  padding: 24px;
+}
+
+.whatsapp-header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.whatsapp-header p {
+  margin-top: 6px;
+  color: #666;
+}
+
+.whatsapp-container {
+  margin-top: 24px;
+  height: calc(100vh - 180px);
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.whatsapp-sidebar {
+  border-right: 1px solid #e5e5e5;
+  background: #f8f9fa;
+  overflow-y: auto;
+}
+
+.whatsapp-sidebar-title {
+  padding: 18px;
+  font-weight: 700;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.whatsapp-conversa {
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.whatsapp-conversa:hover,
+.whatsapp-conversa.ativa {
+  background: #e9f7ef;
+}
+
+.whatsapp-conversa strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.whatsapp-conversa span {
+  display: block;
+  color: #666;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.whatsapp-chat {
+  display: flex;
+  flex-direction: column;
+  background: #efeae2;
+}
+
+.whatsapp-chat-topo {
+  padding: 18px;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+}
+
+.whatsapp-mensagens {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.whatsapp-balao {
+  max-width: 70%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+}
+
+.whatsapp-balao p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.whatsapp-balao small {
+  display: block;
+  margin-top: 6px;
+  color: #777;
+  font-size: 11px;
+}
+
+.whatsapp-balao.recebida {
+  background: #fff;
+  margin-right: auto;
+}
+
+.whatsapp-balao.enviada {
+  background: #d9fdd3;
+  margin-left: auto;
+}
+
+.whatsapp-form {
+  display: flex;
+  gap: 10px;
+  padding: 14px;
+  background: #fff;
+  border-top: 1px solid #ddd;
+}
+
+.whatsapp-form textarea {
+  flex: 1;
+  min-height: 46px;
+  max-height: 100px;
+  resize: none;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+}
+
+.whatsapp-form button {
+  padding: 0 22px;
+  border: none;
+  border-radius: 12px;
+  background: #128c7e;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.whatsapp-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.whatsapp-placeholder,
+.whatsapp-empty {
+  padding: 24px;
+  color: #777;
+}

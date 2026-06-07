@@ -66,8 +66,8 @@ export default async function handler(req, res) {
   }
 
   const mensagemSistema = iniciar
-    ? `👋 ${nome} iniciou seu atendimento. Pode enviar sua mensagem por aqui.`
-    : `✅ ${nome} encerrou o atendimento. Se precisar de ajuda novamente, envie "menu".`;
+    ? `👋 *${nome}* iniciou seu atendimento. Pode enviar sua mensagem por aqui.`
+    : `✅ *${nome}* encerrou o atendimento. Se precisar de ajuda novamente, envie "menu".`;
 
   try {
     const { error } = await supabase

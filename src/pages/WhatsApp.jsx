@@ -69,6 +69,7 @@ export default function WhatsApp({ user }) {
   telefone: telefoneSelecionado,
   mensagem: texto.trim(),
   enviado_por: user?.nome || "Sistema",
+  role: user?.role || "",
 }),
       });
 

@@ -4,6 +4,7 @@ import "./WhatsApp.css";
 
 export default function WhatsApp({ user }) {
   const [mensagens, setMensagens] = useState([]);
+  const [sessoes, setSessoes] = useState([]);
   const [telefoneSelecionado, setTelefoneSelecionado] = useState(null);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -19,29 +20,45 @@ export default function WhatsApp({ user }) {
     });
   }
 
-  async function carregarMensagens() {
-    const { data, error } = await supabase
+  async function carregarTudo() {
+    const { data: msgs, error: erroMsgs } = await supabase
       .from("whatsapp_mensagens")
       .select("*")
       .order("criado_em", { ascending: true });
 
-    if (!error) setMensagens(data || []);
+    if (!erroMsgs) setMensagens(msgs || []);
+
+    const { data: sessoesData, error: erroSessoes } = await supabase
+      .from("whatsapp_sessoes")
+      .select("*");
+
+    if (!erroSessoes) setSessoes(sessoesData || []);
   }
 
   useEffect(() => {
-    carregarMensagens();
+    carregarTudo();
 
-    const canal = supabase
+    const canalMensagens = supabase
       .channel("whatsapp_mensagens_realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "whatsapp_mensagens" },
-        () => carregarMensagens()
+        () => carregarTudo()
+      )
+      .subscribe();
+
+    const canalSessoes = supabase
+      .channel("whatsapp_sessoes_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "whatsapp_sessoes" },
+        () => carregarTudo()
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(canal);
+      supabase.removeChannel(canalMensagens);
+      supabase.removeChannel(canalSessoes);
     };
   }, []);
 
@@ -49,21 +66,60 @@ export default function WhatsApp({ user }) {
     const mapa = {};
 
     mensagens.forEach((msg) => {
+      const sessao = sessoes.find((s) => s.telefone === msg.telefone);
+
       mapa[msg.telefone] = {
         telefone: msg.telefone,
         ultimaMensagem: msg.mensagem,
         ultimaData: msg.criado_em,
+        atendimento_humano: sessao?.atendimento_humano || false,
+        atendente_nome: sessao?.atendente_nome || "",
       };
     });
 
     return Object.values(mapa).sort(
       (a, b) => new Date(b.ultimaData) - new Date(a.ultimaData)
     );
-  }, [mensagens]);
+  }, [mensagens, sessoes]);
+
+  const conversaSelecionada = conversas.find(
+    (c) => c.telefone === telefoneSelecionado
+  );
 
   const mensagensDaConversa = mensagens.filter(
     (msg) => msg.telefone === telefoneSelecionado
   );
+
+  async function iniciarConversa() {
+    if (!telefoneSelecionado) return;
+
+    await fetch("/api/whatsapp-atendimento", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        telefone: telefoneSelecionado,
+        acao: "iniciar",
+        atendente_nome: user?.nome || "Atendente",
+      }),
+    });
+
+    carregarTudo();
+  }
+
+  async function finalizarConversa() {
+    if (!telefoneSelecionado) return;
+
+    await fetch("/api/whatsapp-atendimento", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        telefone: telefoneSelecionado,
+        acao: "finalizar",
+      }),
+    });
+
+    carregarTudo();
+  }
 
   async function enviarResposta() {
     if (!telefoneSelecionado || !texto.trim()) return;
@@ -89,7 +145,7 @@ export default function WhatsApp({ user }) {
       }
 
       setTexto("");
-      carregarMensagens();
+      carregarTudo();
     } catch (error) {
       alert("Erro ao enviar mensagem.");
     }
@@ -123,6 +179,11 @@ export default function WhatsApp({ user }) {
               onClick={() => setTelefoneSelecionado(conversa.telefone)}
             >
               <strong>{conversa.telefone}</strong>
+
+              {conversa.atendimento_humano && (
+                <em>Atendimento com {conversa.atendente_nome}</em>
+              )}
+
               <span>{conversa.ultimaMensagem}</span>
             </button>
           ))}
@@ -136,7 +197,21 @@ export default function WhatsApp({ user }) {
           ) : (
             <>
               <div className="whatsapp-chat-topo">
-                <strong>{telefoneSelecionado}</strong>
+                <div>
+                  <strong>{telefoneSelecionado}</strong>
+                  {conversaSelecionada?.atendimento_humano ? (
+                    <p>Atendimento humano ativo</p>
+                  ) : (
+                    <p>Bot ativo</p>
+                  )}
+                </div>
+
+                <div className="whatsapp-acoes">
+                  <button onClick={iniciarConversa}>Iniciar conversa</button>
+                  <button onClick={finalizarConversa} className="finalizar">
+                    Finalizar conversa
+                  </button>
+                </div>
               </div>
 
               <div className="whatsapp-mensagens">
@@ -152,7 +227,6 @@ export default function WhatsApp({ user }) {
                     {msg.direcao === "enviada" && msg.enviado_por && (
                       <strong className="whatsapp-enviado-por">
                         {msg.enviado_por}
-                        {msg.role ? ` • ${msg.role}` : ""}
                       </strong>
                     )}
 

@@ -400,7 +400,7 @@ const [confirmarSenha, setConfirmarSenha] = useState("")
 
               <div className="ajuda-card">
                 <strong>Suporte</strong>
-                <p>Em caso de erro, procure a equipe responsável pelo sistema.</p>
+                <p>Em caso de erro, contate o suporte através do e-mail: ti@adjacare.org ou suporte@adjacare.org</p>
               </div>
             </div>
           </div>

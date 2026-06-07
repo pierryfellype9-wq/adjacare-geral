@@ -96,6 +96,7 @@ export default async function handler(req, res) {
           telefone,
           etapa: "menu",
           autenticado: false,
+          atendimento_humano: false,
           dados: {},
         })
         .select()
@@ -109,6 +110,11 @@ export default async function handler(req, res) {
       sessao = novaSessao;
       await enviarMensagem(telefone, menuPrincipal());
       return res.status(200).send("ok");
+    }
+
+    // 🔴 SE O ATENDIMENTO HUMANO ESTIVER ATIVO, O BOT NÃO RESPONDE
+    if (sessao.atendimento_humano === true) {
+      return res.status(200).send("Atendimento humano ativo");
     }
 
     if (texto.toLowerCase() === "menu") {

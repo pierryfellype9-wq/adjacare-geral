@@ -133,11 +133,10 @@ export default function WhatsApp({ user }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          telefone: telefoneSelecionado,
-          mensagem: texto.trim(),
-          enviado_por: user?.nome || "Sistema",
-          role: user?.role || "",
-        }),
+  telefone: telefoneSelecionado,
+  acao: "finalizar",
+  atendente_nome: user?.nome || "Atendente",
+}),
       });
 
       if (!resposta.ok) {

@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
   const nomeAtendente = enviado_por || "Atendente";
 
-  const mensagemCompleta = `${nomeAtendente}:
+  const mensagemCompleta = `👤 *${nomeAtendente}*
 
 ${mensagem}`;
 

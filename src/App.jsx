@@ -203,8 +203,7 @@ export default function App() {
                 <Route path="/avisos" element={<Avisos />} />
                 <Route path="/usuarios" element={<Usuarios user={user} />} />
                 <Route path="/ebd/financeiro" element={<EBDFinanceiro user={user} />} />
-                <Route path="/whatsapp" element={<WhatsApp />} />
-          
+                <Route path="/whatsapp" element={<WhatsApp user={user} />} />          
                 <Route
   path="/trocar-senha"
   element={<TrocarSenha user={user} setUser={setUser} />}

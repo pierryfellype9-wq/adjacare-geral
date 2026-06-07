@@ -1,5 +1,7 @@
 .whatsapp-page {
   padding: 24px;
+  height: calc(100vh - 70px);
+  overflow: hidden;
 }
 
 .whatsapp-header h1 {
@@ -14,7 +16,7 @@
 
 .whatsapp-container {
   margin-top: 24px;
-  height: calc(100vh - 180px);
+  height: calc(100vh - 220px);
   display: grid;
   grid-template-columns: 320px 1fr;
   background: #fff;
@@ -27,6 +29,7 @@
   border-right: 1px solid #e5e5e5;
   background: #f8f9fa;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .whatsapp-sidebar-title {
@@ -67,6 +70,7 @@
 .whatsapp-chat {
   display: flex;
   flex-direction: column;
+  min-height: 0;
   background: #efeae2;
 }
 
@@ -74,10 +78,12 @@
   padding: 18px;
   background: #fff;
   border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
 }
 
 .whatsapp-mensagens {
   flex: 1;
+  min-height: 0;
   padding: 20px;
   overflow-y: auto;
 }
@@ -87,7 +93,7 @@
   padding: 10px 12px;
   margin-bottom: 12px;
   border-radius: 12px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
 }
 
 .whatsapp-balao p {
@@ -118,6 +124,7 @@
   padding: 14px;
   background: #fff;
   border-top: 1px solid #ddd;
+  flex-shrink: 0;
 }
 
 .whatsapp-form textarea {
@@ -150,4 +157,26 @@
 .whatsapp-empty {
   padding: 24px;
   color: #777;
+}
+
+@media (max-width: 768px) {
+  .whatsapp-page {
+    padding: 16px;
+    height: calc(100vh - 70px);
+  }
+
+  .whatsapp-container {
+    height: calc(100vh - 210px);
+    grid-template-columns: 1fr;
+  }
+
+  .whatsapp-sidebar {
+    max-height: 180px;
+    border-right: none;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .whatsapp-balao {
+    max-width: 90%;
+  }
 }

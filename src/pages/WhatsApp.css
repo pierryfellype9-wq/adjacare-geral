@@ -180,3 +180,10 @@
     max-width: 90%;
   }
 }
+
+.whatsapp-enviado-por {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: #075e54;
+}

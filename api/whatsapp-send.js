@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Método não permitido" });
   }
 
-  const { telefone, mensagem, enviado_por, role } = req.body;
+  const { telefone, mensagem, enviado_por, role } = req.body || {};
 
   if (!telefone || !mensagem) {
     return res.status(400).json({

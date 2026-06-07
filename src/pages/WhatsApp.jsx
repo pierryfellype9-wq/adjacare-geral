@@ -138,6 +138,14 @@ export default function WhatsApp({ user }) {
                         : "whatsapp-balao recebida"
                     }
                   >
+                    
+                    {msg.direcao === "enviada" && msg.enviado_por && (
+  <strong className="whatsapp-enviado-por">
+    {msg.enviado_por} {msg.role ? `• ${msg.role}` : ""}
+  </strong>
+)}
+
+<p>{msg.mensagem}
                     <p>{msg.mensagem}</p>
                     <small>
 {new Date(msg.criado_em).toLocaleString("pt-BR", {

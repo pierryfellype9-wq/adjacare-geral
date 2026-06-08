@@ -290,76 +290,76 @@ Informe seu nome para começarmos:`
     }
 
     if (sessao.etapa === "aguardando_nome_ebd") {
-      const nomeBusca = texto.trim();
+  const nomeBusca = texto.trim();
 
-      const { data: alunos, error } = await supabase
-        .from("ebd_alunos")
-        .select("*")
-        .ilike("nome", `%${nomeBusca}%`)
-        .limit(5);
+  const { data: alunos, error } = await supabase
+    .from("ebd_alunos")
+    .select("*")
+    .ilike("nome", `%${nomeBusca}%`)
+    .limit(5);
 
-      if (error) {
-        await enviarMensagem(
-          telefone,
-          `Erro ao consultar aluno da EBD.
+  if (error) {
+    await enviarMensagem(
+      telefone,
+      `Erro ao consultar aluno da EBD.
 
 Detalhe: ${error.message}`
-        );
-        return res.status(200).send("ok");
-      }
+    );
+    return res.status(200).send("ok");
+  }
 
-      if (!alunos || alunos.length === 0) {
-        await enviarMensagem(
-          telefone,
-          `Não encontrei nenhum aluno com esse nome.
+  if (!alunos || alunos.length === 0) {
+    await enviarMensagem(
+      telefone,
+      `Não encontrei nenhum aluno com esse nome.
 
 Confira se digitou corretamente ou envie "menu" para voltar.`
-        );
-        return res.status(200).send("ok");
-      }
+    );
+    return res.status(200).send("ok");
+  }
 
-      if (alunos.length > 1) {
-        const lista = alunos
-          .map((aluno, index) => `${index + 1}. ${aluno.nome}`)
-          .join("\n");
+  if (alunos.length > 1) {
+    const lista = alunos
+      .map((aluno, index) => `${index + 1}. ${aluno.nome}`)
+      .join("\n");
 
-        await supabase
-          .from("whatsapp_sessoes")
-          .update({
-            etapa: "selecionando_aluno_ebd",
-            dados: { alunos },
-          })
-          .eq("telefone", telefone);
+    await supabase
+      .from("whatsapp_sessoes")
+      .update({
+        etapa: "selecionando_aluno_ebd",
+        dados: { alunos },
+      })
+      .eq("telefone", telefone);
 
-        await enviarMensagem(
-          telefone,
-          `Encontrei mais de um aluno:
+    await enviarMensagem(
+      telefone,
+      `Encontrei mais de um aluno:
 
 ${lista}
 
 Digite o número correspondente:`
-        );
+    );
 
-        return res.status(200).send("ok");
-      }
+    return res.status(200).send("ok");
+  }
 
-     const login = aluno.email_portal || "Login não cadastrado";
+  const aluno = alunos[0];
 
-const senha = aluno.senha_portal || "Senha não cadastrada";
+  const login = aluno.email_portal || "Login não cadastrado";
+  const senha = aluno.senha_portal || "Senha não cadastrada";
+  const situacao = aluno.ativo ? "🟢 Ativo" : "🔴 Inativo";
 
-const situacao = aluno.ativo ? "🟢 Ativo" : "🔴 Inativo";
+  await supabase
+    .from("whatsapp_sessoes")
+    .update({
+      etapa: "portal_aluno_opcoes",
+      dados: {},
+    })
+    .eq("telefone", telefone);
 
-      await supabase
-        .from("whatsapp_sessoes")
-        .update({
-          etapa: "menu",
-          dados: {},
-        })
-        .eq("telefone", telefone);
-
-     await enviarMensagem(
-  telefone,
-  `🎓 Dados do Portal do Aluno
+  await enviarMensagem(
+    telefone,
+    `🎓 Dados do Portal do Aluno
 
 👤 Aluno: ${aluno.nome}
 
@@ -376,59 +376,89 @@ Digite:
 
 1️⃣ Falar com um atendente
 2️⃣ Voltar ao menu`
-);
+  );
 
-      return res.status(200).send("ok");
-    }
+  return res.status(200).send("ok");
+}
 
     if (sessao.etapa === "selecionando_aluno_ebd") {
-      const indice = Number(texto) - 1;
-      const alunos = sessao.dados?.alunos || [];
-      const aluno = alunos[indice];
+  const indice = Number(texto) - 1;
+  const alunos = sessao.dados?.alunos || [];
+  const aluno = alunos[indice];
 
-      if (!aluno) {
-        await enviarMensagem(telefone, "Opção inválida. Digite o número do aluno.");
-        return res.status(200).send("ok");
-      }
+  if (!aluno) {
+    await enviarMensagem(telefone, "Opção inválida. Digite o número do aluno.");
+    return res.status(200).send("ok");
+  }
 
-      const login =
-        aluno.login ||
-        aluno.usuario ||
-        aluno.email ||
-        aluno.portal_login ||
-        aluno.nome;
+  const login = aluno.email_portal || "Login não cadastrado";
+  const senha = aluno.senha_portal || "Senha não cadastrada";
+  const situacao = aluno.ativo ? "🟢 Ativo" : "🔴 Inativo";
 
-      const senha =
-        aluno.senha ||
-        aluno.senha_portal ||
-        aluno.password ||
-        aluno.codigo_acesso ||
-        "Senha não cadastrada";
+  await supabase
+    .from("whatsapp_sessoes")
+    .update({
+      etapa: "portal_aluno_opcoes",
+      dados: {},
+    })
+    .eq("telefone", telefone);
 
-      await supabase
-        .from("whatsapp_sessoes")
-        .update({
-          etapa: "menu",
-          dados: {},
-        })
-        .eq("telefone", telefone);
+  await enviarMensagem(
+    telefone,
+    `🎓 Dados do Portal do Aluno
 
-      await enviarMensagem(
-        telefone,
-        `🔐 Dados do Portal do Aluno
+👤 Aluno: ${aluno.nome}
 
-Aluno: ${aluno.nome}
-Login: ${login}
-Senha: ${senha}
+📧 Login: ${login}
 
-Acesse:
+🔑 Senha: ${senha}
+
+📌 Situação: ${situacao}
+
+🌐 Acesso:
 https://sistema.adjacare.org/portal-aluno
 
-Digite "menu" para voltar.`
-      );
+Digite:
 
-      return res.status(200).send("ok");
-    }
+1️⃣ Falar com um atendente
+2️⃣ Voltar ao menu`
+  );
+
+  return res.status(200).send("ok");
+}
+
+    if (sessao.etapa === "portal_aluno_opcoes") {
+  if (texto === "1") {
+    await ativarAtendimentoHumano(telefone, "Suporte");
+
+    return res.status(200).send("ok");
+  }
+
+  if (texto === "2") {
+    await supabase
+      .from("whatsapp_sessoes")
+      .update({
+        etapa: "menu",
+        dados: {},
+      })
+      .eq("telefone", telefone);
+
+    await enviarMensagem(telefone, menuPrincipal());
+
+    return res.status(200).send("ok");
+  }
+
+  await enviarMensagem(
+    telefone,
+    `Opção inválida.
+
+Digite:
+1️⃣ Falar com um atendente
+2️⃣ Voltar ao menu`
+  );
+
+  return res.status(200).send("ok");
+}
 
     if (sessao.etapa === "aguardando_nome_som_projecao") {
       await supabase

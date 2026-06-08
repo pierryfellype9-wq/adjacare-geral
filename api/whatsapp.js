@@ -26,7 +26,10 @@ async function enviarMensagem(telefone, texto) {
         messaging_product: "whatsapp",
         to: telefone,
         type: "text",
-        text: { body: texto },
+        text: {
+          body: texto,
+          preview_url: false,
+        },
       }),
     }
   );
@@ -36,15 +39,47 @@ async function enviarMensagem(telefone, texto) {
 
 function menuPrincipal() {
   return `Olá! 👋
-Você está no sistema da AD Jacaré.
+Você está no atendimento da AD Jacaré.
 
 Digite uma opção:
 
-1️⃣ Fazer pedido para a Mídia (Login necessário)
-2️⃣ Consultar status do pedido (Login necessário)
-3️⃣ Consultar agenda da igreja
-4️⃣ Suporte do Portal do Aluno
-5️⃣ Suporte para Líderes e Professores (Login necessário)`;
+1️⃣ Fazer pedido
+2️⃣ Consultar senha da EBD
+3️⃣ Falar com um atendente
+4️⃣ Enviar hino, áudio ou vídeo para Som/Projeção
+5️⃣ Outras opções`;
+}
+
+function menuOutrasOpcoes() {
+  return `Outras opções:
+
+1️⃣ Falar com a Mídia
+2️⃣ Falar com a Secretaria
+3️⃣ Falar com o Suporte
+4️⃣ Voltar ao menu principal`;
+}
+
+async function ativarAtendimentoHumano(telefone, destino = "Atendimento") {
+  await supabase
+    .from("whatsapp_sessoes")
+    .update({
+      etapa: "atendimento_humano",
+      atendimento_humano: true,
+      atendente_nome: null,
+      autenticado: false,
+      usuario_id: null,
+      usuario_nome: null,
+      usuario_email: null,
+      dados: { destino },
+    })
+    .eq("telefone", telefone);
+
+  await enviarMensagem(
+    telefone,
+    `👋 Sua conversa foi encaminhada para *${destino}*.
+
+Aguarde um momento. Um atendente irá responder por aqui.`
+  );
 }
 
 export default async function handler(req, res) {
@@ -74,11 +109,6 @@ export default async function handler(req, res) {
 
     if (texto) {
       await salvarMensagem(telefone, "recebida", texto);
-    }
-
-    if (!texto) {
-      await enviarMensagem(telefone, "Envie uma mensagem em texto.");
-      return res.status(200).send("ok");
     }
 
     const { data: sessoes } = await supabase
@@ -112,9 +142,18 @@ export default async function handler(req, res) {
       return res.status(200).send("ok");
     }
 
-    // 🔴 SE O ATENDIMENTO HUMANO ESTIVER ATIVO, O BOT NÃO RESPONDE
     if (sessao.atendimento_humano === true) {
       return res.status(200).send("Atendimento humano ativo");
+    }
+
+    if (!texto) {
+      await enviarMensagem(
+        telefone,
+        `Recebi seu arquivo/mídia. ✅
+
+Para enviar hino, áudio ou vídeo para Som/Projeção, digite *4* no menu principal.`
+      );
+      return res.status(200).send("ok");
     }
 
     if (texto.toLowerCase() === "menu") {
@@ -126,6 +165,7 @@ export default async function handler(req, res) {
           usuario_id: null,
           usuario_nome: null,
           usuario_email: null,
+          atendimento_humano: false,
           dados: {},
         })
         .eq("telefone", telefone);
@@ -160,45 +200,42 @@ export default async function handler(req, res) {
         await supabase
           .from("whatsapp_sessoes")
           .update({
-            etapa: "aguardando_email_status",
-            autenticado: false,
-            usuario_id: null,
-            usuario_nome: null,
-            usuario_email: null,
+            etapa: "aguardando_nome_ebd",
             dados: {},
           })
           .eq("telefone", telefone);
 
         await enviarMensagem(
           telefone,
-          "Para consultar seus pedidos, informe seu e-mail cadastrado:"
+          `🔐 Consulta de senha da EBD
+
+Informe o nome completo do aluno:`
         );
 
         return res.status(200).send("ok");
       }
 
       if (texto === "3") {
-        await enviarMensagem(
-          telefone,
-          `📅 Agenda da igreja:
-
-Acesse:
-https://sistema.adjacare.org/agenda
-
-Digite "menu" para voltar.`
-        );
+        await ativarAtendimentoHumano(telefone, "Atendimento");
         return res.status(200).send("ok");
       }
 
       if (texto === "4") {
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "aguardando_nome_som_projecao",
+            dados: { destino: "Som/Projeção" },
+          })
+          .eq("telefone", telefone);
+
         await enviarMensagem(
           telefone,
-          `🎓 Suporte do Portal do Aluno
+          `🎵 Som/Projeção
 
-Explique sua dúvida em uma mensagem.
-
-Digite "menu" para voltar.`
+Informe seu nome para começarmos:`
         );
+
         return res.status(200).send("ok");
       }
 
@@ -206,24 +243,312 @@ Digite "menu" para voltar.`
         await supabase
           .from("whatsapp_sessoes")
           .update({
-            etapa: "aguardando_email_suporte_lider",
-            autenticado: false,
-            usuario_id: null,
-            usuario_nome: null,
-            usuario_email: null,
+            etapa: "menu_outras_opcoes",
+            dados: {},
+          })
+          .eq("telefone", telefone);
+
+        await enviarMensagem(telefone, menuOutrasOpcoes());
+        return res.status(200).send("ok");
+      }
+
+      await enviarMensagem(telefone, "Opção inválida.\n\n" + menuPrincipal());
+      return res.status(200).send("ok");
+    }
+
+    if (sessao.etapa === "menu_outras_opcoes") {
+      if (texto === "1") {
+        await ativarAtendimentoHumano(telefone, "Mídia");
+        return res.status(200).send("ok");
+      }
+
+      if (texto === "2") {
+        await ativarAtendimentoHumano(telefone, "Secretaria");
+        return res.status(200).send("ok");
+      }
+
+      if (texto === "3") {
+        await ativarAtendimentoHumano(telefone, "Suporte");
+        return res.status(200).send("ok");
+      }
+
+      if (texto === "4") {
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "menu",
+            dados: {},
+          })
+          .eq("telefone", telefone);
+
+        await enviarMensagem(telefone, menuPrincipal());
+        return res.status(200).send("ok");
+      }
+
+      await enviarMensagem(telefone, "Opção inválida.\n\n" + menuOutrasOpcoes());
+      return res.status(200).send("ok");
+    }
+
+    if (sessao.etapa === "aguardando_nome_ebd") {
+      const nomeBusca = texto.trim();
+
+      const { data: alunos, error } = await supabase
+        .from("ebd_alunos")
+        .select("*")
+        .ilike("nome", `%${nomeBusca}%`)
+        .limit(5);
+
+      if (error) {
+        await enviarMensagem(
+          telefone,
+          `Erro ao consultar aluno da EBD.
+
+Detalhe: ${error.message}`
+        );
+        return res.status(200).send("ok");
+      }
+
+      if (!alunos || alunos.length === 0) {
+        await enviarMensagem(
+          telefone,
+          `Não encontrei nenhum aluno com esse nome.
+
+Confira se digitou corretamente ou envie "menu" para voltar.`
+        );
+        return res.status(200).send("ok");
+      }
+
+      if (alunos.length > 1) {
+        const lista = alunos
+          .map((aluno, index) => `${index + 1}. ${aluno.nome}`)
+          .join("\n");
+
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "selecionando_aluno_ebd",
+            dados: { alunos },
+          })
+          .eq("telefone", telefone);
+
+        await enviarMensagem(
+          telefone,
+          `Encontrei mais de um aluno:
+
+${lista}
+
+Digite o número correspondente:`
+        );
+
+        return res.status(200).send("ok");
+      }
+
+      const aluno = alunos[0];
+
+      const login =
+        aluno.login ||
+        aluno.usuario ||
+        aluno.email ||
+        aluno.portal_login ||
+        aluno.nome;
+
+      const senha =
+        aluno.senha ||
+        aluno.senha_portal ||
+        aluno.password ||
+        aluno.codigo_acesso ||
+        "Senha não cadastrada";
+
+      await supabase
+        .from("whatsapp_sessoes")
+        .update({
+          etapa: "menu",
+          dados: {},
+        })
+        .eq("telefone", telefone);
+
+      await enviarMensagem(
+        telefone,
+        `🔐 Dados do Portal do Aluno
+
+Aluno: ${aluno.nome}
+Login: ${login}
+Senha: ${senha}
+
+Acesse:
+https://sistema.adjacare.org/portal-aluno
+
+Digite "menu" para voltar.`
+      );
+
+      return res.status(200).send("ok");
+    }
+
+    if (sessao.etapa === "selecionando_aluno_ebd") {
+      const indice = Number(texto) - 1;
+      const alunos = sessao.dados?.alunos || [];
+      const aluno = alunos[indice];
+
+      if (!aluno) {
+        await enviarMensagem(telefone, "Opção inválida. Digite o número do aluno.");
+        return res.status(200).send("ok");
+      }
+
+      const login =
+        aluno.login ||
+        aluno.usuario ||
+        aluno.email ||
+        aluno.portal_login ||
+        aluno.nome;
+
+      const senha =
+        aluno.senha ||
+        aluno.senha_portal ||
+        aluno.password ||
+        aluno.codigo_acesso ||
+        "Senha não cadastrada";
+
+      await supabase
+        .from("whatsapp_sessoes")
+        .update({
+          etapa: "menu",
+          dados: {},
+        })
+        .eq("telefone", telefone);
+
+      await enviarMensagem(
+        telefone,
+        `🔐 Dados do Portal do Aluno
+
+Aluno: ${aluno.nome}
+Login: ${login}
+Senha: ${senha}
+
+Acesse:
+https://sistema.adjacare.org/portal-aluno
+
+Digite "menu" para voltar.`
+      );
+
+      return res.status(200).send("ok");
+    }
+
+    if (sessao.etapa === "aguardando_nome_som_projecao") {
+      await supabase
+        .from("whatsapp_sessoes")
+        .update({
+          etapa: "aguardando_descricao_som_projecao",
+          dados: {
+            ...sessao.dados,
+            nome: texto,
+          },
+        })
+        .eq("telefone", telefone);
+
+      await enviarMensagem(
+        telefone,
+        `Certo, ${texto}.
+
+Agora envie a letra do hino, o nome do hino, link do vídeo ou explique o que precisa para Som/Projeção:`
+      );
+
+      return res.status(200).send("ok");
+    }
+
+    if (sessao.etapa === "aguardando_descricao_som_projecao") {
+      const dados = {
+        ...sessao.dados,
+        descricao: texto,
+      };
+
+      await supabase
+        .from("whatsapp_sessoes")
+        .update({
+          etapa: "confirmando_som_projecao",
+          dados,
+        })
+        .eq("telefone", telefone);
+
+      await enviarMensagem(
+        telefone,
+        `Confira a solicitação:
+
+Nome: ${dados.nome}
+Destino: Som/Projeção
+Descrição: ${dados.descricao}
+
+Digite:
+1 - Confirmar
+2 - Cancelar`
+      );
+
+      return res.status(200).send("ok");
+    }
+
+    if (sessao.etapa === "confirmando_som_projecao") {
+      if (texto === "1") {
+        const dados = sessao.dados || {};
+
+        const { error } = await supabase.from("pedidos").insert({
+          titulo: "WhatsApp - Som/Projeção",
+          descricao: dados.descricao,
+          destino: "Som/Projeção",
+          prioridade: "Normal",
+          ministerio: "Som/Projeção",
+          criado_por: dados.nome || "WhatsApp",
+          status: "Pendente",
+        });
+
+        if (error) {
+          await enviarMensagem(
+            telefone,
+            `Erro ao salvar solicitação.
+
+Detalhe: ${error.message}`
+          );
+          return res.status(200).send("ok");
+        }
+
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "menu",
             dados: {},
           })
           .eq("telefone", telefone);
 
         await enviarMensagem(
           telefone,
-          "Para continuar, informe seu e-mail cadastrado:"
+          `✅ Solicitação enviada para Som/Projeção.
+
+A equipe irá verificar assim que possível.
+
+Digite "menu" para voltar.`
         );
 
         return res.status(200).send("ok");
       }
 
-      await enviarMensagem(telefone, "Opção inválida.\n\n" + menuPrincipal());
+      if (texto === "2") {
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "menu",
+            dados: {},
+          })
+          .eq("telefone", telefone);
+
+        await enviarMensagem(
+          telefone,
+          `Solicitação cancelada.
+
+Digite "menu" para voltar.`
+        );
+
+        return res.status(200).send("ok");
+      }
+
+      await enviarMensagem(telefone, "Digite 1 para confirmar ou 2 para cancelar.");
       return res.status(200).send("ok");
     }
 

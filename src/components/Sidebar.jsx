@@ -22,6 +22,14 @@ export default function Sidebar({ open, setOpen, user }) {
     user?.role === "Mídia" ||
     user?.role === "Dirigente"
 
+  const podeVerWhatsApp =
+    user?.role === "Administrador" ||
+    user?.role === "Mídia" ||
+    user?.role === "Secretaria" ||
+    user?.role === "Suporte" ||
+    user?.role === "TI" ||
+    user?.role === "Sonoplastia"
+
   const podeVerEBD = true
 
   return (
@@ -42,80 +50,56 @@ export default function Sidebar({ open, setOpen, user }) {
       </div>
 
       <div className="sidebar-scroll">
-        <div
-          className="menu-item"
-          onClick={() => navegar("/dashboard")}
-        >
+        <div className="menu-item" onClick={() => navegar("/dashboard")}>
           Início
         </div>
 
-        <div
-          className="menu-item"
-          onClick={() => navegar("/pedidos")}
-        >
+        <div className="menu-item" onClick={() => navegar("/pedidos")}>
           Pedidos
         </div>
 
+        {podeVerWhatsApp && (
+          <div className="menu-item" onClick={() => navegar("/whatsapp")}>
+            WhatsApp
+          </div>
+        )}
+
         {podeVerEscala && (
-          <div
-            className="menu-item"
-            onClick={() => navegar("/escala-midia")}
-          >
+          <div className="menu-item" onClick={() => navegar("/escala-midia")}>
             Escala da Mídia
           </div>
         )}
 
         {podeVerEBD && (
-          <div
-            className="menu-item"
-            onClick={() => navegar("/ebd")}
-          >
+          <div className="menu-item" onClick={() => navegar("/ebd")}>
             EBD
           </div>
         )}
 
-        <div
-          className="menu-item"
-          onClick={() => navegar("/agenda")}
-        >
+        <div className="menu-item" onClick={() => navegar("/agenda")}>
           Agenda
         </div>
 
-        <div
-          className="menu-item"
-          onClick={() => navegar("/avisos")}
-        >
+        <div className="menu-item" onClick={() => navegar("/avisos")}>
           Avisos
         </div>
 
-        <div
-          className="menu-item"
-          onClick={() => navegar("/usuarios")}
-        >
+        <div className="menu-item" onClick={() => navegar("/usuarios")}>
           Usuários
         </div>
 
-        <div
-  className="menu-item"
-  onClick={() => navegar("/trocar-senha")}
->
-  Alterar Senha
-</div>
-        
+        <div className="menu-item" onClick={() => navegar("/trocar-senha")}>
+          Alterar Senha
+        </div>
+
         {podeVerSenhas && (
-          <div
-            className="menu-item"
-            onClick={() => navegar("/senhas-aplicativos")}
-          >
+          <div className="menu-item" onClick={() => navegar("/senhas-aplicativos")}>
             Senhas de Aplicativos
           </div>
         )}
 
         {podeVerCustosFixos && (
-          <div
-            className="menu-item"
-            onClick={() => navegar("/custos-fixos")}
-          >
+          <div className="menu-item" onClick={() => navegar("/custos-fixos")}>
             Custos Fixos
           </div>
         )}

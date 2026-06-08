@@ -20,6 +20,55 @@ export default function WhatsApp({ user }) {
     });
   }
 
+  function normalizar(valor) {
+    return String(valor || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  function podeVerConversa(conversa) {
+    const role = normalizar(user?.role);
+    const destino = normalizar(conversa.destino);
+
+    if (role === "administrador") return true;
+
+    if (!destino || destino === "atendimento") {
+      return ["administrador", "midia", "secretaria", "suporte", "ti"].includes(role);
+    }
+
+    if (destino === "midia") {
+      return role === "midia";
+    }
+
+    if (destino === "secretaria") {
+      return role === "secretaria";
+    }
+
+    if (destino === "suporte") {
+      return role === "suporte" || role === "ti";
+    }
+
+    if (destino === "suporte ti") {
+      return role === "suporte" || role === "ti" || role === "midia";
+    }
+
+    if (destino === "som/projecao" || destino === "som e projecao") {
+      return role === "midia" || role === "sonoplastia" || role === "projecao";
+    }
+
+    if (destino === "ebd") {
+      return role === "ebd" || role === "superintendente";
+    }
+
+    if (destino === "financeiro") {
+      return role === "financeiro";
+    }
+
+    return false;
+  }
+
   async function carregarTudo() {
     const { data: msgs, error: erroMsgs } = await supabase
       .from("whatsapp_mensagens")
@@ -68,19 +117,25 @@ export default function WhatsApp({ user }) {
     mensagens.forEach((msg) => {
       const sessao = sessoes.find((s) => s.telefone === msg.telefone);
 
+      const destino =
+        sessao?.destino ||
+        sessao?.dados?.destino ||
+        "Atendimento";
+
       mapa[msg.telefone] = {
         telefone: msg.telefone,
         ultimaMensagem: msg.mensagem,
         ultimaData: msg.criado_em,
         atendimento_humano: sessao?.atendimento_humano || false,
         atendente_nome: sessao?.atendente_nome || "",
+        destino,
       };
     });
 
-    return Object.values(mapa).sort(
-      (a, b) => new Date(b.ultimaData) - new Date(a.ultimaData)
-    );
-  }, [mensagens, sessoes]);
+    return Object.values(mapa)
+      .filter((conversa) => podeVerConversa(conversa))
+      .sort((a, b) => new Date(b.ultimaData) - new Date(a.ultimaData));
+  }, [mensagens, sessoes, user]);
 
   const conversaSelecionada = conversas.find(
     (c) => c.telefone === telefoneSelecionado
@@ -89,6 +144,15 @@ export default function WhatsApp({ user }) {
   const mensagensDaConversa = mensagens.filter(
     (msg) => msg.telefone === telefoneSelecionado
   );
+
+  useEffect(() => {
+    if (
+      telefoneSelecionado &&
+      !conversas.some((c) => c.telefone === telefoneSelecionado)
+    ) {
+      setTelefoneSelecionado(null);
+    }
+  }, [conversas, telefoneSelecionado]);
 
   async function iniciarConversa() {
     if (!telefoneSelecionado) return;
@@ -100,6 +164,7 @@ export default function WhatsApp({ user }) {
         telefone: telefoneSelecionado,
         acao: "iniciar",
         atendente_nome: user?.nome || "Atendente",
+        destino: conversaSelecionada?.destino || "Atendimento",
       }),
     });
 
@@ -121,6 +186,7 @@ export default function WhatsApp({ user }) {
         telefone: telefoneSelecionado,
         acao: "finalizar",
         atendente_nome: user?.nome || "Atendente",
+        destino: conversaSelecionada?.destino || "Atendimento",
       }),
     });
 
@@ -170,7 +236,10 @@ export default function WhatsApp({ user }) {
     <div className="whatsapp-page">
       <div className="whatsapp-header">
         <h1>WhatsApp</h1>
-        <p>Mensagens recebidas pelo número oficial da AD Jacaré</p>
+        <p>
+          Mensagens recebidas pelo número oficial da AD Jacaré
+          {user?.role ? ` • Acesso: ${user.role}` : ""}
+        </p>
       </div>
 
       <div className="whatsapp-container">
@@ -178,7 +247,9 @@ export default function WhatsApp({ user }) {
           <div className="whatsapp-sidebar-title">Conversas</div>
 
           {conversas.length === 0 && (
-            <div className="whatsapp-empty">Nenhuma conversa encontrada.</div>
+            <div className="whatsapp-empty">
+              Nenhuma conversa disponível para sua função.
+            </div>
           )}
 
           {conversas.map((conversa) => (
@@ -192,6 +263,10 @@ export default function WhatsApp({ user }) {
               onClick={() => setTelefoneSelecionado(conversa.telefone)}
             >
               <strong>{conversa.telefone}</strong>
+
+              <small className="whatsapp-destino">
+                {conversa.destino || "Atendimento"}
+              </small>
 
               {conversa.atendimento_humano && (
                 <em>Atendimento com {conversa.atendente_nome}</em>
@@ -212,11 +287,13 @@ export default function WhatsApp({ user }) {
               <div className="whatsapp-chat-topo">
                 <div>
                   <strong>{telefoneSelecionado}</strong>
-                  {conversaSelecionada?.atendimento_humano ? (
-                    <p>Atendimento humano ativo</p>
-                  ) : (
-                    <p>Bot ativo</p>
-                  )}
+
+                  <p>
+                    {conversaSelecionada?.destino || "Atendimento"} •{" "}
+                    {conversaSelecionada?.atendimento_humano
+                      ? "Atendimento humano ativo"
+                      : "Bot ativo"}
+                  </p>
                 </div>
 
                 <div className="whatsapp-acoes">

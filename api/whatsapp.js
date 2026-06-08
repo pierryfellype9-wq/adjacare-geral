@@ -343,21 +343,11 @@ Digite o número correspondente:`
         return res.status(200).send("ok");
       }
 
-      const aluno = alunos[0];
+     const login = aluno.email_portal || "Login não cadastrado";
 
-      const login =
-        aluno.login ||
-        aluno.usuario ||
-        aluno.email ||
-        aluno.portal_login ||
-        aluno.nome;
+const senha = aluno.senha_portal || "Senha não cadastrada";
 
-      const senha =
-        aluno.senha ||
-        aluno.senha_portal ||
-        aluno.password ||
-        aluno.codigo_acesso ||
-        "Senha não cadastrada";
+const situacao = aluno.ativo ? "🟢 Ativo" : "🔴 Inativo";
 
       await supabase
         .from("whatsapp_sessoes")
@@ -367,19 +357,26 @@ Digite o número correspondente:`
         })
         .eq("telefone", telefone);
 
-      await enviarMensagem(
-        telefone,
-        `🔐 Dados do Portal do Aluno
+     await enviarMensagem(
+  telefone,
+  `🎓 Dados do Portal do Aluno
 
-Aluno: ${aluno.nome}
-Login: ${login}
-Senha: ${senha}
+👤 Aluno: ${aluno.nome}
 
-Acesse:
+📧 Login: ${login}
+
+🔑 Senha: ${senha}
+
+📌 Situação: ${situacao}
+
+🌐 Acesso:
 https://sistema.adjacare.org/portal-aluno
 
-Digite "menu" para voltar.`
-      );
+Digite:
+
+1️⃣ Falar com um atendente
+2️⃣ Voltar ao menu`
+);
 
       return res.status(200).send("ok");
     }

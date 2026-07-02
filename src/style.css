@@ -1972,4 +1972,49 @@ button:active {
     width: auto !important;
     padding: 10px 14px !important;
   }
+
+  .portal-trimestre {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(37,99,235,.25);
+}
+
+.portal-trimestre h2 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.portal-trimestre h3 {
+    margin-top: 6px;
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba(255,255,255,.85);
+}
+
+.portal-trimestre .proxima {
+    margin-top: 18px;
+    padding: 16px;
+    background: rgba(255,255,255,.15);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+}
+
+.portal-trimestre .proxima strong {
+    display: block;
+    font-size: 15px;
+    color: rgba(255,255,255,.8);
+    margin-bottom: 6px;
+}
+
+.portal-trimestre .proxima span {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+}
+
 }

@@ -6,21 +6,6 @@ export default function EBDChamada({ user }) {
   const navigate = useNavigate()
   const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")
 
-  const temAcessoEBD =
-    usuario?.turma_ebd &&
-    usuario?.turma_ebd !== "Não permitido"
-
-  const [turmas, setTurmas] = useState([])
-  const [turmaSelecionada, setTurmaSelecionada] = useState("")
-  const [alunos, setAlunos] = useState([])
-  const [presencas, setPresencas] = useState({})
-  const [observacoes, setObservacoes] = useState({})
-  const [dataChamada, setDataChamada] = useState(
-    new Date().toISOString().split("T")[0]
-  )
-  const [carregando, setCarregando] = useState(false)
-  const [chamadaExistente, setChamadaExistente] = useState(false)
-
   const podeVerTudoEBD =
     usuario?.role === "Administrador" ||
     usuario?.role === "Dirigente" ||
@@ -31,21 +16,67 @@ export default function EBDChamada({ user }) {
     usuario?.turma_ebd !== "Superintendente" &&
     usuario?.turma_ebd !== "Não permitido"
 
+  const temAcessoEBD = podeVerTudoEBD || professorEBD
   const podeEscolherTurma = podeVerTudoEBD
+
+  const [turmas, setTurmas] = useState([])
+  const [turmaSelecionada, setTurmaSelecionada] = useState("")
+  const [trimestres, setTrimestres] = useState([])
+  const [trimestreSelecionado, setTrimestreSelecionado] = useState("")
+  const [licoes, setLicoes] = useState([])
+  const [licaoSelecionada, setLicaoSelecionada] = useState("")
+
+  const [alunos, setAlunos] = useState([])
+  const [presencas, setPresencas] = useState({})
+  const [observacoes, setObservacoes] = useState({})
+  const [carregando, setCarregando] = useState(false)
+  const [chamadaExistente, setChamadaExistente] = useState(false)
 
   useEffect(() => {
     if (temAcessoEBD) carregarTurmas()
   }, [])
 
   useEffect(() => {
-    if (turmaSelecionada && temAcessoEBD) carregarAlunos()
-  }, [turmaSelecionada, dataChamada])
+    if (turmaSelecionada) {
+      carregarTrimestres()
+      setTrimestreSelecionado("")
+      setLicaoSelecionada("")
+      setLicoes([])
+      setAlunos([])
+      setPresencas({})
+      setObservacoes({})
+      setChamadaExistente(false)
+    }
+  }, [turmaSelecionada])
+
+  useEffect(() => {
+    if (trimestreSelecionado) {
+      carregarLicoes()
+      setLicaoSelecionada("")
+      setAlunos([])
+      setPresencas({})
+      setObservacoes({})
+      setChamadaExistente(false)
+    }
+  }, [trimestreSelecionado])
+
+  useEffect(() => {
+    if (turmaSelecionada && licaoSelecionada) {
+      carregarAlunosEChamada()
+    }
+  }, [turmaSelecionada, licaoSelecionada])
 
   async function carregarTurmas() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("ebd_turmas")
       .select("*")
       .order("idade_min", { ascending: true })
+
+    if (error) {
+      alert("Erro ao carregar turmas.")
+      console.log(error)
+      return
+    }
 
     setTurmas(data || [])
 
@@ -55,22 +86,66 @@ export default function EBDChamada({ user }) {
     }
   }
 
-  async function carregarAlunos() {
-    const { data: alunosData } = await supabase
+  async function carregarTrimestres() {
+    const { data, error } = await supabase
+      .from("ebd_trimestres")
+      .select("*")
+      .eq("turma_id", turmaSelecionada)
+      .order("ano", { ascending: false })
+      .order("numero", { ascending: false })
+
+    if (error) {
+      alert("Erro ao carregar trimestres.")
+      console.log(error)
+      return
+    }
+
+    setTrimestres(data || [])
+
+    const trimestreAtivo = data?.find((t) => t.status === "ativo")
+    if (trimestreAtivo) {
+      setTrimestreSelecionado(trimestreAtivo.id)
+    }
+  }
+
+  async function carregarLicoes() {
+    const { data, error } = await supabase
+      .from("ebd_aulas")
+      .select("*")
+      .eq("trimestre_id", trimestreSelecionado)
+      .order("numero_licao", { ascending: true })
+
+    if (error) {
+      alert("Erro ao carregar lições.")
+      console.log(error)
+      return
+    }
+
+    setLicoes(data || [])
+
+    const hoje = new Date().toISOString().split("T")[0]
+    const licaoHoje = data?.find((l) => l.data === hoje)
+
+    if (licaoHoje) {
+      setLicaoSelecionada(licaoHoje.id)
+    }
+  }
+
+  async function carregarAlunosEChamada() {
+    const { data: alunosData, error: erroAlunos } = await supabase
       .from("ebd_alunos")
       .select("*")
       .eq("turma_id", turmaSelecionada)
       .eq("ativo", true)
       .order("nome", { ascending: true })
 
-    setAlunos(alunosData || [])
+    if (erroAlunos) {
+      alert("Erro ao carregar alunos.")
+      console.log(erroAlunos)
+      return
+    }
 
-    const { data: aulaExistente } = await supabase
-      .from("ebd_aulas")
-      .select("*")
-      .eq("turma_id", turmaSelecionada)
-      .eq("data", dataChamada)
-      .maybeSingle()
+    setAlunos(alunosData || [])
 
     const presencasIniciais = {}
     const observacoesIniciais = {}
@@ -80,15 +155,21 @@ export default function EBDChamada({ user }) {
       observacoesIniciais[aluno.id] = ""
     })
 
-    if (aulaExistente) {
+    const { data: presencasExistentes, error: erroPresencas } = await supabase
+      .from("ebd_presencas")
+      .select("*")
+      .eq("aula_id", licaoSelecionada)
+
+    if (erroPresencas) {
+      alert("Erro ao carregar presenças.")
+      console.log(erroPresencas)
+      return
+    }
+
+    if (presencasExistentes && presencasExistentes.length > 0) {
       setChamadaExistente(true)
 
-      const { data: presencasExistentes } = await supabase
-        .from("ebd_presencas")
-        .select("*")
-        .eq("aula_id", aulaExistente.id)
-
-      presencasExistentes?.forEach((p) => {
+      presencasExistentes.forEach((p) => {
         presencasIniciais[p.aluno_id] = p.status
         observacoesIniciais[p.aluno_id] = p.observacao || ""
       })
@@ -120,6 +201,16 @@ export default function EBDChamada({ user }) {
       return
     }
 
+    if (!trimestreSelecionado) {
+      alert("Selecione um trimestre.")
+      return
+    }
+
+    if (!licaoSelecionada) {
+      alert("Selecione uma lição.")
+      return
+    }
+
     if (alunos.length === 0) {
       alert("Nenhum aluno encontrado nessa turma.")
       return
@@ -127,39 +218,8 @@ export default function EBDChamada({ user }) {
 
     setCarregando(true)
 
-    let aulaId = null
-
-    const { data: aulaExistente } = await supabase
-      .from("ebd_aulas")
-      .select("*")
-      .eq("turma_id", turmaSelecionada)
-      .eq("data", dataChamada)
-      .maybeSingle()
-
-    if (aulaExistente) {
-      aulaId = aulaExistente.id
-    } else {
-      const { data: novaAula, error: erroAula } = await supabase
-        .from("ebd_aulas")
-        .insert({
-          turma_id: turmaSelecionada,
-          data: dataChamada,
-        })
-        .select()
-        .single()
-
-      if (erroAula) {
-        console.error(erroAula)
-        alert("Erro ao criar aula.")
-        setCarregando(false)
-        return
-      }
-
-      aulaId = novaAula.id
-    }
-
     const registros = alunos.map((aluno) => ({
-      aula_id: aulaId,
+      aula_id: licaoSelecionada,
       aluno_id: aluno.id,
       status: presencas[aluno.id] || "falta",
       observacao:
@@ -178,13 +238,21 @@ export default function EBDChamada({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao salvar chamada. Verifique se o status 'atrasado' está permitido no Supabase.")
+      alert("Erro ao salvar chamada.")
       return
     }
 
     setChamadaExistente(true)
     alert("Chamada salva com sucesso!")
   }
+
+  function formatarData(data) {
+    if (!data) return ""
+    const [ano, mes, dia] = data.split("-")
+    return `${dia}/${mes}/${ano}`
+  }
+
+  const licaoAtual = licoes.find((l) => l.id === licaoSelecionada)
 
   const totalPresentes = Object.values(presencas).filter(
     (status) => status === "presente"
@@ -222,13 +290,6 @@ export default function EBDChamada({ user }) {
       <h1>Chamada da EBD</h1>
 
       <div className="form-card">
-        <label>Data da chamada</label>
-        <input
-          type="date"
-          value={dataChamada}
-          onChange={(e) => setDataChamada(e.target.value)}
-        />
-
         <label>Turma</label>
         <select
           value={turmaSelecionada}
@@ -243,11 +304,61 @@ export default function EBDChamada({ user }) {
           ))}
         </select>
 
-        {turmaSelecionada && (
+        <label>Trimestre</label>
+        <select
+          value={trimestreSelecionado}
+          onChange={(e) => setTrimestreSelecionado(e.target.value)}
+          disabled={!turmaSelecionada}
+        >
+          <option value="">Selecione</option>
+          {trimestres.map((tri) => (
+            <option key={tri.id} value={tri.id}>
+              {tri.nome} {tri.status === "ativo" ? "(Ativo)" : ""}
+            </option>
+          ))}
+        </select>
+
+        <label>Lição</label>
+        <select
+          value={licaoSelecionada}
+          onChange={(e) => setLicaoSelecionada(e.target.value)}
+          disabled={!trimestreSelecionado}
+        >
+          <option value="">Selecione</option>
+          {licoes.map((licao) => (
+            <option key={licao.id} value={licao.id}>
+              Lição {String(licao.numero_licao).padStart(2, "0")} -{" "}
+              {formatarData(licao.data)} {licao.tema ? `- ${licao.tema}` : ""}
+            </option>
+          ))}
+        </select>
+
+        {turmaSelecionada && trimestres.length === 0 && (
           <div className="info-box">
+            Nenhum trimestre cadastrado para esta turma. Cadastre primeiro na aba
+            Trimestres.
+          </div>
+        )}
+
+        {trimestreSelecionado && licoes.length === 0 && (
+          <div className="info-box">
+            Este trimestre ainda não possui lições cadastradas.
+          </div>
+        )}
+
+        {licaoAtual && (
+          <div className="info-box">
+            <strong>
+              Lição {String(licaoAtual.numero_licao).padStart(2, "0")}
+            </strong>
+            <br />
+            Data: {formatarData(licaoAtual.data)}
+            <br />
+            Tema: {licaoAtual.tema || "Sem tema cadastrado"}
+            <br />
             {chamadaExistente
               ? "Esta chamada já existe. As alterações serão atualizadas sem duplicar."
-              : "Nova chamada para esta data."}
+              : "Nova chamada para esta lição."}
           </div>
         )}
       </div>
@@ -257,6 +368,7 @@ export default function EBDChamada({ user }) {
           <button
             type="button"
             className="marcar-todos presente"
+            disabled={!licaoSelecionada || alunos.length === 0}
             onClick={() => {
               const novo = {}
               alunos.forEach((aluno) => {
@@ -271,6 +383,7 @@ export default function EBDChamada({ user }) {
           <button
             type="button"
             className="marcar-todos falta"
+            disabled={!licaoSelecionada || alunos.length === 0}
             onClick={() => {
               const novo = {}
               alunos.forEach((aluno) => {
@@ -283,7 +396,13 @@ export default function EBDChamada({ user }) {
           </button>
         </div>
 
-        {alunos.length === 0 && <p>Nenhum aluno para chamada.</p>}
+        {!licaoSelecionada && (
+          <p>Selecione turma, trimestre e lição para iniciar a chamada.</p>
+        )}
+
+        {licaoSelecionada && alunos.length === 0 && (
+          <p>Nenhum aluno para chamada.</p>
+        )}
 
         {alunos.map((aluno) => (
           <div className="chamada-item chamada-nova" key={aluno.id}>

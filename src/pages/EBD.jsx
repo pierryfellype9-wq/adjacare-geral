@@ -66,11 +66,9 @@ export default function EBD({ user }) {
 
   return (
     <div className="page">
-{false && (
-  <div className="ebd-alerta-topo">
-          <div className="ebd-alerta-contador">
-            {alertas.length}
-          </div>
+      {false && (
+        <div className="ebd-alerta-topo">
+          <div className="ebd-alerta-contador">{alertas.length}</div>
 
           <div>
             <h3>⚠️ ATENÇÃO: Frequência baixa</h3>
@@ -86,7 +84,7 @@ export default function EBD({ user }) {
 
       <div className="ebd-hero">
         <h1>Escola Bíblica Dominical</h1>
-        <p>Gerencie alunos, chamadas, relatórios e financeiro em um só lugar.</p>
+        <p>Gerencie alunos, chamadas, trimestres, relatórios e financeiro em um só lugar.</p>
       </div>
 
       <div className="ebd-cards">
@@ -94,6 +92,12 @@ export default function EBD({ user }) {
           <div className="icon">📊</div>
           <h3>Dashboard</h3>
           <p>Resumo geral da EBD em tempo real.</p>
+        </div>
+
+        <div className="ebd-card" onClick={() => navigate("/ebd/trimestres")}>
+          <div className="icon">📚</div>
+          <h3>Trimestres</h3>
+          <p>Cadastrar trimestres, datas das lições e temas.</p>
         </div>
 
         <div className="ebd-card" onClick={() => navigate("/ebd/financeiro")}>
@@ -111,7 +115,7 @@ export default function EBD({ user }) {
         <div className="ebd-card" onClick={() => navigate("/ebd/chamada")}>
           <div className="icon">📝</div>
           <h3>Chamada</h3>
-          <p>Registrar presença dos alunos.</p>
+          <p>Registrar presença dos alunos por lição.</p>
         </div>
 
         <div className="ebd-card" onClick={() => navigate("/ebd/relatorios")}>

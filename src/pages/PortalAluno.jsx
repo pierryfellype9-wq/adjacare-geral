@@ -398,14 +398,42 @@ export default function PortalAluno() {
             </p>
 
             <div
-              style={{
-                background: "#eff6ff",
-                border: "1px solid #bfdbfe",
-                borderRadius: "18px",
-                padding: "18px",
-                marginBottom: "22px",
-              }}
-            >
+  style={{
+    background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+    color: "#ffffff",
+    border: "1px solid rgba(255,255,255,0.18)",
+    borderRadius: "18px",
+    padding: "22px",
+    marginBottom: "22px",
+    boxShadow: "0 14px 34px rgba(37,99,235,0.28)",
+  }}
+>
+  <strong
+    style={{
+      display: "block",
+      color: "#ffffff",
+      fontSize: "18px",
+      marginBottom: "10px",
+    }}
+  >
+    📖 {trimestreAtual?.nome || "Nenhum trimestre ativo"}
+  </strong>
+
+  <p
+    style={{
+      margin: 0,
+      color: "#dbeafe",
+      fontSize: "15px",
+      lineHeight: "1.5",
+    }}
+  >
+    {proximaLicao
+      ? `Próxima lição: Lição ${String(
+          proximaLicao.numero_licao
+        ).padStart(2, "0")} — ${proximaLicao.tema || "Sem tema"}`
+      : "Nenhuma lição cadastrada para este trimestre."}
+  </p>
+</div>
               <strong>{trimestreAtual?.nome || "Nenhum trimestre ativo"}</strong>
               <p style={{ margin: "8px 0 0", color: "#475569" }}>
                 {proximaLicao

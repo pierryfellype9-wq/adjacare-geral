@@ -137,6 +137,8 @@ if (licaoHoje) {
   setLicaoSelecionada(data[0].id)
 }
 
+  }
+    
   async function carregarAlunosEChamada() {
     const { data: alunosData, error: erroAlunos } = await supabase
       .from("ebd_alunos")

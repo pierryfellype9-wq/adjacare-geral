@@ -129,10 +129,13 @@ export default function EBDChamada({ user }) {
     setLicoes(data || [])
 
     const hoje = new Date().toISOString().split("T")[0]
-    const licaoHoje = data?.find((l) => l.data === hoje)
+const licaoHoje = data?.find((l) => l.data === hoje)
 
-    if (licaoHoje) setLicaoSelecionada(licaoHoje.id)
-  }
+if (licaoHoje) {
+  setLicaoSelecionada(licaoHoje.id)
+} else if (data && data.length > 0) {
+  setLicaoSelecionada(data[0].id)
+}
 
   async function carregarAlunosEChamada() {
     const { data: alunosData, error: erroAlunos } = await supabase

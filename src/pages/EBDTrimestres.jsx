@@ -126,7 +126,11 @@ export default function EBDTrimestres({ user }) {
   }
 
   async function excluirTrimestre(id) {
-    if (!confirm("Deseja excluir este trimestre? As lições dele também serão removidas.")) {
+    if (
+      !confirm(
+        "Deseja excluir este trimestre? As lições dele também serão removidas."
+      )
+    ) {
       return
     }
 
@@ -162,6 +166,13 @@ export default function EBDTrimestres({ user }) {
     }
 
     setLicoes(data || [])
+
+    setTimeout(() => {
+      const bloco = document.getElementById("licoes-trimestre")
+      if (bloco) {
+        bloco.scrollIntoView({ behavior: "smooth", block: "start" })
+      }
+    }, 100)
   }
 
   async function gerarLicoesPadrao(trimestre) {
@@ -227,6 +238,12 @@ export default function EBDTrimestres({ user }) {
     }
 
     alert("Lição salva com sucesso!")
+  }
+
+  function formatarData(data) {
+    if (!data) return ""
+    const [ano, mes, dia] = data.split("-")
+    return `${dia}/${mes}/${ano}`
   }
 
   if (!temAcessoEBD) {
@@ -316,7 +333,7 @@ export default function EBDTrimestres({ user }) {
           <input
             value={revista}
             onChange={(e) => setRevista(e.target.value)}
-            placeholder="Ex: Juniores - 3º Trimestre de 2026"
+            placeholder="Ex: O Tempo dos Juízes"
           />
 
           <label>Observação</label>
@@ -331,122 +348,310 @@ export default function EBDTrimestres({ user }) {
       </div>
 
       <div className="list-card">
-        <h2>Trimestres cadastrados</h2>
-
-        {trimestres.length === 0 && <p>Nenhum trimestre cadastrado.</p>}
-
-        {trimestres.map((tri) => (
-          <div key={tri.id} className="chamada-item">
-            <div>
-              <strong>{tri.nome}</strong>
-              <p style={{ margin: "6px 0", color: "#6b7280" }}>
-                {tri.data_inicio} até {tri.data_fim} • {tri.status}
-              </p>
-              {tri.revista && (
-                <p style={{ margin: 0, color: "#6b7280" }}>
-                  Revista: {tri.revista}
-                </p>
-              )}
-            </div>
-
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              <button onClick={() => abrirTrimestre(tri)}>Abrir</button>
-
-              <button
-                type="button"
-                onClick={() => excluirTrimestre(tri.id)}
-                style={{ background: "#ef4444" }}
-              >
-                Excluir
-              </button>
-            </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "12px",
+            flexWrap: "wrap",
+            marginBottom: "18px",
+          }}
+        >
+          <div>
+            <h2 style={{ margin: 0 }}>Trimestres cadastrados</h2>
+            <p style={{ margin: "6px 0 0", color: "#64748b" }}>
+              Gerencie os trimestres e as lições da turma selecionada.
+            </p>
           </div>
-        ))}
+
+          <span
+            style={{
+              background: "#eff6ff",
+              color: "#1d4ed8",
+              padding: "7px 12px",
+              borderRadius: "999px",
+              fontSize: "13px",
+              fontWeight: "700",
+            }}
+          >
+            {trimestres.length} trimestre{trimestres.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        {trimestres.length === 0 && (
+          <div
+            style={{
+              background: "#f8fafc",
+              border: "1px dashed #cbd5e1",
+              borderRadius: "16px",
+              padding: "24px",
+              color: "#64748b",
+            }}
+          >
+            Nenhum trimestre cadastrado.
+          </div>
+        )}
+
+        <div style={{ display: "grid", gap: "14px" }}>
+          {trimestres.map((tri) => (
+            <div
+              key={tri.id}
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #e5e7eb",
+                borderRadius: "18px",
+                padding: "18px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "18px",
+                flexWrap: "wrap",
+                boxShadow: "0 4px 14px rgba(15, 23, 42, 0.04)",
+              }}
+            >
+              <div style={{ minWidth: "260px", flex: 1 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    flexWrap: "wrap",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <h3
+                    style={{
+                      margin: 0,
+                      color: "#111827",
+                      fontSize: "20px",
+                      fontWeight: "800",
+                    }}
+                  >
+                    {tri.nome}
+                  </h3>
+
+                  <span
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: "999px",
+                      fontSize: "12px",
+                      fontWeight: "800",
+                      background:
+                        tri.status === "ativo" ? "#dcfce7" : "#fee2e2",
+                      color: tri.status === "ativo" ? "#166534" : "#991b1b",
+                    }}
+                  >
+                    {tri.status === "ativo" ? "Ativo" : "Encerrado"}
+                  </span>
+                </div>
+
+                <p style={{ margin: "0 0 6px", color: "#64748b" }}>
+                  📅 {formatarData(tri.data_inicio)} até{" "}
+                  {formatarData(tri.data_fim)}
+                </p>
+
+                <p style={{ margin: "0 0 6px", color: "#64748b" }}>
+                  📖 Revista: {tri.revista || "Não informada"}
+                </p>
+
+                {tri.observacao && (
+                  <p style={{ margin: 0, color: "#64748b" }}>
+                    📝 {tri.observacao}
+                  </p>
+                )}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  flexWrap: "wrap",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <button onClick={() => abrirTrimestre(tri)}>
+                  Abrir lições
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => excluirTrimestre(tri.id)}
+                  style={{ background: "#ef4444" }}
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {trimestreAberto && (
-        <div className="list-card">
-          <h2>{trimestreAberto.nome}</h2>
+        <div className="list-card" id="licoes-trimestre">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "12px",
+              flexWrap: "wrap",
+              marginBottom: "18px",
+            }}
+          >
+            <div>
+              <h2 style={{ margin: 0 }}>{trimestreAberto.nome}</h2>
+              <p style={{ margin: "6px 0 0", color: "#64748b" }}>
+                Gerencie as lições, datas e temas deste trimestre.
+              </p>
+            </div>
 
-          <p style={{ color: "#6b7280" }}>
-            Gerencie as lições deste trimestre.
-          </p>
+            <span
+              style={{
+                background: "#fef3c7",
+                color: "#92400e",
+                padding: "7px 12px",
+                borderRadius: "999px",
+                fontSize: "13px",
+                fontWeight: "700",
+              }}
+            >
+              {licoes.length} lição{licoes.length !== 1 ? "ões" : ""}
+            </span>
+          </div>
 
           {licoes.length === 0 && (
-            <>
-              <p>Nenhuma lição cadastrada ainda.</p>
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px dashed #cbd5e1",
+                borderRadius: "16px",
+                padding: "24px",
+              }}
+            >
+              <p style={{ marginTop: 0, color: "#64748b" }}>
+                Nenhuma lição cadastrada ainda.
+              </p>
 
               <button onClick={() => gerarLicoesPadrao(trimestreAberto)}>
                 Gerar 13 lições do 3º trimestre de 2026
               </button>
-            </>
+            </div>
           )}
 
-          {licoes.map((licao) => (
-            <div key={licao.id} className="form-card" style={{ marginTop: "16px" }}>
-              <h3>
-                Lição {String(licao.numero_licao).padStart(2, "0")}
-              </h3>
+          {licoes.length > 0 && (
+            <div style={{ display: "grid", gap: "14px" }}>
+              {licoes.map((licao) => (
+                <div
+                  key={licao.id}
+                  style={{
+                    background: "#ffffff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "18px",
+                    padding: "18px",
+                    boxShadow: "0 4px 14px rgba(15, 23, 42, 0.04)",
+                  }}
+                >
+                  <h3 style={{ marginTop: 0 }}>
+                    Lição {String(licao.numero_licao).padStart(2, "0")}
+                  </h3>
 
-              <label>Data</label>
-              <input
-                type="date"
-                value={licao.data || ""}
-                onChange={(e) =>
-                  atualizarLicao(licao.id, "data", e.target.value)
-                }
-              />
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(240px, 1fr))",
+                      gap: "12px",
+                    }}
+                  >
+                    <div>
+                      <label>Data</label>
+                      <input
+                        type="date"
+                        value={licao.data || ""}
+                        onChange={(e) =>
+                          atualizarLicao(licao.id, "data", e.target.value)
+                        }
+                      />
+                    </div>
 
-              <label>Tema</label>
-              <input
-                value={licao.tema || ""}
-                onChange={(e) =>
-                  atualizarLicao(licao.id, "tema", e.target.value)
-                }
-                placeholder="Tema da lição"
-              />
+                    <div>
+                      <label>Tema</label>
+                      <input
+                        value={licao.tema || ""}
+                        onChange={(e) =>
+                          atualizarLicao(licao.id, "tema", e.target.value)
+                        }
+                        placeholder="Tema da lição"
+                      />
+                    </div>
 
-              <label>Versículo-chave</label>
-              <input
-                value={licao.versiculo_chave || ""}
-                onChange={(e) =>
-                  atualizarLicao(licao.id, "versiculo_chave", e.target.value)
-                }
-                placeholder="Opcional"
-              />
+                    <div>
+                      <label>Versículo-chave</label>
+                      <input
+                        value={licao.versiculo_chave || ""}
+                        onChange={(e) =>
+                          atualizarLicao(
+                            licao.id,
+                            "versiculo_chave",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Opcional"
+                      />
+                    </div>
 
-              <label>Leitura bíblica</label>
-              <input
-                value={licao.leitura_biblica || ""}
-                onChange={(e) =>
-                  atualizarLicao(licao.id, "leitura_biblica", e.target.value)
-                }
-                placeholder="Opcional"
-              />
+                    <div>
+                      <label>Leitura bíblica</label>
+                      <input
+                        value={licao.leitura_biblica || ""}
+                        onChange={(e) =>
+                          atualizarLicao(
+                            licao.id,
+                            "leitura_biblica",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Opcional"
+                      />
+                    </div>
 
-              <label>Revista</label>
-              <input
-                value={licao.revista || ""}
-                onChange={(e) =>
-                  atualizarLicao(licao.id, "revista", e.target.value)
-                }
-                placeholder="Opcional"
-              />
+                    <div>
+                      <label>Revista</label>
+                      <input
+                        value={licao.revista || ""}
+                        onChange={(e) =>
+                          atualizarLicao(licao.id, "revista", e.target.value)
+                        }
+                        placeholder="Opcional"
+                      />
+                    </div>
 
-              <label>Observação</label>
-              <textarea
-                value={licao.observacao || ""}
-                onChange={(e) =>
-                  atualizarLicao(licao.id, "observacao", e.target.value)
-                }
-                placeholder="Opcional"
-              />
+                    <div>
+                      <label>Observação</label>
+                      <input
+                        value={licao.observacao || ""}
+                        onChange={(e) =>
+                          atualizarLicao(
+                            licao.id,
+                            "observacao",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Opcional"
+                      />
+                    </div>
+                  </div>
 
-              <button onClick={() => salvarLicao(licao)}>
-                Salvar lição
-              </button>
+                  <div style={{ marginTop: "14px" }}>
+                    <button onClick={() => salvarLicao(licao)}>
+                      Salvar lição
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>

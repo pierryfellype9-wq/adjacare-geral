@@ -29,6 +29,8 @@ export default function EBDChamada({ user }) {
   const [alunos, setAlunos] = useState([])
   const [presencas, setPresencas] = useState({})
   const [observacoes, setObservacoes] = useState({})
+  const [visitantes, setVisitantes] = useState([])
+
   const [carregando, setCarregando] = useState(false)
   const [chamadaExistente, setChamadaExistente] = useState(false)
 
@@ -45,6 +47,7 @@ export default function EBDChamada({ user }) {
       setAlunos([])
       setPresencas({})
       setObservacoes({})
+      setVisitantes([])
       setChamadaExistente(false)
     }
   }, [turmaSelecionada])
@@ -56,6 +59,7 @@ export default function EBDChamada({ user }) {
       setAlunos([])
       setPresencas({})
       setObservacoes({})
+      setVisitantes([])
       setChamadaExistente(false)
     }
   }, [trimestreSelecionado])
@@ -63,6 +67,7 @@ export default function EBDChamada({ user }) {
   useEffect(() => {
     if (turmaSelecionada && licaoSelecionada) {
       carregarAlunosEChamada()
+      carregarVisitantes()
     }
   }, [turmaSelecionada, licaoSelecionada])
 
@@ -103,9 +108,7 @@ export default function EBDChamada({ user }) {
     setTrimestres(data || [])
 
     const trimestreAtivo = data?.find((t) => t.status === "ativo")
-    if (trimestreAtivo) {
-      setTrimestreSelecionado(trimestreAtivo.id)
-    }
+    if (trimestreAtivo) setTrimestreSelecionado(trimestreAtivo.id)
   }
 
   async function carregarLicoes() {
@@ -126,9 +129,7 @@ export default function EBDChamada({ user }) {
     const hoje = new Date().toISOString().split("T")[0]
     const licaoHoje = data?.find((l) => l.data === hoje)
 
-    if (licaoHoje) {
-      setLicaoSelecionada(licaoHoje.id)
-    }
+    if (licaoHoje) setLicaoSelecionada(licaoHoje.id)
   }
 
   async function carregarAlunosEChamada() {
@@ -181,6 +182,22 @@ export default function EBDChamada({ user }) {
     setObservacoes(observacoesIniciais)
   }
 
+  async function carregarVisitantes() {
+    const { data, error } = await supabase
+      .from("ebd_visitantes")
+      .select("*")
+      .eq("aula_id", licaoSelecionada)
+      .order("criado_em", { ascending: true })
+
+    if (error) {
+      alert("Erro ao carregar visitantes.")
+      console.log(error)
+      return
+    }
+
+    setVisitantes(data || [])
+  }
+
   function alterarPresenca(alunoId, status) {
     if (!temAcessoEBD) return
 
@@ -188,6 +205,87 @@ export default function EBDChamada({ user }) {
       ...prev,
       [alunoId]: status,
     }))
+  }
+
+  function adicionarVisitante() {
+    if (!licaoSelecionada) {
+      alert("Selecione uma lição antes de adicionar visitantes.")
+      return
+    }
+
+    setVisitantes((prev) => [
+      ...prev,
+      {
+        id: `novo-${Date.now()}`,
+        aula_id: licaoSelecionada,
+        turma_id: turmaSelecionada,
+        nome: "",
+        idade: "",
+        contato: "",
+        convidado_por: "",
+        primeira_visita: true,
+        observacao: "",
+        novo: true,
+      },
+    ])
+  }
+
+  function atualizarVisitante(id, campo, valor) {
+    setVisitantes((prev) =>
+      prev.map((v) => (v.id === id ? { ...v, [campo]: valor } : v))
+    )
+  }
+
+  async function removerVisitante(visitante) {
+    if (!confirm("Remover este visitante?")) return
+
+    if (visitante.novo) {
+      setVisitantes((prev) => prev.filter((v) => v.id !== visitante.id))
+      return
+    }
+
+    const { error } = await supabase
+      .from("ebd_visitantes")
+      .delete()
+      .eq("id", visitante.id)
+
+    if (error) {
+      alert("Erro ao remover visitante.")
+      console.log(error)
+      return
+    }
+
+    carregarVisitantes()
+  }
+
+  async function salvarVisitantes() {
+    const visitantesValidos = visitantes
+      .filter((v) => v.nome && v.nome.trim() !== "")
+      .map((v) => ({
+        id: v.novo ? undefined : v.id,
+        aula_id: licaoSelecionada,
+        turma_id: turmaSelecionada,
+        nome: v.nome.trim(),
+        idade: v.idade ? Number(v.idade) : null,
+        contato: v.contato || null,
+        convidado_por: v.convidado_por || null,
+        primeira_visita: !!v.primeira_visita,
+        observacao: v.observacao || null,
+      }))
+
+    if (visitantesValidos.length === 0) return true
+
+    const { error } = await supabase
+      .from("ebd_visitantes")
+      .upsert(visitantesValidos)
+
+    if (error) {
+      alert("Erro ao salvar visitantes.")
+      console.log(error)
+      return false
+    }
+
+    return true
   }
 
   async function salvarChamada() {
@@ -211,8 +309,8 @@ export default function EBDChamada({ user }) {
       return
     }
 
-    if (alunos.length === 0) {
-      alert("Nenhum aluno encontrado nessa turma.")
+    if (alunos.length === 0 && visitantes.length === 0) {
+      alert("Nenhum aluno ou visitante encontrado para esta chamada.")
       return
     }
 
@@ -228,21 +326,29 @@ export default function EBDChamada({ user }) {
           : observacoes[aluno.id] || null,
     }))
 
-    const { error } = await supabase
-      .from("ebd_presencas")
-      .upsert(registros, {
-        onConflict: "aula_id,aluno_id",
-      })
+    if (registros.length > 0) {
+      const { error } = await supabase
+        .from("ebd_presencas")
+        .upsert(registros, {
+          onConflict: "aula_id,aluno_id",
+        })
+
+      if (error) {
+        setCarregando(false)
+        console.error(error)
+        alert("Erro ao salvar chamada.")
+        return
+      }
+    }
+
+    const visitantesOk = await salvarVisitantes()
 
     setCarregando(false)
 
-    if (error) {
-      console.error(error)
-      alert("Erro ao salvar chamada.")
-      return
-    }
+    if (!visitantesOk) return
 
     setChamadaExistente(true)
+    await carregarVisitantes()
     alert("Chamada salva com sucesso!")
   }
 
@@ -265,6 +371,12 @@ export default function EBDChamada({ user }) {
   const totalFaltas = Object.values(presencas).filter(
     (status) => status === "falta" || status === "atrasado"
   ).length
+
+  const totalVisitantes = visitantes.filter(
+    (v) => v.nome && v.nome.trim() !== ""
+  ).length
+
+  const totalNoDia = totalPresentes + totalAtrasados + totalVisitantes
 
   if (!temAcessoEBD) {
     return (
@@ -401,7 +513,7 @@ export default function EBDChamada({ user }) {
         )}
 
         {licaoSelecionada && alunos.length === 0 && (
-          <p>Nenhum aluno para chamada.</p>
+          <p>Nenhum aluno cadastrado nesta turma.</p>
         )}
 
         {alunos.map((aluno) => (
@@ -445,13 +557,134 @@ export default function EBDChamada({ user }) {
           </div>
         ))}
 
-        {alunos.length > 0 && (
+        {licaoSelecionada && (
+          <div className="form-card" style={{ marginTop: "20px" }}>
+            <h2>Visitantes</h2>
+            <p style={{ color: "#6b7280" }}>
+              Registre visitantes que participaram desta lição.
+            </p>
+
+            {visitantes.length === 0 && (
+              <p style={{ color: "#6b7280" }}>
+                Nenhum visitante adicionado.
+              </p>
+            )}
+
+            {visitantes.map((visitante, index) => (
+              <div
+                key={visitante.id}
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "14px",
+                  padding: "16px",
+                  marginBottom: "14px",
+                  background: "#f8fafc",
+                }}
+              >
+                <h3 style={{ marginTop: 0 }}>Visitante {index + 1}</h3>
+
+                <label>Nome</label>
+                <input
+                  value={visitante.nome || ""}
+                  onChange={(e) =>
+                    atualizarVisitante(visitante.id, "nome", e.target.value)
+                  }
+                  placeholder="Nome do visitante"
+                />
+
+                <label>Idade</label>
+                <input
+                  type="number"
+                  value={visitante.idade || ""}
+                  onChange={(e) =>
+                    atualizarVisitante(visitante.id, "idade", e.target.value)
+                  }
+                  placeholder="Idade"
+                />
+
+                <label>Contato</label>
+                <input
+                  value={visitante.contato || ""}
+                  onChange={(e) =>
+                    atualizarVisitante(visitante.id, "contato", e.target.value)
+                  }
+                  placeholder="Telefone ou WhatsApp"
+                />
+
+                <label>Convidado por</label>
+                <input
+                  value={visitante.convidado_por || ""}
+                  onChange={(e) =>
+                    atualizarVisitante(
+                      visitante.id,
+                      "convidado_por",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Nome de quem convidou"
+                />
+
+                <label>Observação</label>
+                <textarea
+                  value={visitante.observacao || ""}
+                  onChange={(e) =>
+                    atualizarVisitante(
+                      visitante.id,
+                      "observacao",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Observações"
+                />
+
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginTop: "10px",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!!visitante.primeira_visita}
+                    onChange={(e) =>
+                      atualizarVisitante(
+                        visitante.id,
+                        "primeira_visita",
+                        e.target.checked
+                      )
+                    }
+                    style={{ width: "auto" }}
+                  />
+                  Primeira visita
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => removerVisitante(visitante)}
+                  style={{ background: "#ef4444", marginTop: "12px" }}
+                >
+                  Remover visitante
+                </button>
+              </div>
+            ))}
+
+            <button type="button" onClick={adicionarVisitante}>
+              + Adicionar visitante
+            </button>
+          </div>
+        )}
+
+        {(alunos.length > 0 || visitantes.length > 0) && (
           <>
             <div className="resumo-chamada">
               <h3>Resumo rápido</h3>
               <p>Presentes: {totalPresentes}</p>
               <p>Atrasados: {totalAtrasados}</p>
               <p>Faltas: {totalFaltas}</p>
+              <p>Visitantes: {totalVisitantes}</p>
+              <p>Total no dia: {totalNoDia}</p>
             </div>
 
             <button onClick={salvarChamada} disabled={carregando}>

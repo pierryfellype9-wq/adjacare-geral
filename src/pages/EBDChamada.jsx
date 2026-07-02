@@ -30,6 +30,7 @@ export default function EBDChamada({ user }) {
   const [presencas, setPresencas] = useState({})
   const [observacoes, setObservacoes] = useState({})
   const [visitantes, setVisitantes] = useState([])
+  const [visitantesRemovidos, setVisitantesRemovidos] = useState([])
 
   const [carregando, setCarregando] = useState(false)
   const [chamadaExistente, setChamadaExistente] = useState(false)
@@ -44,11 +45,7 @@ export default function EBDChamada({ user }) {
       setTrimestreSelecionado("")
       setLicaoSelecionada("")
       setLicoes([])
-      setAlunos([])
-      setPresencas({})
-      setObservacoes({})
-      setVisitantes([])
-      setChamadaExistente(false)
+      limparChamada()
     }
   }, [turmaSelecionada])
 
@@ -56,11 +53,7 @@ export default function EBDChamada({ user }) {
     if (trimestreSelecionado) {
       carregarLicoes()
       setLicaoSelecionada("")
-      setAlunos([])
-      setPresencas({})
-      setObservacoes({})
-      setVisitantes([])
-      setChamadaExistente(false)
+      limparChamada()
     }
   }, [trimestreSelecionado])
 
@@ -70,6 +63,15 @@ export default function EBDChamada({ user }) {
       carregarVisitantes()
     }
   }, [turmaSelecionada, licaoSelecionada])
+
+  function limparChamada() {
+    setAlunos([])
+    setPresencas({})
+    setObservacoes({})
+    setVisitantes([])
+    setVisitantesRemovidos([])
+    setChamadaExistente(false)
+  }
 
   async function carregarTurmas() {
     const { data, error } = await supabase
@@ -196,6 +198,7 @@ export default function EBDChamada({ user }) {
     }
 
     setVisitantes(data || [])
+    setVisitantesRemovidos([])
   }
 
   function alterarPresenca(alunoId, status) {
@@ -236,33 +239,39 @@ export default function EBDChamada({ user }) {
     )
   }
 
-  async function removerVisitante(visitante) {
+  function removerVisitante(visitante) {
     if (!confirm("Remover este visitante?")) return
 
-    if (visitante.novo) {
-      setVisitantes((prev) => prev.filter((v) => v.id !== visitante.id))
-      return
+    if (!visitante.novo) {
+      setVisitantesRemovidos((prev) => [...prev, visitante.id])
     }
 
-    const { error } = await supabase
-      .from("ebd_visitantes")
-      .delete()
-      .eq("id", visitante.id)
-
-    if (error) {
-      alert("Erro ao remover visitante.")
-      console.log(error)
-      return
-    }
-
-    carregarVisitantes()
+    setVisitantes((prev) => prev.filter((v) => v.id !== visitante.id))
   }
 
   async function salvarVisitantes() {
-    const visitantesValidos = visitantes
-      .filter((v) => v.nome && v.nome.trim() !== "")
-      .map((v) => ({
-        id: v.novo ? undefined : v.id,
+    for (const id of visitantesRemovidos) {
+      const { error } = await supabase
+        .from("ebd_visitantes")
+        .delete()
+        .eq("id", id)
+
+      if (error) {
+        console.log(error)
+        alert("Erro ao remover visitante.")
+        return false
+      }
+    }
+
+    const visitantesComNome = visitantes.filter(
+      (v) => v.nome && v.nome.trim() !== ""
+    )
+
+    const novos = visitantesComNome.filter((v) => v.novo)
+    const antigos = visitantesComNome.filter((v) => !v.novo)
+
+    if (novos.length > 0) {
+      const dadosNovos = novos.map((v) => ({
         aula_id: licaoSelecionada,
         turma_id: turmaSelecionada,
         nome: v.nome.trim(),
@@ -273,16 +282,37 @@ export default function EBDChamada({ user }) {
         observacao: v.observacao || null,
       }))
 
-    if (visitantesValidos.length === 0) return true
+      const { error } = await supabase
+        .from("ebd_visitantes")
+        .insert(dadosNovos)
 
-    const { error } = await supabase
-      .from("ebd_visitantes")
-      .upsert(visitantesValidos)
+      if (error) {
+        console.log(error)
+        alert(error.message || "Erro ao salvar visitantes.")
+        return false
+      }
+    }
 
-    if (error) {
-      alert("Erro ao salvar visitantes.")
-      console.log(error)
-      return false
+    for (const visitante of antigos) {
+      const { error } = await supabase
+        .from("ebd_visitantes")
+        .update({
+          aula_id: licaoSelecionada,
+          turma_id: turmaSelecionada,
+          nome: visitante.nome.trim(),
+          idade: visitante.idade ? Number(visitante.idade) : null,
+          contato: visitante.contato || null,
+          convidado_por: visitante.convidado_por || null,
+          primeira_visita: !!visitante.primeira_visita,
+          observacao: visitante.observacao || null,
+        })
+        .eq("id", visitante.id)
+
+      if (error) {
+        console.log(error)
+        alert(error.message || "Erro ao atualizar visitante.")
+        return false
+      }
     }
 
     return true
@@ -343,11 +373,29 @@ export default function EBDChamada({ user }) {
 
     const visitantesOk = await salvarVisitantes()
 
+    if (!visitantesOk) {
+      setCarregando(false)
+      return
+    }
+
+    const { error: erroAula } = await supabase
+      .from("ebd_aulas")
+      .update({
+        chamada_realizada_por: usuario?.nome || usuario?.email || "Usuário",
+        chamada_realizada_em: new Date().toISOString(),
+      })
+      .eq("id", licaoSelecionada)
+
+    if (erroAula) {
+      setCarregando(false)
+      console.log(erroAula)
+      alert("Chamada salva, mas houve erro ao registrar quem realizou.")
+      return
+    }
+
     setCarregando(false)
-
-    if (!visitantesOk) return
-
     setChamadaExistente(true)
+    await carregarLicoes()
     await carregarVisitantes()
     alert("Chamada salva com sucesso!")
   }
@@ -356,6 +404,11 @@ export default function EBDChamada({ user }) {
     if (!data) return ""
     const [ano, mes, dia] = data.split("-")
     return `${dia}/${mes}/${ano}`
+  }
+
+  function formatarDataHora(data) {
+    if (!data) return ""
+    return new Date(data).toLocaleString("pt-BR")
   }
 
   const licaoAtual = licoes.find((l) => l.id === licaoSelecionada)
@@ -445,19 +498,6 @@ export default function EBDChamada({ user }) {
           ))}
         </select>
 
-        {turmaSelecionada && trimestres.length === 0 && (
-          <div className="info-box">
-            Nenhum trimestre cadastrado para esta turma. Cadastre primeiro na aba
-            Trimestres.
-          </div>
-        )}
-
-        {trimestreSelecionado && licoes.length === 0 && (
-          <div className="info-box">
-            Este trimestre ainda não possui lições cadastradas.
-          </div>
-        )}
-
         {licaoAtual && (
           <div className="info-box">
             <strong>
@@ -468,6 +508,14 @@ export default function EBDChamada({ user }) {
             <br />
             Tema: {licaoAtual.tema || "Sem tema cadastrado"}
             <br />
+            {licaoAtual.chamada_realizada_por && (
+              <>
+                Realizado por: {licaoAtual.chamada_realizada_por}
+                <br />
+                Em: {formatarDataHora(licaoAtual.chamada_realizada_em)}
+                <br />
+              </>
+            )}
             {chamadaExistente
               ? "Esta chamada já existe. As alterações serão atualizadas sem duplicar."
               : "Nova chamada para esta lição."}
@@ -507,14 +555,6 @@ export default function EBDChamada({ user }) {
             Marcar todos faltas
           </button>
         </div>
-
-        {!licaoSelecionada && (
-          <p>Selecione turma, trimestre e lição para iniciar a chamada.</p>
-        )}
-
-        {licaoSelecionada && alunos.length === 0 && (
-          <p>Nenhum aluno cadastrado nesta turma.</p>
-        )}
 
         {alunos.map((aluno) => (
           <div className="chamada-item chamada-nova" key={aluno.id}>
@@ -560,15 +600,6 @@ export default function EBDChamada({ user }) {
         {licaoSelecionada && (
           <div className="form-card" style={{ marginTop: "20px" }}>
             <h2>Visitantes</h2>
-            <p style={{ color: "#6b7280" }}>
-              Registre visitantes que participaram desta lição.
-            </p>
-
-            {visitantes.length === 0 && (
-              <p style={{ color: "#6b7280" }}>
-                Nenhum visitante adicionado.
-              </p>
-            )}
 
             {visitantes.map((visitante, index) => (
               <div
@@ -589,7 +620,6 @@ export default function EBDChamada({ user }) {
                   onChange={(e) =>
                     atualizarVisitante(visitante.id, "nome", e.target.value)
                   }
-                  placeholder="Nome do visitante"
                 />
 
                 <label>Idade</label>
@@ -599,7 +629,6 @@ export default function EBDChamada({ user }) {
                   onChange={(e) =>
                     atualizarVisitante(visitante.id, "idade", e.target.value)
                   }
-                  placeholder="Idade"
                 />
 
                 <label>Contato</label>
@@ -608,7 +637,6 @@ export default function EBDChamada({ user }) {
                   onChange={(e) =>
                     atualizarVisitante(visitante.id, "contato", e.target.value)
                   }
-                  placeholder="Telefone ou WhatsApp"
                 />
 
                 <label>Convidado por</label>
@@ -621,7 +649,6 @@ export default function EBDChamada({ user }) {
                       e.target.value
                     )
                   }
-                  placeholder="Nome de quem convidou"
                 />
 
                 <label>Observação</label>
@@ -634,17 +661,9 @@ export default function EBDChamada({ user }) {
                       e.target.value
                     )
                   }
-                  placeholder="Observações"
                 />
 
-                <label
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    marginTop: "10px",
-                  }}
-                >
+                <label style={{ display: "flex", gap: "8px" }}>
                   <input
                     type="checkbox"
                     checked={!!visitante.primeira_visita}
@@ -685,6 +704,7 @@ export default function EBDChamada({ user }) {
               <p>Faltas: {totalFaltas}</p>
               <p>Visitantes: {totalVisitantes}</p>
               <p>Total no dia: {totalNoDia}</p>
+              <p>Realizado por: {usuario?.nome || usuario?.email}</p>
             </div>
 
             <button onClick={salvarChamada} disabled={carregando}>

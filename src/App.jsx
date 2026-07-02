@@ -22,6 +22,7 @@ import EBD from "./pages/EBD"
 import EBDAlunos from "./pages/EBDAlunos"
 import EBDChamada from "./pages/EBDChamada"
 import EBDRelatorios from "./pages/EBDRelatorios"
+import EBDTrimestres from "./pages/EBDTrimestres"
 
 import Sidebar from "./components/Sidebar"
 import { supabase } from "./lib/supabase"
@@ -96,42 +97,40 @@ export default function App() {
 
   return (
     <Routes>
-
-      {/* 🔓 PORTAL DO ALUNO (SEM LOGIN) */}
       <Route path="/portal-aluno/*" element={<PortalAluno />} />
 
-      {/* 🔒 SE NÃO ESTIVER LOGADO */}
       {!user ? (
         <Route
           path="*"
           element={
             <div className="login-page">
               <div className="login-card">
-<div
-  className="logo-title"
-  style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "20px",
-    marginBottom: "30px",
-  }}
->
-  <img
-  src="/logo.png"
-  alt="Logo"
-  style={{
-    width: "90px",
-    height: "90px",
-    objectFit: "contain",
-  }}
-/>   
-<h2 style={{ margin: 0, lineHeight: "1.2" }}>
-  Sistema Geral
-  <br />
-  ADJACARÉ
-</h2>               
-</div>
+                <div
+                  className="logo-title"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "20px",
+                    marginBottom: "30px",
+                  }}
+                >
+                  <img
+                    src="/logo.png"
+                    alt="Logo"
+                    style={{
+                      width: "90px",
+                      height: "90px",
+                      objectFit: "contain",
+                    }}
+                  />
+
+                  <h2 style={{ margin: 0, lineHeight: "1.2" }}>
+                    Sistema Geral
+                    <br />
+                    ADJACARÉ
+                  </h2>
+                </div>
 
                 <form onSubmit={login}>
                   <input
@@ -147,16 +146,13 @@ export default function App() {
                     onChange={(e) => setSenha(e.target.value)}
                   />
 
-                  <button className="login-btn">
-                    Entrar
-                  </button>
+                  <button className="login-btn">Entrar</button>
                 </form>
               </div>
             </div>
           }
         />
       ) : (
-        /* 🔒 SISTEMA LOGADO */
         <Route
           path="*"
           element={
@@ -187,11 +183,7 @@ export default function App() {
                 </div>
               </header>
 
-              <Sidebar
-                user={user}
-                open={menuOpen}
-                setOpen={setMenuOpen}
-              />
+              <Sidebar user={user} open={menuOpen} setOpen={setMenuOpen} />
 
               <Routes>
                 <Route path="/" element={<Dashboard user={user} />} />
@@ -203,43 +195,50 @@ export default function App() {
                 <Route path="/avisos" element={<Avisos />} />
                 <Route path="/usuarios" element={<Usuarios user={user} />} />
                 <Route path="/ebd/financeiro" element={<EBDFinanceiro user={user} />} />
-                <Route path="/whatsapp" element={<WhatsApp user={user} />} />          
+                <Route path="/whatsapp" element={<WhatsApp user={user} />} />
+
                 <Route
-  path="/trocar-senha"
-  element={<TrocarSenha user={user} setUser={setUser} />}
-/>
+                  path="/trocar-senha"
+                  element={<TrocarSenha user={user} setUser={setUser} />}
+                />
 
                 <Route
                   path="/escala-midia"
                   element={
-                    podeVerEscala
-                      ? <EscalaMidia user={user} />
-                      : <Navigate to="/dashboard" replace />
+                    podeVerEscala ? (
+                      <EscalaMidia user={user} />
+                    ) : (
+                      <Navigate to="/dashboard" replace />
+                    )
                   }
                 />
 
                 <Route
                   path="/senhas-aplicativos"
                   element={
-                    podeVerSenhas
-                      ? <SenhasAplicativos user={user} />
-                      : <Navigate to="/dashboard" replace />
+                    podeVerSenhas ? (
+                      <SenhasAplicativos user={user} />
+                    ) : (
+                      <Navigate to="/dashboard" replace />
+                    )
                   }
                 />
 
                 <Route
                   path="/custos-fixos"
                   element={
-                    podeVerCustosFixos
-                      ? <CustosFixos user={user} />
-                      : <Navigate to="/dashboard" replace />
+                    podeVerCustosFixos ? (
+                      <CustosFixos user={user} />
+                    ) : (
+                      <Navigate to="/dashboard" replace />
+                    )
                   }
                 />
 
-                {/* EBD */}
-                <Route path="/ebd" element={<EBD />} />
+                <Route path="/ebd" element={<EBD user={user} />} />
                 <Route path="/ebd/alunos" element={<EBDAlunos user={user} />} />
                 <Route path="/ebd/chamada" element={<EBDChamada user={user} />} />
+                <Route path="/ebd/trimestres" element={<EBDTrimestres user={user} />} />
                 <Route path="/ebd/relatorios" element={<EBDRelatorios user={user} />} />
                 <Route path="/ebd/dashboard" element={<EBDDashboard user={user} />} />
                 <Route path="/membros" element={<Membros user={user} />} />

@@ -12,6 +12,7 @@ export default function Usuarios({ user }) {
   const [senha, setSenha] = useState("")
   const [role, setRole] = useState("")
   const [turmaEbd, setTurmaEbd] = useState("")
+  const [turmasEbdSelecionadas, setTurmasEbdSelecionadas] = useState([])
 
   const [editando, setEditando] = useState(false)
   const [usuarioId, setUsuarioId] = useState(null)
@@ -128,6 +129,7 @@ export default function Usuarios({ user }) {
     setSenha("")
     setRole("")
     setTurmaEbd("")
+    setTurmasEbdSelecionadas([])
     setEditando(false)
     setUsuarioId(null)
   }
@@ -140,6 +142,65 @@ export default function Usuarios({ user }) {
     if (membroSelecionado) {
       setNome(membroSelecionado.nome)
     }
+  }
+
+  function alternarTurmaEbd(turmaId) {
+    setTurmasEbdSelecionadas((prev) => {
+      if (prev.includes(turmaId)) {
+        return prev.filter((id) => id !== turmaId)
+      }
+
+      return [...prev, turmaId]
+    })
+  }
+
+  function selecionarTodasTurmas() {
+    setTurmasEbdSelecionadas(turmas.map((turma) => turma.id))
+  }
+
+  function limparTurmasEbd() {
+    setTurmasEbdSelecionadas([])
+  }
+
+  function obterNomeTurmaPorId(id) {
+    return turmas.find((turma) => turma.id === id)?.nome || ""
+  }
+
+  function obterTurmasDoUsuario(usuario) {
+    if (Array.isArray(usuario?.turmas_ebd) && usuario.turmas_ebd.length > 0) {
+      return usuario.turmas_ebd
+        .map((id) => obterNomeTurmaPorId(id))
+        .filter(Boolean)
+    }
+
+    if (
+      usuario?.turma_ebd &&
+      usuario.turma_ebd !== "Não permitido" &&
+      usuario.turma_ebd !== "Superintendente"
+    ) {
+      return [usuario.turma_ebd]
+    }
+
+    if (usuario?.turma_ebd === "Superintendente") {
+      return ["Todas as turmas"]
+    }
+
+    return []
+  }
+
+  function obterPrimeiraTurmaTexto(ids) {
+    if (!ids || ids.length === 0) return "Não permitido"
+
+    const primeiraTurma = turmas.find((turma) => turma.id === ids[0])
+    return primeiraTurma?.nome || "Não permitido"
+  }
+
+  function usuarioTemAcessoTotalEBD(usuario) {
+    return (
+      usuario?.role === "Administrador" ||
+      usuario?.role === "Dirigente" ||
+      usuario?.turma_ebd === "Superintendente"
+    )
   }
 
   async function criarUsuario(e) {
@@ -155,10 +216,15 @@ export default function Usuarios({ user }) {
       return
     }
 
-    if (role === "EBD" && !turmaEbd) {
-      alert("Selecione a turma da EBD.")
+    if (role === "EBD" && turmasEbdSelecionadas.length === 0) {
+      alert("Selecione pelo menos uma turma da EBD.")
       return
     }
+
+    const turmaLegada =
+      role === "EBD"
+        ? obterPrimeiraTurmaTexto(turmasEbdSelecionadas)
+        : "Não permitido"
 
     const { error } = await supabase.from("users").insert([
       {
@@ -167,7 +233,8 @@ export default function Usuarios({ user }) {
         email,
         senha,
         role,
-        turma_ebd: turmaEbd || "Não permitido",
+        turma_ebd: turmaLegada,
+        turmas_ebd: role === "EBD" ? turmasEbdSelecionadas : [],
         primeiro_acesso: true,
       },
     ])
@@ -233,12 +300,28 @@ export default function Usuarios({ user }) {
       return
     }
 
+    let turmasDoUsuario = []
+
+    if (Array.isArray(u.turmas_ebd)) {
+      turmasDoUsuario = u.turmas_ebd
+    } else if (
+      u.turma_ebd &&
+      u.turma_ebd !== "Não permitido" &&
+      u.turma_ebd !== "Superintendente"
+    ) {
+      const turmaEncontrada = turmas.find((t) => t.nome === u.turma_ebd)
+      if (turmaEncontrada) {
+        turmasDoUsuario = [turmaEncontrada.id]
+      }
+    }
+
     setMembroId(u.membro_id || "")
     setNome(u.nome || "")
     setEmail(u.email || "")
     setSenha(u.senha || "")
     setRole(u.role || "")
     setTurmaEbd(u.turma_ebd || "")
+    setTurmasEbdSelecionadas(turmasDoUsuario)
     setUsuarioId(u.id)
     setEditando(true)
 
@@ -261,27 +344,46 @@ export default function Usuarios({ user }) {
       return
     }
 
-    if (role === "EBD" && !turmaEbd) {
-      alert("Selecione a turma da EBD.")
+    if (role === "EBD" && turmasEbdSelecionadas.length === 0) {
+      alert("Selecione pelo menos uma turma da EBD.")
       return
+    }
+
+    const turmaLegada =
+      role === "EBD"
+        ? obterPrimeiraTurmaTexto(turmasEbdSelecionadas)
+        : "Não permitido"
+
+    const dadosAtualizados = {
+      membro_id: membroId || null,
+      nome,
+      email,
+      senha,
+      role,
+      turma_ebd: turmaLegada,
+      turmas_ebd: role === "EBD" ? turmasEbdSelecionadas : [],
     }
 
     const { error } = await supabase
       .from("users")
-      .update({
-        membro_id: membroId || null,
-        nome,
-        email,
-        senha,
-        role,
-        turma_ebd: turmaEbd || "Não permitido",
-      })
+      .update(dadosAtualizados)
       .eq("id", usuarioId)
 
     if (error) {
       alert(error.message)
       console.log(error)
       return
+    }
+
+    const usuarioLogado = obterUsuarioLocalStorage()
+
+    if (usuarioLogado?.id === usuarioId) {
+      const usuarioAtualizado = {
+        ...usuarioLogado,
+        ...dadosAtualizados,
+      }
+
+      localStorage.setItem("user", JSON.stringify(usuarioAtualizado))
     }
 
     limparFormulario()
@@ -392,7 +494,7 @@ export default function Usuarios({ user }) {
 
             <p style={{ margin: 0, color: "#6b7280", fontSize: "14px" }}>
               {isAdmin
-                ? "Gerencie os usuários e departamentos do sistema."
+                ? "Gerencie os usuários, departamentos e permissões do sistema."
                 : "Visualize os usuários cadastrados no sistema."}
             </p>
           </div>
@@ -475,7 +577,14 @@ export default function Usuarios({ user }) {
 
                 <select
                   value={role}
-                  onChange={(e) => setRole(e.target.value)}
+                  onChange={(e) => {
+                    setRole(e.target.value)
+
+                    if (e.target.value !== "EBD") {
+                      setTurmasEbdSelecionadas([])
+                      setTurmaEbd("")
+                    }
+                  }}
                   style={{
                     width: "100%",
                     padding: "12px",
@@ -494,29 +603,155 @@ export default function Usuarios({ user }) {
                     </option>
                   ))}
                 </select>
+              </div>
 
-                <select
-                  value={turmaEbd}
-                  onChange={(e) => setTurmaEbd(e.target.value)}
+              {role === "EBD" && (
+                <div
                   style={{
-                    width: "100%",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    border: "1px solid #ddd",
-                    boxSizing: "border-box",
-                    fontSize: "14px",
-                    background: "white",
+                    marginTop: "18px",
+                    background: "#ffffff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "14px",
+                    padding: "18px",
                   }}
                 >
-                  <option value="">Selecione a permissão da EBD</option>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: "12px",
+                      flexWrap: "wrap",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    <div>
+                      <h4
+                        style={{
+                          margin: 0,
+                          fontSize: "16px",
+                          color: "#111827",
+                        }}
+                      >
+                        Turmas da EBD
+                      </h4>
 
-                  {turmas.map((t) => (
-                    <option key={t.id} value={t.nome}>
-                      {t.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                      <p
+                        style={{
+                          margin: "4px 0 0",
+                          fontSize: "13px",
+                          color: "#6b7280",
+                        }}
+                      >
+                        Selecione uma ou mais turmas que este usuário poderá
+                        acessar.
+                      </p>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "8px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={selecionarTodasTurmas}
+                        style={{
+                          padding: "8px 12px",
+                          border: "none",
+                          borderRadius: "8px",
+                          background: "#2563eb",
+                          color: "#ffffff",
+                          cursor: "pointer",
+                          fontWeight: "600",
+                        }}
+                      >
+                        Selecionar todas
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={limparTurmasEbd}
+                        style={{
+                          padding: "8px 12px",
+                          border: "none",
+                          borderRadius: "8px",
+                          background: "#e5e7eb",
+                          color: "#111827",
+                          cursor: "pointer",
+                          fontWeight: "600",
+                        }}
+                      >
+                        Limpar
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(180px, 1fr))",
+                      gap: "10px",
+                    }}
+                  >
+                    {turmas.map((turma) => {
+                      const selecionada = turmasEbdSelecionadas.includes(
+                        turma.id
+                      )
+
+                      return (
+                        <label
+                          key={turma.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            padding: "12px",
+                            borderRadius: "12px",
+                            border: selecionada
+                              ? "1px solid #2563eb"
+                              : "1px solid #e5e7eb",
+                            background: selecionada ? "#eff6ff" : "#f9fafb",
+                            cursor: "pointer",
+                            fontWeight: "600",
+                            color: selecionada ? "#1d4ed8" : "#374151",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selecionada}
+                            onChange={() => alternarTurmaEbd(turma.id)}
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              margin: 0,
+                            }}
+                          />
+
+                          {turma.nome}
+                        </label>
+                      )
+                    })}
+                  </div>
+
+                  {turmasEbdSelecionadas.length > 0 && (
+                    <p
+                      style={{
+                        margin: "14px 0 0",
+                        fontSize: "13px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      {turmasEbdSelecionadas.length} turma
+                      {turmasEbdSelecionadas.length !== 1 ? "s" : ""} selecionada
+                      {turmasEbdSelecionadas.length !== 1 ? "s" : ""}.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div
                 style={{
@@ -600,7 +835,7 @@ export default function Usuarios({ user }) {
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
-                minWidth: "850px",
+                minWidth: "950px",
               }}
             >
               <thead>
@@ -608,7 +843,7 @@ export default function Usuarios({ user }) {
                   <th style={thStyle}>Nome</th>
                   <th style={thStyle}>Email</th>
                   <th style={thStyle}>Departamento</th>
-                  <th style={thStyle}>Turma EBD</th>
+                  <th style={thStyle}>Turmas EBD</th>
 
                   {isAdmin && (
                     <th style={{ ...thStyle, width: "180px" }}>
@@ -636,6 +871,7 @@ export default function Usuarios({ user }) {
 
                 {usuarios.map((u, index) => {
                   const badge = corBadge(u.role)
+                  const turmasUsuario = obterTurmasDoUsuario(u)
 
                   return (
                     <tr
@@ -664,7 +900,35 @@ export default function Usuarios({ user }) {
                       </td>
 
                       <td style={tdStyle}>
-                        {u.turma_ebd || "Não permitido"}
+                        {turmasUsuario.length === 0 ? (
+                          <span style={{ color: "#9ca3af" }}>
+                            Não permitido
+                          </span>
+                        ) : (
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "6px",
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {turmasUsuario.map((nomeTurma) => (
+                              <span
+                                key={nomeTurma}
+                                style={{
+                                  background: "#eff6ff",
+                                  color: "#1d4ed8",
+                                  padding: "5px 9px",
+                                  borderRadius: "999px",
+                                  fontSize: "12px",
+                                  fontWeight: "700",
+                                }}
+                              >
+                                {nomeTurma}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </td>
 
                       {isAdmin && (
@@ -710,6 +974,7 @@ const tdStyle = {
   padding: "16px",
   borderBottom: "1px solid #f1f5f9",
   color: "#4b5563",
+  verticalAlign: "top",
 }
 
 const tdNomeStyle = {
@@ -717,6 +982,7 @@ const tdNomeStyle = {
   borderBottom: "1px solid #f1f5f9",
   fontWeight: "600",
   color: "#111827",
+  verticalAlign: "top",
 }
 
 const btnEditarStyle = {

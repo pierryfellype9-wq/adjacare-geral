@@ -13,38 +13,67 @@ export default function EBD({ user }) {
     usuario?.role === "Dirigente" ||
     usuario?.turma_ebd === "Superintendente"
 
-  const professor =
-    usuario?.turma_ebd &&
-    usuario?.turma_ebd !== "Superintendente" &&
-    usuario?.turma_ebd !== "Não permitido"
+  const turmasPermitidas = Array.isArray(usuario?.turmas_ebd)
+    ? usuario.turmas_ebd
+    : []
+
+  const temAcessoEBD =
+    podeVerTudo ||
+    turmasPermitidas.length > 0 ||
+    (usuario?.turma_ebd &&
+      usuario?.turma_ebd !== "Não permitido" &&
+      usuario?.turma_ebd !== "Superintendente")
+
+  function podeAcessarTurma(turmaId, nomeTurma) {
+    if (podeVerTudo) return true
+
+    if (turmasPermitidas.includes(turmaId)) return true
+
+    if (
+      usuario?.turma_ebd &&
+      usuario.turma_ebd !== "Não permitido" &&
+      usuario.turma_ebd === nomeTurma
+    ) {
+      return true
+    }
+
+    return false
+  }
 
   useEffect(() => {
     carregarAlertas()
   }, [])
 
   async function carregarAlertas() {
-    if (!podeVerTudo && !professor) {
+    if (!temAcessoEBD) {
       setAlertas([])
       return
     }
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("ebd_alunos")
       .select(`
         id,
         nome,
         turma_id,
-        ebd_turmas(nome),
+        ebd_turmas(id,nome),
         ebd_presencas(status)
       `)
+
+    if (error) {
+      console.log(error)
+      setAlertas([])
+      return
+    }
 
     const alunos = data || []
     const alertasTemp = []
 
     alunos.forEach((aluno) => {
-      if (!podeVerTudo && professor) {
-        if (aluno.ebd_turmas?.nome !== usuario.turma_ebd) return
-      }
+      const turmaId = aluno.ebd_turmas?.id || aluno.turma_id
+      const nomeTurma = aluno.ebd_turmas?.nome
+
+      if (!podeAcessarTurma(turmaId, nomeTurma)) return
 
       const presencas = aluno.ebd_presencas || []
       const presentes = presencas.filter((p) => p.status === "presente").length
@@ -55,13 +84,24 @@ export default function EBD({ user }) {
         alertasTemp.push({
           id: aluno.id,
           nome: aluno.nome,
-          turma: aluno.ebd_turmas?.nome || "Sem turma",
+          turma: nomeTurma || "Sem turma",
           frequencia,
         })
       }
     })
 
     setAlertas(alertasTemp)
+  }
+
+  if (!temAcessoEBD) {
+    return (
+      <div className="page">
+        <div className="form-card">
+          <h2>Acesso não permitido</h2>
+          <p>Você não possui permissão para acessar a área da EBD.</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -84,7 +124,10 @@ export default function EBD({ user }) {
 
       <div className="ebd-hero">
         <h1>Escola Bíblica Dominical</h1>
-        <p>Gerencie alunos, chamadas, trimestres, relatórios e financeiro em um só lugar.</p>
+        <p>
+          Gerencie alunos, chamadas, trimestres, relatórios e financeiro em um só
+          lugar.
+        </p>
       </div>
 
       <div className="ebd-cards">

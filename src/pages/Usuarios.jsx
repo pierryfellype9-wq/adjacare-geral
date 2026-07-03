@@ -234,7 +234,7 @@ export default function Usuarios({ user }) {
         senha,
         role,
         turma_ebd: turmaLegada,
-        turmas_ebd: role === "EBD" ? turmasEbdSelecionadas : [],
+        turmas_ebd: turmasEbdSelecionadas,
         primeiro_acesso: true,
       },
     ])
@@ -341,11 +341,6 @@ export default function Usuarios({ user }) {
 
     if (!nome || !email || !senha || !role) {
       alert("Preencha todos os campos.")
-      return
-    }
-
-    if (role === "EBD" && turmasEbdSelecionadas.length === 0) {
-      alert("Selecione pelo menos uma turma da EBD.")
       return
     }
 
@@ -605,7 +600,7 @@ export default function Usuarios({ user }) {
                 </select>
               </div>
 
-              {role === "EBD" && (
+              {role && (
                 <div
                   style={{
                     marginTop: "18px",

@@ -20,25 +20,36 @@ export default function EBDTrimestres({ user }) {
   const [revista, setRevista] = useState("")
   const [observacao, setObservacao] = useState("")
   const [status, setStatus] = useState("ativo")
+  const [editandoTrimestreId, setEditandoTrimestreId] = useState(null)
 
   const podeVerTudo =
     usuario?.role === "Administrador" ||
     usuario?.role === "Dirigente" ||
-    (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
+    usuario?.turma_ebd === "Superintendente"
 
-  const temAcessoEBD =
-    podeVerTudo ||
-    (usuario?.turma_ebd &&
-      usuario?.turma_ebd !== "Não permitido" &&
-      usuario?.turma_ebd !== "Superintendente")
+  const turmasPermitidas = Array.isArray(usuario?.turmas_ebd)
+    ? usuario.turmas_ebd
+    : []
+
+  const temAcessoEBD = podeVerTudo || turmasPermitidas.length > 0
+  const podeEscolherTurma = podeVerTudo || turmasPermitidas.length > 1
 
   useEffect(() => {
     if (temAcessoEBD) carregarTurmas()
   }, [])
 
   useEffect(() => {
-    if (turmaId) carregarTrimestres()
+    if (turmaId) {
+      carregarTrimestres()
+      setTrimestreAberto(null)
+      setLicoes([])
+    }
   }, [turmaId])
+
+  function usuarioPodeAcessarTurma(idTurma) {
+    if (podeVerTudo) return true
+    return turmasPermitidas.includes(idTurma)
+  }
 
   async function carregarTurmas() {
     const { data, error } = await supabase
@@ -52,17 +63,29 @@ export default function EBDTrimestres({ user }) {
       return
     }
 
-    setTurmas(data || [])
+    if (podeVerTudo) {
+      setTurmas(data || [])
+      return
+    }
 
-    if (!podeVerTudo && usuario?.turma_ebd) {
-      const turmaDoProfessor = data?.find((t) => t.nome === usuario.turma_ebd)
-      if (turmaDoProfessor) {
-        setTurmaId(turmaDoProfessor.id)
-      }
+    const minhasTurmas = (data || []).filter((turma) =>
+      turmasPermitidas.includes(turma.id)
+    )
+
+    setTurmas(minhasTurmas)
+
+    if (minhasTurmas.length === 1) {
+      setTurmaId(minhasTurmas[0].id)
     }
   }
 
   async function carregarTrimestres() {
+    if (!usuarioPodeAcessarTurma(turmaId)) {
+      alert("Você não possui acesso a essa turma.")
+      setTurmaId("")
+      return
+    }
+
     const { data, error } = await supabase
       .from("ebd_trimestres")
       .select("*")
@@ -87,12 +110,17 @@ export default function EBDTrimestres({ user }) {
       return
     }
 
+    if (!usuarioPodeAcessarTurma(turmaId)) {
+      alert("Você não possui acesso a essa turma.")
+      return
+    }
+
     if (!nome || !ano || !numero || !dataInicio || !dataFim) {
       alert("Preencha os campos obrigatórios.")
       return
     }
 
-    const { error } = await supabase.from("ebd_trimestres").insert({
+    const dados = {
       turma_id: turmaId,
       nome,
       ano: Number(ano),
@@ -102,16 +130,50 @@ export default function EBDTrimestres({ user }) {
       status,
       revista: revista || null,
       observacao: observacao || null,
-    })
+    }
+
+    let error
+
+    if (editandoTrimestreId) {
+      const resposta = await supabase
+        .from("ebd_trimestres")
+        .update(dados)
+        .eq("id", editandoTrimestreId)
+
+      error = resposta.error
+    } else {
+      const resposta = await supabase.from("ebd_trimestres").insert(dados)
+      error = resposta.error
+    }
 
     if (error) {
-      alert("Erro ao criar trimestre.")
+      alert(editandoTrimestreId ? "Erro ao editar trimestre." : "Erro ao criar trimestre.")
       console.log(error)
       return
     }
 
     limparFormulario()
     carregarTrimestres()
+  }
+
+  function iniciarEdicaoTrimestre(trimestre) {
+    if (!usuarioPodeAcessarTurma(trimestre.turma_id)) {
+      alert("Você não possui acesso a essa turma.")
+      return
+    }
+
+    setEditandoTrimestreId(trimestre.id)
+    setTurmaId(trimestre.turma_id)
+    setNome(trimestre.nome || "")
+    setAno(String(trimestre.ano || "2026"))
+    setNumero(String(trimestre.numero || "3"))
+    setDataInicio(trimestre.data_inicio || "")
+    setDataFim(trimestre.data_fim || "")
+    setRevista(trimestre.revista || "")
+    setObservacao(trimestre.observacao || "")
+    setStatus(trimestre.status || "ativo")
+
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   function limparFormulario() {
@@ -123,9 +185,15 @@ export default function EBDTrimestres({ user }) {
     setRevista("")
     setObservacao("")
     setStatus("ativo")
+    setEditandoTrimestreId(null)
   }
 
-  async function excluirTrimestre(id) {
+  async function excluirTrimestre(trimestre) {
+    if (!usuarioPodeAcessarTurma(trimestre.turma_id)) {
+      alert("Você não possui acesso a essa turma.")
+      return
+    }
+
     if (
       !confirm(
         "Deseja excluir este trimestre? As lições dele também serão removidas."
@@ -137,7 +205,7 @@ export default function EBDTrimestres({ user }) {
     const { error } = await supabase
       .from("ebd_trimestres")
       .delete()
-      .eq("id", id)
+      .eq("id", trimestre.id)
 
     if (error) {
       alert("Erro ao excluir trimestre.")
@@ -145,12 +213,19 @@ export default function EBDTrimestres({ user }) {
       return
     }
 
+    if (editandoTrimestreId === trimestre.id) limparFormulario()
+
     setTrimestreAberto(null)
     setLicoes([])
     carregarTrimestres()
   }
 
   async function abrirTrimestre(trimestre) {
+    if (!usuarioPodeAcessarTurma(trimestre.turma_id)) {
+      alert("Você não possui acesso a essa turma.")
+      return
+    }
+
     setTrimestreAberto(trimestre)
 
     const { data, error } = await supabase
@@ -176,6 +251,11 @@ export default function EBDTrimestres({ user }) {
   }
 
   async function gerarLicoesPadrao(trimestre) {
+    if (!usuarioPodeAcessarTurma(trimestre.turma_id)) {
+      alert("Você não possui acesso a essa turma.")
+      return
+    }
+
     const datas3Tri2026 = [
       "2026-07-05",
       "2026-07-12",
@@ -219,6 +299,11 @@ export default function EBDTrimestres({ user }) {
   }
 
   async function salvarLicao(licao) {
+    if (trimestreAberto && !usuarioPodeAcessarTurma(trimestreAberto.turma_id)) {
+      alert("Você não possui acesso a essa turma.")
+      return
+    }
+
     const { error } = await supabase
       .from("ebd_aulas")
       .update({
@@ -270,14 +355,14 @@ export default function EBDTrimestres({ user }) {
       <h1>Trimestres da EBD</h1>
 
       <div className="form-card">
-        <h2>Novo trimestre</h2>
+        <h2>{editandoTrimestreId ? "Editar trimestre" : "Novo trimestre"}</h2>
 
         <form onSubmit={salvarTrimestre}>
           <label>Turma</label>
           <select
             value={turmaId}
             onChange={(e) => setTurmaId(e.target.value)}
-            disabled={!podeVerTudo}
+            disabled={!podeEscolherTurma || !!editandoTrimestreId}
           >
             <option value="">Selecione</option>
             {turmas.map((turma) => (
@@ -286,6 +371,20 @@ export default function EBDTrimestres({ user }) {
               </option>
             ))}
           </select>
+
+          {!podeVerTudo && (
+            <small
+              style={{
+                color: "#6b7280",
+                display: "block",
+                marginTop: 6,
+                marginBottom: 10,
+              }}
+            >
+              Você possui acesso a {turmasPermitidas.length} turma
+              {turmasPermitidas.length > 1 ? "s" : ""}.
+            </small>
+          )}
 
           <label>Nome do trimestre</label>
           <input
@@ -343,7 +442,19 @@ export default function EBDTrimestres({ user }) {
             placeholder="Observações internas"
           />
 
-          <button>Criar trimestre</button>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button>{editandoTrimestreId ? "Salvar alterações" : "Criar trimestre"}</button>
+
+            {editandoTrimestreId && (
+              <button
+                type="button"
+                onClick={limparFormulario}
+                style={{ background: "#6b7280" }}
+              >
+                Cancelar edição
+              </button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -379,7 +490,21 @@ export default function EBDTrimestres({ user }) {
           </span>
         </div>
 
-        {trimestres.length === 0 && (
+        {!turmaId && (
+          <div
+            style={{
+              background: "#f8fafc",
+              border: "1px dashed #cbd5e1",
+              borderRadius: "16px",
+              padding: "24px",
+              color: "#64748b",
+            }}
+          >
+            Selecione uma turma para visualizar os trimestres.
+          </div>
+        )}
+
+        {turmaId && trimestres.length === 0 && (
           <div
             style={{
               background: "#f8fafc",
@@ -476,7 +601,15 @@ export default function EBDTrimestres({ user }) {
 
                 <button
                   type="button"
-                  onClick={() => excluirTrimestre(tri.id)}
+                  onClick={() => iniciarEdicaoTrimestre(tri)}
+                  style={{ background: "#2563eb" }}
+                >
+                  Editar
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => excluirTrimestre(tri)}
                   style={{ background: "#ef4444" }}
                 >
                   Excluir

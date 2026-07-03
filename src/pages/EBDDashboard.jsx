@@ -16,9 +16,16 @@ export default function EBDDashboard({ user }) {
   const [alertas, setAlertas] = useState([])
   const [carregando, setCarregando] = useState(true)
 
-  const temAcessoEBD =
-    usuario?.turma_ebd &&
-    usuario?.turma_ebd !== "Não permitido"
+  const podeVerTudoEBD =
+    usuario?.role === "Administrador" ||
+    usuario?.role === "Dirigente" ||
+    usuario?.turma_ebd === "Superintendente"
+
+  const turmasPermitidas = Array.isArray(usuario?.turmas_ebd)
+    ? usuario.turmas_ebd
+    : []
+
+  const temAcessoEBD = podeVerTudoEBD || turmasPermitidas.length > 0
 
   useEffect(() => {
     if (temAcessoEBD) {
@@ -31,9 +38,31 @@ export default function EBDDashboard({ user }) {
   async function carregarDashboard() {
     setCarregando(true)
 
-    const { data: alunosData } = await supabase
+    let query = supabase
       .from("ebd_alunos")
-      .select("id, nome, ebd_turmas(nome), ebd_presencas(status, ebd_aulas(data))")
+      .select(`
+        id,
+        nome,
+        turma_id,
+        ebd_turmas(nome),
+        ebd_presencas(
+          status,
+          ebd_aulas(data)
+        )
+      `)
+
+    if (!podeVerTudoEBD) {
+      query = query.in("turma_id", turmasPermitidas)
+    }
+
+    const { data: alunosData, error } = await query
+
+    if (error) {
+      console.error(error)
+      alert("Erro ao carregar dashboard.")
+      setCarregando(false)
+      return
+    }
 
     const alunos = alunosData || []
     setTotalAlunos(alunos.length)
@@ -49,8 +78,14 @@ export default function EBDDashboard({ user }) {
     alunos.forEach((aluno) => {
       const presencas = aluno.ebd_presencas || []
 
-      const presentesAluno = presencas.filter((p) => p.status === "presente").length
-      const faltasAluno = presencas.filter((p) => p.status === "falta").length
+      const presentesAluno = presencas.filter(
+        (p) => p.status === "presente"
+      ).length
+
+      const faltasAluno = presencas.filter(
+        (p) => p.status === "falta"
+      ).length
+
       const totalAluno = presencas.length
 
       const frequencia =
@@ -88,8 +123,11 @@ export default function EBDDashboard({ user }) {
 
     setPresentesHoje(presentes)
     setFaltasHoje(faltas)
+
     setMediaGeral(
-      totalChamadas > 0 ? Math.round((totalPresencas / totalChamadas) * 100) : 0
+      totalChamadas > 0
+        ? Math.round((totalPresencas / totalChamadas) * 100)
+        : 0
     )
 
     setRanking(
@@ -99,11 +137,7 @@ export default function EBDDashboard({ user }) {
         .slice(0, 10)
     )
 
-    setAlertas(
-      alertasTemp
-        .sort((a, b) => b.faltas - a.faltas)
-        .slice(0, 10)
-    )
+    setAlertas(alertasTemp.sort((a, b) => b.faltas - a.faltas).slice(0, 10))
 
     setCarregando(false)
   }
@@ -133,6 +167,19 @@ export default function EBDDashboard({ user }) {
         <div>
           <h1>Dashboard da EBD</h1>
           <p>Resumo geral de alunos, chamadas e frequência.</p>
+
+          {!podeVerTudoEBD && (
+            <p
+              style={{
+                marginTop: 4,
+                color: "#6b7280",
+                fontSize: 14,
+              }}
+            >
+              Visualizando {turmasPermitidas.length} turma
+              {turmasPermitidas.length > 1 ? "s" : ""}.
+            </p>
+          )}
         </div>
       </div>
 
@@ -194,7 +241,9 @@ export default function EBDDashboard({ user }) {
               {ranking.map((aluno, index) => (
                 <div className="ebd-ranking-item" key={aluno.id}>
                   <div>
-                    <strong>{index + 1}. {aluno.nome}</strong>
+                    <strong>
+                      {index + 1}. {aluno.nome}
+                    </strong>
                     <p>{aluno.turma}</p>
                   </div>
 

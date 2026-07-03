@@ -8,10 +8,6 @@ export default function EBDRelatorios({ user }) {
   const navigate = useNavigate()
   const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")
 
-  const temAcessoEBD =
-    usuario?.turma_ebd &&
-    usuario?.turma_ebd !== "Não permitido"
-
   const [dados, setDados] = useState([])
   const [turmas, setTurmas] = useState([])
   const [turmaFiltro, setTurmaFiltro] = useState("")
@@ -19,12 +15,15 @@ export default function EBDRelatorios({ user }) {
   const podeVerTudoEBD =
     usuario?.role === "Administrador" ||
     usuario?.role === "Dirigente" ||
-    (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
+    usuario?.turma_ebd === "Superintendente"
 
-  const professorEBD =
-    usuario?.turma_ebd &&
-    usuario?.turma_ebd !== "Superintendente" &&
-    usuario?.turma_ebd !== "Não permitido"
+  const turmasPermitidas = Array.isArray(usuario?.turmas_ebd)
+    ? usuario.turmas_ebd
+    : []
+
+  const professorEBD = !podeVerTudoEBD && turmasPermitidas.length > 0
+
+  const temAcessoEBD = podeVerTudoEBD || professorEBD
 
   useEffect(() => {
     if (temAcessoEBD) {
@@ -39,16 +38,30 @@ export default function EBDRelatorios({ user }) {
   }, [turmaFiltro, turmas])
 
   async function carregarTurmas() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("ebd_turmas")
       .select("*")
       .order("idade_min", { ascending: true })
 
-    setTurmas(data || [])
+    if (error) {
+      console.error(error)
+      alert("Erro ao carregar turmas.")
+      return
+    }
 
-    if (professorEBD && usuario?.turma_ebd) {
-      const turmaDoUsuario = data?.find((t) => t.nome === usuario.turma_ebd)
-      if (turmaDoUsuario) setTurmaFiltro(turmaDoUsuario.id)
+    if (podeVerTudoEBD) {
+      setTurmas(data || [])
+      return
+    }
+
+    const minhasTurmas = (data || []).filter((turma) =>
+      turmasPermitidas.includes(turma.id)
+    )
+
+    setTurmas(minhasTurmas)
+
+    if (minhasTurmas.length === 1) {
+      setTurmaFiltro(minhasTurmas[0].id)
     }
   }
 
@@ -64,36 +77,60 @@ export default function EBDRelatorios({ user }) {
       `)
       .order("nome", { ascending: true })
 
-    if (professorEBD) {
-      const turmaDoProfessor = turmas.find((t) => t.nome === usuario.turma_ebd)
-      if (turmaDoProfessor) {
-        query = query.eq("turma_id", turmaDoProfessor.id)
+    if (podeVerTudoEBD) {
+      if (turmaFiltro) {
+        query = query.eq("turma_id", turmaFiltro)
       }
-    } else if (turmaFiltro) {
-      query = query.eq("turma_id", turmaFiltro)
+    } else {
+      if (turmaFiltro) {
+        if (!turmasPermitidas.includes(turmaFiltro)) {
+          alert("Você não possui acesso a essa turma.")
+          setDados([])
+          return
+        }
+
+        query = query.eq("turma_id", turmaFiltro)
+      } else {
+        query = query.in("turma_id", turmasPermitidas)
+      }
     }
 
     const { data, error } = await query
 
     if (error) {
       console.error(error)
+      alert("Erro ao carregar relatório.")
       return
     }
 
-    const formatado = data.map((aluno) => {
+    const formatado = (data || []).map((aluno) => {
       const presencas = aluno.ebd_presencas || []
 
-      const presentes = presencas.filter((p) => p.status === "presente").length
+      const presentes = presencas.filter(
+        (p) => p.status === "presente"
+      ).length
+
+      const atrasados = presencas.filter(
+        (p) => p.status === "atrasado"
+      ).length
+
       const faltas = presencas.filter((p) => p.status === "falta").length
-      const justificadas = presencas.filter((p) => p.status === "justificado").length
+
+      const justificadas = presencas.filter(
+        (p) => p.status === "justificado"
+      ).length
+
       const total = presencas.length
-      const frequencia = total > 0 ? Math.round((presentes / total) * 100) : 0
+
+      const frequencia =
+        total > 0 ? Math.round(((presentes + atrasados) / total) * 100) : 0
 
       return {
         id: aluno.id,
         nome: aluno.nome,
         turma: aluno.ebd_turmas?.nome || "Sem turma",
         presentes,
+        atrasados,
         faltas,
         justificadas,
         total,
@@ -102,6 +139,18 @@ export default function EBDRelatorios({ user }) {
     })
 
     setDados(formatado)
+  }
+
+  function nomeTurmaSelecionada() {
+    if (turmaFiltro) {
+      return turmas.find((t) => String(t.id) === String(turmaFiltro))?.nome
+    }
+
+    if (podeVerTudoEBD) return "Todas as turmas"
+
+    if (turmas.length === 1) return turmas[0].nome
+
+    return `${turmasPermitidas.length} turmas autorizadas`
   }
 
   function exportarPDF(tipo) {
@@ -128,36 +177,34 @@ export default function EBDRelatorios({ user }) {
       nomeArquivo = "relatorio-trimestral-ebd.pdf"
     }
 
-    const turmaSelecionada = turmaFiltro
-      ? turmas.find((t) => String(t.id) === String(turmaFiltro))?.nome
-      : professorEBD
-      ? usuario.turma_ebd
-      : "Todas as turmas"
-
     doc.setFontSize(16)
     doc.text(titulo, 14, 18)
 
     doc.setFontSize(10)
     doc.text(`Período: ${periodo}`, 14, 27)
-    doc.text(`Turma: ${turmaSelecionada || "Todas as turmas"}`, 14, 34)
+    doc.text(`Turma: ${nomeTurmaSelecionada() || "Todas as turmas"}`, 14, 34)
     doc.text(`Gerado por: ${usuario?.nome || "Não identificado"}`, 14, 41)
     doc.text(`Data de emissão: ${hoje.toLocaleDateString("pt-BR")}`, 14, 48)
 
     autoTable(doc, {
       startY: 56,
-      head: [[
-        "Aluno",
-        "Turma",
-        "Presentes",
-        "Faltas",
-        "Justificadas",
-        "Total",
-        "Frequência"
-      ]],
+      head: [
+        [
+          "Aluno",
+          "Turma",
+          "Presentes",
+          "Atrasos",
+          "Faltas",
+          "Justificadas",
+          "Total",
+          "Frequência",
+        ],
+      ],
       body: dados.map((item) => [
         item.nome,
         item.turma,
         item.presentes,
+        item.atrasados,
         item.faltas,
         item.justificadas,
         item.total,
@@ -203,10 +250,10 @@ export default function EBDRelatorios({ user }) {
         <select
           value={turmaFiltro}
           onChange={(e) => setTurmaFiltro(e.target.value)}
-          disabled={!podeVerTudoEBD}
+          disabled={!podeVerTudoEBD && turmas.length <= 1}
         >
           <option value="">
-            {podeVerTudoEBD ? "Todas as turmas" : usuario?.turma_ebd}
+            {podeVerTudoEBD ? "Todas as turmas" : "Todas as minhas turmas"}
           </option>
 
           {turmas.map((turma) => (
@@ -215,6 +262,13 @@ export default function EBDRelatorios({ user }) {
             </option>
           ))}
         </select>
+
+        {!podeVerTudoEBD && (
+          <p style={{ color: "#6b7280", fontSize: 14, marginTop: 8 }}>
+            Você possui acesso a {turmasPermitidas.length} turma
+            {turmasPermitidas.length > 1 ? "s" : ""}.
+          </p>
+        )}
 
         <div className="form-actions">
           <button
@@ -240,7 +294,7 @@ export default function EBDRelatorios({ user }) {
       <div className="list-card">
         <h2>
           Frequência dos alunos
-          {professorEBD && ` — ${usuario.turma_ebd}`}
+          {!podeVerTudoEBD && ` — ${nomeTurmaSelecionada()}`}
         </h2>
 
         {dados.length === 0 && <p>Nenhum dado encontrado.</p>}
@@ -254,12 +308,11 @@ export default function EBDRelatorios({ user }) {
                   <span className="badge-turma">{item.turma}</span>
                 </div>
 
-                <div className="frequencia">
-                  {item.frequencia}%
-                </div>
+                <div className="frequencia">{item.frequencia}%</div>
               </div>
 
               <p>Presentes: {item.presentes}</p>
+              <p>Atrasos: {item.atrasados}</p>
               <p>Faltas: {item.faltas}</p>
               <p>Justificadas: {item.justificadas}</p>
               <p>Total de chamadas: {item.total}</p>

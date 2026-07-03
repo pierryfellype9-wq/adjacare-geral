@@ -16,19 +16,18 @@ export default function EBDFinanceiro({ user }) {
   const [observacao, setObservacao] = useState("")
   const [carregando, setCarregando] = useState(false)
 
-  const temAcessoEBD =
-    usuario?.turma_ebd &&
-    usuario?.turma_ebd !== "Não permitido"
-
   const podeVerTudoEBD =
     usuario?.role === "Administrador" ||
     usuario?.role === "Dirigente" ||
     usuario?.turma_ebd === "Superintendente"
 
-  const professorEBD =
-    usuario?.turma_ebd &&
-    usuario?.turma_ebd !== "Superintendente" &&
-    usuario?.turma_ebd !== "Não permitido"
+  const turmasPermitidas = Array.isArray(usuario?.turmas_ebd)
+    ? usuario.turmas_ebd
+    : []
+
+  const professorEBD = !podeVerTudoEBD && turmasPermitidas.length > 0
+
+  const temAcessoEBD = podeVerTudoEBD || professorEBD
 
   useEffect(() => {
     if (temAcessoEBD) carregarDados()
@@ -40,19 +39,17 @@ export default function EBDFinanceiro({ user }) {
       .select("id, nome, turma_id, ebd_turmas(nome)")
       .order("nome", { ascending: true })
 
-    if (!podeVerTudoEBD && professorEBD) {
-      const { data: turmasData } = await supabase
-        .from("ebd_turmas")
-        .select("*")
-        .eq("nome", usuario.turma_ebd)
-        .maybeSingle()
-
-      if (turmasData) {
-        alunosQuery = alunosQuery.eq("turma_id", turmasData.id)
-      }
+    if (!podeVerTudoEBD) {
+      alunosQuery = alunosQuery.in("turma_id", turmasPermitidas)
     }
 
-    const { data: alunosData } = await alunosQuery
+    const { data: alunosData, error: erroAlunos } = await alunosQuery
+
+    if (erroAlunos) {
+      console.error(erroAlunos)
+      alert("Erro ao carregar alunos.")
+      return
+    }
 
     setAlunos(alunosData || [])
 
@@ -62,15 +59,26 @@ export default function EBDFinanceiro({ user }) {
       .from("ebd_financeiro")
       .select(`
         *,
-        ebd_alunos(nome, ebd_turmas(nome))
+        ebd_alunos(nome, turma_id, ebd_turmas(nome))
       `)
       .order("criado_em", { ascending: false })
 
-    if (!podeVerTudoEBD && professorEBD && idsAlunosPermitidos.length > 0) {
+    if (!podeVerTudoEBD) {
+      if (idsAlunosPermitidos.length === 0) {
+        setRegistros([])
+        return
+      }
+
       financeiroQuery = financeiroQuery.in("aluno_id", idsAlunosPermitidos)
     }
 
-    const { data: registrosData } = await financeiroQuery
+    const { data: registrosData, error: erroRegistros } = await financeiroQuery
+
+    if (erroRegistros) {
+      console.error(erroRegistros)
+      alert("Erro ao carregar lançamentos.")
+      return
+    }
 
     setRegistros(registrosData || [])
   }
@@ -80,6 +88,17 @@ export default function EBDFinanceiro({ user }) {
 
     if (!alunoId || !descricao || !valor) {
       alert("Preencha aluno, descrição e valor.")
+      return
+    }
+
+    const alunoSelecionado = alunos.find((a) => a.id === alunoId)
+
+    if (
+      !podeVerTudoEBD &&
+      alunoSelecionado &&
+      !turmasPermitidas.includes(alunoSelecionado.turma_id)
+    ) {
+      alert("Você não possui acesso a esse aluno.")
       return
     }
 
@@ -113,6 +132,17 @@ export default function EBDFinanceiro({ user }) {
   }
 
   async function marcarComoPago(id) {
+    const item = registros.find((registro) => registro.id === id)
+
+    if (
+      !podeVerTudoEBD &&
+      item?.ebd_alunos?.turma_id &&
+      !turmasPermitidas.includes(item.ebd_alunos.turma_id)
+    ) {
+      alert("Você não possui acesso a esse lançamento.")
+      return
+    }
+
     const { error } = await supabase
       .from("ebd_financeiro")
       .update({
@@ -131,6 +161,17 @@ export default function EBDFinanceiro({ user }) {
   }
 
   async function marcarComoPendente(id) {
+    const item = registros.find((registro) => registro.id === id)
+
+    if (
+      !podeVerTudoEBD &&
+      item?.ebd_alunos?.turma_id &&
+      !turmasPermitidas.includes(item.ebd_alunos.turma_id)
+    ) {
+      alert("Você não possui acesso a esse lançamento.")
+      return
+    }
+
     const { error } = await supabase
       .from("ebd_financeiro")
       .update({
@@ -151,6 +192,17 @@ export default function EBDFinanceiro({ user }) {
   async function excluirLancamento(id) {
     const confirmar = confirm("Deseja excluir este lançamento?")
     if (!confirmar) return
+
+    const item = registros.find((registro) => registro.id === id)
+
+    if (
+      !podeVerTudoEBD &&
+      item?.ebd_alunos?.turma_id &&
+      !turmasPermitidas.includes(item.ebd_alunos.turma_id)
+    ) {
+      alert("Você não possui acesso a esse lançamento.")
+      return
+    }
 
     const { error } = await supabase
       .from("ebd_financeiro")
@@ -214,6 +266,19 @@ export default function EBDFinanceiro({ user }) {
         <div>
           <h1>Financeiro da EBD</h1>
           <p>Controle de revistas, pagamentos e pendências dos alunos.</p>
+
+          {!podeVerTudoEBD && (
+            <p
+              style={{
+                marginTop: 4,
+                color: "#6b7280",
+                fontSize: 14,
+              }}
+            >
+              Você possui acesso a {turmasPermitidas.length} turma
+              {turmasPermitidas.length > 1 ? "s" : ""}.
+            </p>
+          )}
         </div>
       </div>
 
@@ -289,7 +354,9 @@ export default function EBDFinanceiro({ user }) {
         <div className="list-header">
           <div>
             <h2>Lançamentos</h2>
-            <p>{registros.length} registro{registros.length !== 1 ? "s" : ""}</p>
+            <p>
+              {registros.length} registro{registros.length !== 1 ? "s" : ""}
+            </p>
           </div>
         </div>
 
@@ -315,19 +382,30 @@ export default function EBDFinanceiro({ user }) {
                 </div>
 
                 <div className="aluno-info">
-                  <p><strong>Descrição:</strong> {item.descricao}</p>
-                  <p><strong>Valor:</strong> R$ {Number(item.valor || 0).toFixed(2)}</p>
+                  <p>
+                    <strong>Descrição:</strong> {item.descricao}
+                  </p>
+                  <p>
+                    <strong>Valor:</strong> R${" "}
+                    {Number(item.valor || 0).toFixed(2)}
+                  </p>
 
                   {item.data_vencimento && (
-                    <p><strong>Vencimento:</strong> {item.data_vencimento}</p>
+                    <p>
+                      <strong>Vencimento:</strong> {item.data_vencimento}
+                    </p>
                   )}
 
                   {item.data_pagamento && (
-                    <p><strong>Pagamento:</strong> {item.data_pagamento}</p>
+                    <p>
+                      <strong>Pagamento:</strong> {item.data_pagamento}
+                    </p>
                   )}
 
                   {item.observacao && (
-                    <p><strong>Obs.:</strong> {item.observacao}</p>
+                    <p>
+                      <strong>Obs.:</strong> {item.observacao}
+                    </p>
                   )}
                 </div>
 

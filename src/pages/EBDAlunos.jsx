@@ -40,10 +40,13 @@ export default function EBDAlunos({ user }) {
   usuario?.role === "Dirigente" ||
   usuario?.turma_ebd === "Superintendente"
 
-  const professorEBD =
-    usuario?.turma_ebd &&
-    usuario?.turma_ebd !== "Superintendente" &&
-    usuario?.turma_ebd !== "Não permitido"
+  const turmasPermitidas = Array.isArray(usuario?.turmas_ebd)
+  ? usuario.turmas_ebd
+  : []
+
+const professorEBD =
+  !podeVerTudoEBD &&
+  turmasPermitidas.length > 0
 
   useEffect(() => {
     if (temAcessoEBD) {
@@ -65,14 +68,8 @@ export default function EBDAlunos({ user }) {
       .order("nome", { ascending: true })
 
     if (professorEBD) {
-      const turmaProfessor = turmasData?.find(
-        (t) => t.nome === usuario.turma_ebd
-      )
-
-      if (turmaProfessor) {
-        query = query.eq("turma_id", turmaProfessor.id)
-      }
-    }
+  query = query.in("turma_id", turmasPermitidas)
+}
 
     const { data: alunosData, error } = await query
 
@@ -287,10 +284,14 @@ const alunosFiltrados = alunosDaAba.filter((aluno) =>
       }
     }
 
-    if (professorEBD && turmaFinal && turmaFinal.nome !== usuario.turma_ebd) {
-      alert("Você só pode cadastrar ou editar alunos da sua turma.")
-      return
-    }
+    if (
+  professorEBD &&
+  turmaFinal &&
+  !turmasPermitidas.includes(turmaFinal.id)
+) {
+  alert("Você não possui acesso a essa turma.")
+  return
+}
 
     setCarregando(true)
 
@@ -656,7 +657,11 @@ if (!resposta.data || resposta.data.length === 0) {
           <div>
             <h2>
               Alunos cadastrados
-              {professorEBD && ` — ${usuario.turma_ebd}`}
+              {professorEBD &&
+  ` — ${turmasPermitidas.length} turma${
+    turmasPermitidas.length > 1 ? "s" : ""
+  }`}
+              
             </h2>
 
             <p>

@@ -222,10 +222,10 @@ export default function Usuarios({ user }) {
     }
 
     const turmaLegada =
-      role === "EBD"
-        ? obterPrimeiraTurmaTexto(turmasEbdSelecionadas)
-        : "Não permitido"
-
+  turmasEbdSelecionadas.length > 0
+    ? obterPrimeiraTurmaTexto(turmasEbdSelecionadas)
+    : "Não permitido"
+    
     const { error } = await supabase.from("users").insert([
       {
         membro_id: membroId || null,
@@ -356,7 +356,7 @@ export default function Usuarios({ user }) {
       senha,
       role,
       turma_ebd: turmaLegada,
-      turmas_ebd: role === "EBD" ? turmasEbdSelecionadas : [],
+turmas_ebd: turmasEbdSelecionadas,
     }
 
     const { error } = await supabase

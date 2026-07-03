@@ -11,13 +11,15 @@ export default function EBDChamada({ user }) {
     usuario?.role === "Dirigente" ||
     (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
 
-  const professorEBD =
-    usuario?.turma_ebd &&
-    usuario?.turma_ebd !== "Superintendente" &&
-    usuario?.turma_ebd !== "Não permitido"
+  const turmasPermitidas = Array.isArray(usuario?.turmas_ebd)
+    ? usuario.turmas_ebd
+    : []
+
+  const professorEBD = !podeVerTudoEBD && turmasPermitidas.length > 0
 
   const temAcessoEBD = podeVerTudoEBD || professorEBD
-  const podeEscolherTurma = podeVerTudoEBD
+
+  const podeEscolherTurma = podeVerTudoEBD || turmasPermitidas.length > 1
 
   const [turmas, setTurmas] = useState([])
   const [turmaSelecionada, setTurmaSelecionada] = useState("")
@@ -73,6 +75,11 @@ export default function EBDChamada({ user }) {
     setChamadaExistente(false)
   }
 
+  function usuarioPodeAcessarTurma(turmaId) {
+    if (podeVerTudoEBD) return true
+    return turmasPermitidas.includes(turmaId)
+  }
+
   async function carregarTurmas() {
     const { data, error } = await supabase
       .from("ebd_turmas")
@@ -85,15 +92,29 @@ export default function EBDChamada({ user }) {
       return
     }
 
-    setTurmas(data || [])
+    if (podeVerTudoEBD) {
+      setTurmas(data || [])
+      return
+    }
 
-    if (professorEBD && usuario?.turma_ebd) {
-      const turmaDoUsuario = data?.find((t) => t.nome === usuario.turma_ebd)
-      if (turmaDoUsuario) setTurmaSelecionada(turmaDoUsuario.id)
+    const minhasTurmas = (data || []).filter((turma) =>
+      turmasPermitidas.includes(turma.id)
+    )
+
+    setTurmas(minhasTurmas)
+
+    if (minhasTurmas.length === 1) {
+      setTurmaSelecionada(minhasTurmas[0].id)
     }
   }
 
   async function carregarTrimestres() {
+    if (!usuarioPodeAcessarTurma(turmaSelecionada)) {
+      alert("Você não possui acesso a essa turma.")
+      setTurmaSelecionada("")
+      return
+    }
+
     const { data, error } = await supabase
       .from("ebd_trimestres")
       .select("*")
@@ -110,7 +131,9 @@ export default function EBDChamada({ user }) {
     setTrimestres(data || [])
 
     const trimestreAtivo = data?.find((t) => t.status === "ativo")
-    if (trimestreAtivo) setTrimestreSelecionado(trimestreAtivo.id)
+    if (trimestreAtivo) {
+      setTrimestreSelecionado(trimestreAtivo.id)
+    }
   }
 
   async function carregarLicoes() {
@@ -129,17 +152,21 @@ export default function EBDChamada({ user }) {
     setLicoes(data || [])
 
     const hoje = new Date().toISOString().split("T")[0]
-const licaoHoje = data?.find((l) => l.data === hoje)
+    const licaoHoje = data?.find((l) => l.data === hoje)
 
-if (licaoHoje) {
-  setLicaoSelecionada(licaoHoje.id)
-} else if (data && data.length > 0) {
-  setLicaoSelecionada(data[0].id)
-}
-
+    if (licaoHoje) {
+      setLicaoSelecionada(licaoHoje.id)
+    } else if (data && data.length > 0) {
+      setLicaoSelecionada(data[0].id)
+    }
   }
-    
+
   async function carregarAlunosEChamada() {
+    if (!usuarioPodeAcessarTurma(turmaSelecionada)) {
+      alert("Você não possui acesso a essa turma.")
+      return
+    }
+
     const { data: alunosData, error: erroAlunos } = await supabase
       .from("ebd_alunos")
       .select("*")
@@ -209,6 +236,11 @@ if (licaoHoje) {
   function alterarPresenca(alunoId, status) {
     if (!temAcessoEBD) return
 
+    if (!usuarioPodeAcessarTurma(turmaSelecionada)) {
+      alert("Você não possui acesso a essa turma.")
+      return
+    }
+
     setPresencas((prev) => ({
       ...prev,
       [alunoId]: status,
@@ -218,6 +250,11 @@ if (licaoHoje) {
   function adicionarVisitante() {
     if (!licaoSelecionada) {
       alert("Selecione uma lição antes de adicionar visitantes.")
+      return
+    }
+
+    if (!usuarioPodeAcessarTurma(turmaSelecionada)) {
+      alert("Você não possui acesso a essa turma.")
       return
     }
 
@@ -331,6 +368,11 @@ if (licaoHoje) {
 
     if (!turmaSelecionada) {
       alert("Selecione uma turma.")
+      return
+    }
+
+    if (!usuarioPodeAcessarTurma(turmaSelecionada)) {
+      alert("Você não possui acesso a essa turma.")
       return
     }
 
@@ -473,6 +515,20 @@ if (licaoHoje) {
             </option>
           ))}
         </select>
+
+        {!podeVerTudoEBD && (
+          <small
+            style={{
+              color: "#6b7280",
+              display: "block",
+              marginTop: 6,
+              marginBottom: 10,
+            }}
+          >
+            Você possui acesso a {turmasPermitidas.length} turma
+            {turmasPermitidas.length > 1 ? "s" : ""}.
+          </small>
+        )}
 
         <label>Trimestre</label>
         <select

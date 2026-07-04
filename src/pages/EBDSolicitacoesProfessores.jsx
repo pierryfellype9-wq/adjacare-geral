@@ -36,6 +36,18 @@ export default function EBDSolicitacoesProfessores() {
     setCarregando(false)
   }
 
+  async function copiarLinkCadastro() {
+    const link = `${window.location.origin}/cadastro-professor`
+
+    try {
+      await navigator.clipboard.writeText(link)
+      alert("Link de cadastro copiado!")
+    } catch (error) {
+      console.error(error)
+      prompt("Copie o link de cadastro:", link)
+    }
+  }
+
   function nomeTurma(id) {
     return turmas.find((t) => t.id === id)?.nome || "Turma não encontrada"
   }
@@ -89,19 +101,27 @@ export default function EBDSolicitacoesProfessores() {
             </p>
           </div>
 
-          <span
-            style={{
-              background: "#eff6ff",
-              color: "#1d4ed8",
-              padding: "8px 14px",
-              borderRadius: "999px",
-              fontSize: "13px",
-              fontWeight: "700",
-            }}
-          >
-            {solicitacoes.length} solicitação
-            {solicitacoes.length !== 1 ? "es" : ""}
-          </span>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <button onClick={copiarLinkCadastro} style={btnCopiar}>
+              Copiar link de cadastro
+            </button>
+
+            <span
+              style={{
+                background: "#eff6ff",
+                color: "#1d4ed8",
+                padding: "8px 14px",
+                borderRadius: "999px",
+                fontSize: "13px",
+                fontWeight: "700",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {solicitacoes.length} solicitação
+              {solicitacoes.length !== 1 ? "es" : ""}
+            </span>
+          </div>
         </div>
 
         {carregando ? (
@@ -226,6 +246,16 @@ export default function EBDSolicitacoesProfessores() {
       </div>
     </div>
   )
+}
+
+const btnCopiar = {
+  padding: "9px 13px",
+  border: "none",
+  borderRadius: "10px",
+  background: "#16a34a",
+  color: "#ffffff",
+  cursor: "pointer",
+  fontWeight: "700",
 }
 
 const btnVisualizar = {

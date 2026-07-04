@@ -4,8 +4,6 @@ import { supabase } from "../lib/supabase"
 export default function CadastroProfessorPublico() {
   const [turmas, setTurmas] = useState([])
   const [carregando, setCarregando] = useState(true)
-  const [tokenValido, setTokenValido] = useState(false)
-  const [mensagemErro, setMensagemErro] = useState("")
   const [enviando, setEnviando] = useState(false)
   const [sucesso, setSucesso] = useState(false)
 
@@ -19,49 +17,12 @@ export default function CadastroProfessorPublico() {
   })
 
   useEffect(() => {
-    iniciarPagina()
+    carregarTurmas()
   }, [])
 
-  async function iniciarPagina() {
+  async function carregarTurmas() {
     setCarregando(true)
 
-    const params = new URLSearchParams(window.location.search)
-    const token = params.get("token")
-
-    if (!token) {
-      setMensagemErro("Link de cadastro inválido. Solicite um novo link à administração da EBD.")
-      setTokenValido(false)
-      setCarregando(false)
-      return
-    }
-
-    const { data: tokenData, error: tokenError } = await supabase
-      .from("ebd_tokens_cadastro_professores")
-      .select("*")
-      .eq("token", token)
-      .eq("ativo", true)
-      .single()
-
-    if (tokenError || !tokenData) {
-      setMensagemErro("Este link de cadastro não é válido ou foi desativado.")
-      setTokenValido(false)
-      setCarregando(false)
-      return
-    }
-
-    if (tokenData.expira_em && new Date(tokenData.expira_em) < new Date()) {
-      setMensagemErro("Este link de cadastro expirou. Solicite um novo link à administração da EBD.")
-      setTokenValido(false)
-      setCarregando(false)
-      return
-    }
-
-    setTokenValido(true)
-    await carregarTurmas()
-    setCarregando(false)
-  }
-
-  async function carregarTurmas() {
     const { data, error } = await supabase
       .from("ebd_turmas")
       .select("id, nome")
@@ -70,11 +31,13 @@ export default function CadastroProfessorPublico() {
 
     if (error) {
       console.error("Erro ao carregar turmas:", error)
-      setMensagemErro("Não foi possível carregar as turmas da EBD.")
+      setTurmas([])
+      setCarregando(false)
       return
     }
 
     setTurmas(data || [])
+    setCarregando(false)
   }
 
   function atualizarCampo(campo, valor) {
@@ -155,7 +118,8 @@ export default function CadastroProfessorPublico() {
   const estilos = {
     pagina: {
       minHeight: "100vh",
-      background: "linear-gradient(135deg, #e8f0ff 0%, #f8fbff 45%, #ffffff 100%)",
+      background:
+        "linear-gradient(135deg, #e8f0ff 0%, #f8fbff 45%, #ffffff 100%)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -286,21 +250,6 @@ export default function CadastroProfessorPublico() {
     )
   }
 
-  if (!tokenValido) {
-    return (
-      <div style={estilos.pagina}>
-        <div style={estilos.card}>
-          <div style={estilos.header}>
-            <img src="/logo.png" alt="Logo" style={estilos.logo} />
-            <h2 style={estilos.titulo}>Link indisponível</h2>
-          </div>
-
-          <div style={estilos.aviso}>{mensagemErro}</div>
-        </div>
-      </div>
-    )
-  }
-
   if (sucesso) {
     return (
       <div style={estilos.pagina}>
@@ -309,12 +258,14 @@ export default function CadastroProfessorPublico() {
             <img src="/logo.png" alt="Logo" style={estilos.logo} />
             <h2 style={estilos.titulo}>Cadastro enviado!</h2>
             <p style={estilos.subtitulo}>
-              Seus dados foram enviados com sucesso. Agora é só aguardar a aprovação da administração da EBD.
+              Seus dados foram enviados com sucesso. Agora é só aguardar a
+              aprovação da administração da EBD.
             </p>
           </div>
 
           <div style={estilos.sucesso}>
-            Obrigado por preencher o cadastro. Assim que aprovado, seu acesso será liberado no Portal AD Jacaré.
+            Obrigado por preencher o cadastro. Assim que aprovado, seu acesso
+            será liberado no Portal AD Jacaré.
           </div>
         </div>
       </div>
@@ -331,7 +282,8 @@ export default function CadastroProfessorPublico() {
 
           <p style={estilos.subtitulo}>
             Preencha seus dados para solicitar acesso ao Portal AD Jacaré.
-            Após a aprovação, seu acesso será configurado pela administração da EBD.
+            Após a aprovação, seu acesso será configurado pela administração da
+            EBD.
           </p>
         </div>
 
@@ -353,7 +305,9 @@ export default function CadastroProfessorPublico() {
                 style={estilos.input}
                 type="date"
                 value={form.data_nascimento}
-                onChange={(e) => atualizarCampo("data_nascimento", e.target.value)}
+                onChange={(e) =>
+                  atualizarCampo("data_nascimento", e.target.value)
+                }
               />
 
               <input
@@ -379,7 +333,9 @@ export default function CadastroProfessorPublico() {
             <div style={estilos.secaoTitulo}>Turma(s) que irá lecionar</div>
 
             {turmas.length === 0 ? (
-              <div style={estilos.aviso}>Nenhuma turma disponível para seleção.</div>
+              <div style={estilos.aviso}>
+                Nenhuma turma disponível para seleção.
+              </div>
             ) : (
               <div style={estilos.turmasGrid}>
                 {turmas.map((turma) => {

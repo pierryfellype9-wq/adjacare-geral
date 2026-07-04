@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 
-export default function EBDSolicitacoesProfessores({ user }) {
+export default function EBDSolicitacoesProfessores() {
+  const navigate = useNavigate()
+
   const [solicitacoes, setSolicitacoes] = useState([])
   const [turmas, setTurmas] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -35,80 +38,6 @@ export default function EBDSolicitacoesProfessores({ user }) {
 
   function nomeTurma(id) {
     return turmas.find((t) => t.id === id)?.nome || "Turma não encontrada"
-  }
-
-  function primeiraTurmaTexto(ids) {
-    if (!ids || ids.length === 0) return "Não permitido"
-
-    const turma = turmas.find((t) => t.id === ids[0])
-    return turma?.nome || "Não permitido"
-  }
-
-  function gerarSenhaProvisoria() {
-    return Math.random().toString(36).slice(-8)
-  }
-
-  async function aprovarSolicitacao(solicitacao) {
-    if (!confirm(`Aprovar cadastro de ${solicitacao.nome_completo}?`)) return
-
-    const senhaProvisoria = gerarSenhaProvisoria()
-
-    const { error: erroUsuario } = await supabase.from("users").insert([
-      {
-        membro_id: null,
-        nome: solicitacao.nome_completo,
-        email: solicitacao.email,
-        senha: senhaProvisoria,
-        role: "EBD",
-        turma_ebd: primeiraTurmaTexto(solicitacao.turmas_ebd),
-        turmas_ebd: solicitacao.turmas_ebd,
-        primeiro_acesso: true,
-      },
-    ])
-
-    if (erroUsuario) {
-      alert(erroUsuario.message)
-      console.error(erroUsuario)
-      return
-    }
-
-    const { error: erroSolicitacao } = await supabase
-      .from("ebd_solicitacoes_professores")
-      .update({
-        status: "Aprovado",
-        aprovado_em: new Date().toISOString(),
-        aprovado_por: user?.id || null,
-      })
-      .eq("id", solicitacao.id)
-
-    if (erroSolicitacao) {
-      alert(erroSolicitacao.message)
-      console.error(erroSolicitacao)
-      return
-    }
-
-    alert(
-      `Professor aprovado com sucesso!\n\nE-mail: ${solicitacao.email}\nSenha provisória: ${senhaProvisoria}`
-    )
-
-    carregarDados()
-  }
-
-  async function recusarSolicitacao(id) {
-    if (!confirm("Recusar esta solicitação?")) return
-
-    const { error } = await supabase
-      .from("ebd_solicitacoes_professores")
-      .update({ status: "Recusado" })
-      .eq("id", id)
-
-    if (error) {
-      alert(error.message)
-      console.error(error)
-      return
-    }
-
-    carregarDados()
   }
 
   function formatarData(data) {
@@ -155,7 +84,8 @@ export default function EBDSolicitacoesProfessores({ user }) {
             </h2>
 
             <p style={{ margin: 0, color: "#6b7280", fontSize: "14px" }}>
-              Aprove ou recuse os cadastros enviados pelos professores da EBD.
+              Visualize, edite, aprove ou recuse os cadastros enviados pelos
+              professores da EBD.
             </p>
           </div>
 
@@ -247,83 +177,47 @@ export default function EBDSolicitacoesProfessores({ user }) {
 
                   <div
                     style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                      gap: "12px",
+                      display: "flex",
+                      gap: "8px",
+                      flexWrap: "wrap",
                       marginBottom: "14px",
                     }}
                   >
-                    <Info label="Nascimento" value={formatarData(s.data_nascimento)} />
-                    <Info label="Solicitado em" value={formatarData(s.created_at)} />
+                    {(s.turmas_ebd || []).map((id) => (
+                      <span
+                        key={id}
+                        style={{
+                          background: "#eff6ff",
+                          color: "#1d4ed8",
+                          padding: "6px 10px",
+                          borderRadius: "999px",
+                          fontSize: "12px",
+                          fontWeight: "700",
+                        }}
+                      >
+                        {nomeTurma(id)}
+                      </span>
+                    ))}
                   </div>
 
-                  <div style={{ marginBottom: "14px" }}>
-                    <strong style={{ fontSize: "14px", color: "#374151" }}>
-                      Turmas:
-                    </strong>
+                  <p
+                    style={{
+                      margin: "0 0 14px",
+                      color: "#6b7280",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Solicitado em {formatarData(s.created_at)}
+                  </p>
 
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "8px",
-                        flexWrap: "wrap",
-                        marginTop: "8px",
-                      }}
-                    >
-                      {(s.turmas_ebd || []).map((id) => (
-                        <span
-                          key={id}
-                          style={{
-                            background: "#eff6ff",
-                            color: "#1d4ed8",
-                            padding: "6px 10px",
-                            borderRadius: "999px",
-                            fontSize: "12px",
-                            fontWeight: "700",
-                          }}
-                        >
-                          {nomeTurma(id)}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {s.observacoes && (
-                    <div
-                      style={{
-                        background: "#f8fafc",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "12px",
-                        padding: "12px",
-                        marginBottom: "14px",
-                        color: "#4b5563",
-                        fontSize: "14px",
-                        lineHeight: "1.5",
-                      }}
-                    >
-                      <strong>Observações:</strong>
-                      <br />
-                      {s.observacoes}
-                    </div>
-                  )}
-
-                  {s.status === "Pendente" && (
-                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                      <button
-                        onClick={() => aprovarSolicitacao(s)}
-                        style={btnAprovar}
-                      >
-                        Aprovar e criar usuário
-                      </button>
-
-                      <button
-                        onClick={() => recusarSolicitacao(s.id)}
-                        style={btnRecusar}
-                      >
-                        Recusar
-                      </button>
-                    </div>
-                  )}
+                  <button
+                    onClick={() =>
+                      navigate(`/ebd/solicitacoes-professores/${s.id}`)
+                    }
+                    style={btnVisualizar}
+                  >
+                    Visualizar solicitação
+                  </button>
                 </div>
               )
             })}
@@ -334,40 +228,11 @@ export default function EBDSolicitacoesProfessores({ user }) {
   )
 }
 
-function Info({ label, value }) {
-  return (
-    <div
-      style={{
-        background: "#f9fafb",
-        border: "1px solid #e5e7eb",
-        borderRadius: "12px",
-        padding: "12px",
-      }}
-    >
-      <div style={{ fontSize: "12px", color: "#6b7280", marginBottom: "4px" }}>
-        {label}
-      </div>
-
-      <div style={{ fontWeight: "700", color: "#111827" }}>{value}</div>
-    </div>
-  )
-}
-
-const btnAprovar = {
+const btnVisualizar = {
   padding: "10px 14px",
   border: "none",
   borderRadius: "10px",
-  background: "#16a34a",
-  color: "#ffffff",
-  cursor: "pointer",
-  fontWeight: "700",
-}
-
-const btnRecusar = {
-  padding: "10px 14px",
-  border: "none",
-  borderRadius: "10px",
-  background: "#ef4444",
+  background: "#2563eb",
   color: "#ffffff",
   cursor: "pointer",
   fontWeight: "700",

@@ -24,6 +24,7 @@ import EBDChamada from "./pages/EBDChamada"
 import EBDRelatorios from "./pages/EBDRelatorios"
 import EBDTrimestres from "./pages/EBDTrimestres"
 import CadastroProfessorPublico from "./pages/CadastroProfessorPublico"
+import EBDSolicitacoesProfessores from "./pages/EBDSolicitacoesProfessores"
 
 import Sidebar from "./components/Sidebar"
 import { supabase } from "./lib/supabase"
@@ -238,6 +239,11 @@ export default function App() {
                   }
                 />
 
+                <Route
+  path="/ebd/solicitacoes-professores"
+  element={<EBDSolicitacoesProfessores user={user} />}
+/>
+                
                 <Route path="/ebd" element={<EBD user={user} />} />
                 <Route path="/ebd/alunos" element={<EBDAlunos user={user} />} />
                 <Route path="/ebd/chamada" element={<EBDChamada user={user} />} />

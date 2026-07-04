@@ -164,13 +164,13 @@ export default function EBDSolicitacaoProfessor({ user }) {
       },
       body: JSON.stringify({
         para: form.email.trim(),
-        assunto: "Acesso aprovado - Portal AD Jacaré",
+        assunto: "SISTEMA ADJACARÉ - Acesso ao sistema aprovado",
         mensagem: `
           <p>Olá, ${form.nome_completo.trim()}!</p>
 
           <p>Seu cadastro como professor da Escola Bíblica Dominical foi aprovado.</p>
 
-          <p><strong>Acesse o Portal AD Jacaré pelo link:</strong><br>
+          <p><strong>Acesse o Portal ADJACARÉ pelo link:</strong><br>
           https://sistema.adjacare.org/</p>
 
           <p><strong>Seus dados de acesso são:</strong></p>
@@ -185,7 +185,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
           <br>
 
           <p>Atenciosamente,<br>
-          Administração EBD - AD Jacaré</p>
+          Departamento de EBD - ADJACARÉ.</p>
         `,
       }),
     })

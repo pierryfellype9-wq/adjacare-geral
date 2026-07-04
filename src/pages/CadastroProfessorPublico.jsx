@@ -193,25 +193,37 @@ export default function CadastroProfessorPublico() {
       gap: "8px",
     },
     turmaCard: {
+      width: "100%",
       border: "1px solid #cbd5e1",
       borderRadius: "12px",
-      padding: "11px 12px",
-      minHeight: "44px",
+      padding: "12px",
       cursor: "pointer",
       display: "flex",
       alignItems: "center",
+      justifyContent: "flex-start",
       gap: "10px",
       fontWeight: "700",
       color: "#0f172a",
       background: "#ffffff",
       fontSize: "14px",
       boxSizing: "border-box",
+      userSelect: "none",
     },
-    checkbox: {
-      width: "16px",
-      height: "16px",
-      minWidth: "16px",
-      margin: 0,
+    checkVisual: {
+      width: "18px",
+      height: "18px",
+      minWidth: "18px",
+      borderRadius: "5px",
+      border: "2px solid #94a3b8",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: "12px",
+      fontWeight: "900",
+      boxSizing: "border-box",
+    },
+    inputOculto: {
+      display: "none",
     },
     textarea: {
       width: "100%",
@@ -374,15 +386,28 @@ export default function CadastroProfessorPublico() {
                         ...estilos.turmaCard,
                         borderColor: selecionada ? "#2563eb" : "#cbd5e1",
                         background: selecionada ? "#eff6ff" : "#ffffff",
+                        color: selecionada ? "#1d4ed8" : "#0f172a",
                       }}
                     >
                       <input
                         type="checkbox"
                         checked={selecionada}
                         onChange={() => alternarTurma(turma.id)}
-                        style={estilos.checkbox}
+                        style={estilos.inputOculto}
                       />
-                      {turma.nome}
+
+                      <span
+                        style={{
+                          ...estilos.checkVisual,
+                          background: selecionada ? "#2563eb" : "#ffffff",
+                          borderColor: selecionada ? "#2563eb" : "#94a3b8",
+                          color: "#ffffff",
+                        }}
+                      >
+                        {selecionada ? "✓" : ""}
+                      </span>
+
+                      <span>{turma.nome}</span>
                     </label>
                   )
                 })}

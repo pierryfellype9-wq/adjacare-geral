@@ -90,19 +90,17 @@ export default function CadastroProfessorPublico() {
 
     setEnviando(true)
 
-    const { error } = await supabase
-      .from("ebd_solicitacoes_professores")
-      .insert([
-        {
-          nome_completo: form.nome_completo.trim(),
-          data_nascimento: form.data_nascimento,
-          telefone: form.telefone.trim(),
-          email: form.email.trim(),
-          turmas_ebd: form.turmas_ebd,
-          observacoes: form.observacoes.trim(),
-          status: "Pendente",
-        },
-      ])
+    const { error } = await supabase.from("ebd_solicitacoes_professores").insert([
+      {
+        nome_completo: form.nome_completo.trim(),
+        data_nascimento: form.data_nascimento,
+        telefone: form.telefone.trim(),
+        email: form.email.trim(),
+        turmas_ebd: form.turmas_ebd,
+        observacoes: form.observacoes.trim(),
+        status: "Pendente",
+      },
+    ])
 
     setEnviando(false)
 
@@ -123,7 +121,7 @@ export default function CadastroProfessorPublico() {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: "30px 15px",
+      padding: "20px 12px",
     },
     card: {
       width: "100%",
@@ -131,37 +129,47 @@ export default function CadastroProfessorPublico() {
       background: "#ffffff",
       borderRadius: "24px",
       boxShadow: "0 20px 50px rgba(15, 23, 42, 0.12)",
-      padding: "34px",
+      padding: "28px",
+      boxSizing: "border-box",
     },
     header: {
       textAlign: "center",
-      marginBottom: "28px",
+      marginBottom: "26px",
     },
     logo: {
-      width: "86px",
-      height: "86px",
+      width: "78px",
+      height: "78px",
       objectFit: "contain",
       marginBottom: "14px",
     },
     titulo: {
       margin: 0,
-      fontSize: "26px",
+      fontSize: "clamp(26px, 7vw, 36px)",
       color: "#0f172a",
       fontWeight: "800",
+      lineHeight: "1.2",
     },
     subtitulo: {
-      marginTop: "10px",
+      marginTop: "12px",
       color: "#64748b",
       lineHeight: "1.6",
+      fontSize: "clamp(15px, 4vw, 18px)",
     },
     secao: {
-      marginTop: "22px",
+      marginTop: "20px",
     },
     secaoTitulo: {
-      fontSize: "15px",
+      fontSize: "16px",
       fontWeight: "800",
       color: "#0f172a",
-      marginBottom: "12px",
+      marginBottom: "10px",
+    },
+    labelCampo: {
+      display: "block",
+      fontSize: "13px",
+      fontWeight: "700",
+      color: "#475569",
+      marginBottom: "6px",
     },
     grid2: {
       display: "grid",
@@ -174,18 +182,19 @@ export default function CadastroProfessorPublico() {
       borderRadius: "12px",
       border: "1px solid #cbd5e1",
       outline: "none",
-      fontSize: "14px",
+      fontSize: "15px",
       boxSizing: "border-box",
     },
     turmasGrid: {
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+      gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))",
       gap: "10px",
     },
     turmaCard: {
       border: "1px solid #cbd5e1",
       borderRadius: "14px",
-      padding: "12px",
+      padding: "10px 12px",
+      minHeight: "48px",
       cursor: "pointer",
       display: "flex",
       alignItems: "center",
@@ -193,16 +202,24 @@ export default function CadastroProfessorPublico() {
       fontWeight: "700",
       color: "#0f172a",
       background: "#ffffff",
+      fontSize: "14px",
+      boxSizing: "border-box",
+    },
+    checkbox: {
+      width: "18px",
+      height: "18px",
+      minWidth: "18px",
+      margin: 0,
     },
     textarea: {
       width: "100%",
-      minHeight: "110px",
+      minHeight: "105px",
       padding: "14px",
       borderRadius: "12px",
       border: "1px solid #cbd5e1",
       outline: "none",
       resize: "vertical",
-      fontSize: "14px",
+      fontSize: "15px",
       boxSizing: "border-box",
     },
     botao: {
@@ -281,9 +298,8 @@ export default function CadastroProfessorPublico() {
           <h2 style={estilos.titulo}>Cadastro de Professor EBD</h2>
 
           <p style={estilos.subtitulo}>
-            Preencha seus dados para solicitar acesso ao Portal AD Jacaré.
-            Após a aprovação, seu acesso será configurado pela administração da
-            EBD.
+            Preencha seus dados para solicitar acesso ao Portal AD Jacaré. Após
+            a aprovação, seu acesso será configurado pela administração da EBD.
           </p>
         </div>
 
@@ -301,25 +317,32 @@ export default function CadastroProfessorPublico() {
 
           <div style={estilos.secao}>
             <div style={estilos.grid2}>
-              <input
-                style={estilos.input}
-                type="date"
-                value={form.data_nascimento}
-                onChange={(e) =>
-                  atualizarCampo("data_nascimento", e.target.value)
-                }
-              />
+              <div>
+                <label style={estilos.labelCampo}>Data de nascimento</label>
+                <input
+                  style={estilos.input}
+                  type="date"
+                  value={form.data_nascimento}
+                  onChange={(e) =>
+                    atualizarCampo("data_nascimento", e.target.value)
+                  }
+                />
+              </div>
 
-              <input
-                style={estilos.input}
-                placeholder="Telefone"
-                value={form.telefone}
-                onChange={(e) => atualizarCampo("telefone", e.target.value)}
-              />
+              <div>
+                <label style={estilos.labelCampo}>Telefone</label>
+                <input
+                  style={estilos.input}
+                  placeholder="Telefone"
+                  value={form.telefone}
+                  onChange={(e) => atualizarCampo("telefone", e.target.value)}
+                />
+              </div>
             </div>
           </div>
 
           <div style={estilos.secao}>
+            <label style={estilos.labelCampo}>E-mail</label>
             <input
               style={estilos.input}
               type="email"
@@ -354,6 +377,7 @@ export default function CadastroProfessorPublico() {
                         type="checkbox"
                         checked={selecionada}
                         onChange={() => alternarTurma(turma.id)}
+                        style={estilos.checkbox}
                       />
                       {turma.nome}
                     </label>

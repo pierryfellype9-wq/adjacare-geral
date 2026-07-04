@@ -3,6 +3,9 @@ import { supabase } from "../lib/supabase"
 
 export default function CadastroProfessorPublico() {
   const [turmas, setTurmas] = useState([])
+  const [carregando, setCarregando] = useState(true)
+  const [tokenValido, setTokenValido] = useState(false)
+  const [mensagemErro, setMensagemErro] = useState("")
   const [enviando, setEnviando] = useState(false)
   const [sucesso, setSucesso] = useState(false)
 
@@ -16,17 +19,58 @@ export default function CadastroProfessorPublico() {
   })
 
   useEffect(() => {
-    carregarTurmas()
+    iniciarPagina()
   }, [])
+
+  async function iniciarPagina() {
+    setCarregando(true)
+
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get("token")
+
+    if (!token) {
+      setMensagemErro("Link de cadastro inválido. Solicite um novo link à administração da EBD.")
+      setTokenValido(false)
+      setCarregando(false)
+      return
+    }
+
+    const { data: tokenData, error: tokenError } = await supabase
+      .from("ebd_tokens_cadastro_professores")
+      .select("*")
+      .eq("token", token)
+      .eq("ativo", true)
+      .single()
+
+    if (tokenError || !tokenData) {
+      setMensagemErro("Este link de cadastro não é válido ou foi desativado.")
+      setTokenValido(false)
+      setCarregando(false)
+      return
+    }
+
+    if (tokenData.expira_em && new Date(tokenData.expira_em) < new Date()) {
+      setMensagemErro("Este link de cadastro expirou. Solicite um novo link à administração da EBD.")
+      setTokenValido(false)
+      setCarregando(false)
+      return
+    }
+
+    setTokenValido(true)
+    await carregarTurmas()
+    setCarregando(false)
+  }
 
   async function carregarTurmas() {
     const { data, error } = await supabase
       .from("ebd_turmas")
       .select("id, nome")
+      .neq("nome", "Não permitido")
       .order("nome", { ascending: true })
 
     if (error) {
       console.error("Erro ao carregar turmas:", error)
+      setMensagemErro("Não foi possível carregar as turmas da EBD.")
       return
     }
 
@@ -108,28 +152,169 @@ export default function CadastroProfessorPublico() {
     setSucesso(true)
   }
 
+  const estilos = {
+    pagina: {
+      minHeight: "100vh",
+      background: "linear-gradient(135deg, #e8f0ff 0%, #f8fbff 45%, #ffffff 100%)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "30px 15px",
+    },
+    card: {
+      width: "100%",
+      maxWidth: "760px",
+      background: "#ffffff",
+      borderRadius: "24px",
+      boxShadow: "0 20px 50px rgba(15, 23, 42, 0.12)",
+      padding: "34px",
+    },
+    header: {
+      textAlign: "center",
+      marginBottom: "28px",
+    },
+    logo: {
+      width: "86px",
+      height: "86px",
+      objectFit: "contain",
+      marginBottom: "14px",
+    },
+    titulo: {
+      margin: 0,
+      fontSize: "26px",
+      color: "#0f172a",
+      fontWeight: "800",
+    },
+    subtitulo: {
+      marginTop: "10px",
+      color: "#64748b",
+      lineHeight: "1.6",
+    },
+    secao: {
+      marginTop: "22px",
+    },
+    secaoTitulo: {
+      fontSize: "15px",
+      fontWeight: "800",
+      color: "#0f172a",
+      marginBottom: "12px",
+    },
+    grid2: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: "14px",
+    },
+    input: {
+      width: "100%",
+      padding: "14px",
+      borderRadius: "12px",
+      border: "1px solid #cbd5e1",
+      outline: "none",
+      fontSize: "14px",
+      boxSizing: "border-box",
+    },
+    turmasGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+      gap: "10px",
+    },
+    turmaCard: {
+      border: "1px solid #cbd5e1",
+      borderRadius: "14px",
+      padding: "12px",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      fontWeight: "700",
+      color: "#0f172a",
+      background: "#ffffff",
+    },
+    textarea: {
+      width: "100%",
+      minHeight: "110px",
+      padding: "14px",
+      borderRadius: "12px",
+      border: "1px solid #cbd5e1",
+      outline: "none",
+      resize: "vertical",
+      fontSize: "14px",
+      boxSizing: "border-box",
+    },
+    botao: {
+      width: "100%",
+      marginTop: "24px",
+      padding: "15px",
+      border: "none",
+      borderRadius: "14px",
+      background: "#2563eb",
+      color: "#ffffff",
+      fontWeight: "800",
+      cursor: "pointer",
+      fontSize: "15px",
+    },
+    aviso: {
+      background: "#fff7ed",
+      border: "1px solid #fed7aa",
+      color: "#9a3412",
+      padding: "16px",
+      borderRadius: "14px",
+      lineHeight: "1.6",
+      textAlign: "center",
+    },
+    sucesso: {
+      background: "#f0fdf4",
+      border: "1px solid #bbf7d0",
+      color: "#166534",
+      padding: "16px",
+      borderRadius: "14px",
+      lineHeight: "1.6",
+      textAlign: "center",
+    },
+  }
+
+  if (carregando) {
+    return (
+      <div style={estilos.pagina}>
+        <div style={estilos.card}>
+          <div style={estilos.header}>
+            <img src="/logo.png" alt="Logo" style={estilos.logo} />
+            <h2 style={estilos.titulo}>Carregando cadastro...</h2>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!tokenValido) {
+    return (
+      <div style={estilos.pagina}>
+        <div style={estilos.card}>
+          <div style={estilos.header}>
+            <img src="/logo.png" alt="Logo" style={estilos.logo} />
+            <h2 style={estilos.titulo}>Link indisponível</h2>
+          </div>
+
+          <div style={estilos.aviso}>{mensagemErro}</div>
+        </div>
+      </div>
+    )
+  }
+
   if (sucesso) {
     return (
-      <div className="login-page">
-        <div className="login-card" style={{ maxWidth: "520px" }}>
-          <div style={{ textAlign: "center" }}>
-            <img
-              src="/logo.png"
-              alt="Logo"
-              style={{
-                width: "90px",
-                height: "90px",
-                objectFit: "contain",
-                marginBottom: "20px",
-              }}
-            />
-
-            <h2>Cadastro enviado!</h2>
-
-            <p style={{ marginTop: "15px", lineHeight: "1.6" }}>
-              Seus dados foram enviados com sucesso. Agora é só aguardar a
-              aprovação da administração da EBD.
+      <div style={estilos.pagina}>
+        <div style={estilos.card}>
+          <div style={estilos.header}>
+            <img src="/logo.png" alt="Logo" style={estilos.logo} />
+            <h2 style={estilos.titulo}>Cadastro enviado!</h2>
+            <p style={estilos.subtitulo}>
+              Seus dados foram enviados com sucesso. Agora é só aguardar a aprovação da administração da EBD.
             </p>
+          </div>
+
+          <div style={estilos.sucesso}>
+            Obrigado por preencher o cadastro. Assim que aprovado, seu acesso será liberado no Portal AD Jacaré.
           </div>
         </div>
       </div>
@@ -137,98 +322,103 @@ export default function CadastroProfessorPublico() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-card" style={{ maxWidth: "620px" }}>
-        <div style={{ textAlign: "center", marginBottom: "25px" }}>
-          <img
-            src="/logo.png"
-            alt="Logo"
-            style={{
-              width: "90px",
-              height: "90px",
-              objectFit: "contain",
-              marginBottom: "15px",
-            }}
-          />
+    <div style={estilos.pagina}>
+      <div style={estilos.card}>
+        <div style={estilos.header}>
+          <img src="/logo.png" alt="Logo" style={estilos.logo} />
 
-          <h2 style={{ margin: 0 }}>Cadastro de Professor EBD</h2>
+          <h2 style={estilos.titulo}>Cadastro de Professor EBD</h2>
 
-          <p style={{ marginTop: "10px", opacity: 0.8 }}>
-            Preencha seus dados para solicitação de acesso ao Portal AD Jacaré.
+          <p style={estilos.subtitulo}>
+            Preencha seus dados para solicitar acesso ao Portal AD Jacaré.
+            Após a aprovação, seu acesso será configurado pela administração da EBD.
           </p>
         </div>
 
         <form onSubmit={enviarFormulario}>
-          <input
-            placeholder="Nome completo"
-            value={form.nome_completo}
-            onChange={(e) => atualizarCampo("nome_completo", e.target.value)}
-          />
+          <div style={estilos.secao}>
+            <div style={estilos.secaoTitulo}>Dados do professor</div>
 
-          <input
-            type="date"
-            value={form.data_nascimento}
-            onChange={(e) => atualizarCampo("data_nascimento", e.target.value)}
-          />
+            <input
+              style={estilos.input}
+              placeholder="Nome completo"
+              value={form.nome_completo}
+              onChange={(e) => atualizarCampo("nome_completo", e.target.value)}
+            />
+          </div>
 
-          <input
-            placeholder="Telefone"
-            value={form.telefone}
-            onChange={(e) => atualizarCampo("telefone", e.target.value)}
-          />
+          <div style={estilos.secao}>
+            <div style={estilos.grid2}>
+              <input
+                style={estilos.input}
+                type="date"
+                value={form.data_nascimento}
+                onChange={(e) => atualizarCampo("data_nascimento", e.target.value)}
+              />
 
-          <input
-            type="email"
-            placeholder="E-mail"
-            value={form.email}
-            onChange={(e) => atualizarCampo("email", e.target.value)}
-          />
-
-          <div style={{ marginTop: "15px", marginBottom: "15px" }}>
-            <strong>Turma(s) que irá lecionar</strong>
-
-            <div style={{ marginTop: "10px", display: "grid", gap: "8px" }}>
-              {turmas.length === 0 ? (
-                <p style={{ opacity: 0.8 }}>Nenhuma turma encontrada.</p>
-              ) : (
-                turmas.map((turma) => (
-                  <label
-                    key={turma.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={form.turmas_ebd.includes(turma.id)}
-                      onChange={() => alternarTurma(turma.id)}
-                    />
-                    {turma.nome}
-                  </label>
-                ))
-              )}
+              <input
+                style={estilos.input}
+                placeholder="Telefone"
+                value={form.telefone}
+                onChange={(e) => atualizarCampo("telefone", e.target.value)}
+              />
             </div>
           </div>
 
-          <textarea
-            placeholder="Observações"
-            value={form.observacoes}
-            onChange={(e) => atualizarCampo("observacoes", e.target.value)}
-            rows={4}
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #ddd",
-              resize: "vertical",
-              marginBottom: "15px",
-            }}
-          />
+          <div style={estilos.secao}>
+            <input
+              style={estilos.input}
+              type="email"
+              placeholder="E-mail"
+              value={form.email}
+              onChange={(e) => atualizarCampo("email", e.target.value)}
+            />
+          </div>
 
-          <button className="login-btn" disabled={enviando}>
+          <div style={estilos.secao}>
+            <div style={estilos.secaoTitulo}>Turma(s) que irá lecionar</div>
+
+            {turmas.length === 0 ? (
+              <div style={estilos.aviso}>Nenhuma turma disponível para seleção.</div>
+            ) : (
+              <div style={estilos.turmasGrid}>
+                {turmas.map((turma) => {
+                  const selecionada = form.turmas_ebd.includes(turma.id)
+
+                  return (
+                    <label
+                      key={turma.id}
+                      style={{
+                        ...estilos.turmaCard,
+                        borderColor: selecionada ? "#2563eb" : "#cbd5e1",
+                        background: selecionada ? "#eff6ff" : "#ffffff",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selecionada}
+                        onChange={() => alternarTurma(turma.id)}
+                      />
+                      {turma.nome}
+                    </label>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          <div style={estilos.secao}>
+            <div style={estilos.secaoTitulo}>Observações</div>
+
+            <textarea
+              style={estilos.textarea}
+              placeholder="Digite alguma observação, se necessário"
+              value={form.observacoes}
+              onChange={(e) => atualizarCampo("observacoes", e.target.value)}
+            />
+          </div>
+
+          <button style={estilos.botao} disabled={enviando}>
             {enviando ? "Enviando..." : "Enviar cadastro"}
           </button>
         </form>

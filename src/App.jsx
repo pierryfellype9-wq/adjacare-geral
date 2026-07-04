@@ -23,6 +23,7 @@ import EBDAlunos from "./pages/EBDAlunos"
 import EBDChamada from "./pages/EBDChamada"
 import EBDRelatorios from "./pages/EBDRelatorios"
 import EBDTrimestres from "./pages/EBDTrimestres"
+import CadastroProfessorPublico from "./pages/CadastroProfessorPublico"
 
 import Sidebar from "./components/Sidebar"
 import { supabase } from "./lib/supabase"
@@ -59,6 +60,7 @@ export default function App() {
 
   useEffect(() => {
     const userSalvo = localStorage.getItem("user")
+
     if (userSalvo) {
       setUser(JSON.parse(userSalvo))
     }
@@ -98,6 +100,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/portal-aluno/*" element={<PortalAluno />} />
+      <Route path="/cadastro-professor" element={<CadastroProfessorPublico />} />
 
       {!user ? (
         <Route

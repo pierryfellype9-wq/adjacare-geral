@@ -84,6 +84,35 @@ export default function EBDSolicitacaoProfessor({ user }) {
     })
   }
 
+  function validarFormulario() {
+    if (!form.nome_completo.trim()) {
+      alert("Informe o nome completo.")
+      return false
+    }
+
+    if (!form.data_nascimento) {
+      alert("Informe a data de nascimento.")
+      return false
+    }
+
+    if (!form.telefone.trim()) {
+      alert("Informe o telefone.")
+      return false
+    }
+
+    if (!form.email.trim()) {
+      alert("Informe o e-mail.")
+      return false
+    }
+
+    if (form.turmas_ebd.length === 0) {
+      alert("Selecione pelo menos uma turma.")
+      return false
+    }
+
+    return true
+  }
+
   function primeiraTurmaTexto(ids) {
     if (!ids || ids.length === 0) return "Não permitido"
 
@@ -92,34 +121,11 @@ export default function EBDSolicitacaoProfessor({ user }) {
   }
 
   function gerarSenhaProvisoria() {
-    return Math.random().toString(36).slice(-8)
+    return `ADJ${Math.floor(100000 + Math.random() * 900000)}`
   }
 
-  async function salvarSolicitacao() {
-    if (!form.nome_completo.trim()) {
-      alert("Informe o nome completo.")
-      return
-    }
-
-    if (!form.data_nascimento) {
-      alert("Informe a data de nascimento.")
-      return
-    }
-
-    if (!form.telefone.trim()) {
-      alert("Informe o telefone.")
-      return
-    }
-
-    if (!form.email.trim()) {
-      alert("Informe o e-mail.")
-      return
-    }
-
-    if (form.turmas_ebd.length === 0) {
-      alert("Selecione pelo menos uma turma.")
-      return
-    }
+  async function salvarSolicitacao(mostrarAlerta = true) {
+    if (!validarFormulario()) return false
 
     setSalvando(true)
 
@@ -140,16 +146,66 @@ export default function EBDSolicitacaoProfessor({ user }) {
     if (error) {
       console.error(error)
       alert(error.message)
-      return
+      return false
     }
 
-    alert("Solicitação salva com sucesso.")
+    if (mostrarAlerta) {
+      alert("Solicitação salva com sucesso.")
+    }
+
+    return true
+  }
+
+  async function enviarEmailAprovacao(senhaProvisoria) {
+    const resposta = await fetch("/api/enviar-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        para: form.email.trim(),
+        assunto: "Acesso aprovado - Portal AD Jacaré",
+        mensagem: `
+          <p>Olá, ${form.nome_completo.trim()}!</p>
+
+          <p>Seu cadastro como professor da Escola Bíblica Dominical foi aprovado.</p>
+
+          <p><strong>Acesse o Portal AD Jacaré pelo link:</strong><br>
+          https://sistema.adjacare.org/</p>
+
+          <p><strong>Seus dados de acesso são:</strong></p>
+
+          <p>
+            E-mail: ${form.email.trim()}<br>
+            Senha provisória: ${senhaProvisoria}
+          </p>
+
+          <p>No primeiro acesso, o sistema solicitará que você crie uma nova senha.</p>
+
+          <br>
+
+          <p>Atenciosamente,<br>
+          Administração EBD - AD Jacaré</p>
+        `,
+      }),
+    })
+
+    const resultado = await resposta.json().catch(() => null)
+
+    if (!resposta.ok) {
+      throw new Error(
+        resultado?.error || "Erro ao enviar e-mail de aprovação."
+      )
+    }
+
+    return resultado
   }
 
   async function aprovarSolicitacao() {
     if (!confirm(`Aprovar cadastro de ${form.nome_completo}?`)) return
 
-    await salvarSolicitacao()
+    const salvou = await salvarSolicitacao(false)
+    if (!salvou) return
 
     const senhaProvisoria = gerarSenhaProvisoria()
 
@@ -187,9 +243,19 @@ export default function EBDSolicitacaoProfessor({ user }) {
       return
     }
 
-    alert(
-      `Professor aprovado com sucesso!\n\nE-mail: ${form.email}\nSenha provisória: ${senhaProvisoria}`
-    )
+    try {
+      await enviarEmailAprovacao(senhaProvisoria)
+
+      alert(
+        `Professor aprovado com sucesso!\n\nO e-mail com os dados de acesso foi enviado para:\n${form.email}`
+      )
+    } catch (error) {
+      console.error("Erro ao enviar e-mail:", error)
+
+      alert(
+        `Professor aprovado e usuário criado, mas o e-mail não foi enviado.\n\nE-mail: ${form.email}\nSenha provisória: ${senhaProvisoria}\n\nErro: ${error.message}`
+      )
+    }
 
     navigate("/ebd/solicitacoes-professores")
   }
@@ -334,7 +400,8 @@ export default function EBDSolicitacaoProfessor({ user }) {
                         ? "1px solid #2563eb"
                         : "1px solid #e5e7eb",
                       background: selecionada ? "#eff6ff" : "#ffffff",
-                      cursor: form.status === "Pendente" ? "pointer" : "default",
+                      cursor:
+                        form.status === "Pendente" ? "pointer" : "default",
                       fontWeight: "600",
                       color: selecionada ? "#1d4ed8" : "#374151",
                     }}
@@ -376,7 +443,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
               }}
             >
               <button
-                onClick={salvarSolicitacao}
+                onClick={() => salvarSolicitacao(true)}
                 style={btnSalvar}
                 disabled={salvando}
               >
@@ -384,7 +451,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
               </button>
 
               <button onClick={aprovarSolicitacao} style={btnAprovar}>
-                Aprovar e criar usuário
+                Aprovar e enviar e-mail
               </button>
 
               <button onClick={recusarSolicitacao} style={btnRecusar}>

@@ -9,6 +9,8 @@ export default function TrocarSenha({ user, setUser }) {
   const [confirmar, setConfirmar] = useState("")
   const [carregando, setCarregando] = useState(false)
 
+  const primeiroAcesso = user?.primeiro_acesso === true
+
   async function salvar(e) {
     e.preventDefault()
 
@@ -31,7 +33,10 @@ export default function TrocarSenha({ user, setUser }) {
 
     const { error } = await supabase
       .from("users")
-      .update({ senha })
+      .update({
+        senha,
+        primeiro_acesso: false,
+      })
       .eq("id", user.id)
 
     setCarregando(false)
@@ -42,20 +47,31 @@ export default function TrocarSenha({ user, setUser }) {
       return
     }
 
-    const usuarioAtualizado = { ...user, senha }
+    const usuarioAtualizado = {
+      ...user,
+      senha,
+      primeiro_acesso: false,
+    }
 
     localStorage.setItem("user", JSON.stringify(usuarioAtualizado))
     setUser(usuarioAtualizado)
 
-    alert("Senha alterada com sucesso!")
+    alert(
+      primeiroAcesso
+        ? "Senha criada com sucesso!"
+        : "Senha alterada com sucesso!"
+    )
+
     navigate("/dashboard")
   }
 
   return (
     <div className="page">
-      <button className="btn-voltar" onClick={() => navigate("/dashboard")}>
-        ← Voltar
-      </button>
+      {!primeiroAcesso && (
+        <button className="btn-voltar" onClick={() => navigate("/dashboard")}>
+          ← Voltar
+        </button>
+      )}
 
       <div
         className="form-card"
@@ -65,10 +81,14 @@ export default function TrocarSenha({ user, setUser }) {
           padding: "32px",
         }}
       >
-        <h2 style={{ marginBottom: "8px" }}>Alterar senha</h2>
+        <h2 style={{ marginBottom: "8px" }}>
+          {primeiroAcesso ? "Crie sua senha" : "Alterar senha"}
+        </h2>
 
         <p style={{ marginBottom: "24px", color: "#64748b" }}>
-          Crie uma nova senha para acessar o Sistema Geral ADJACARÉ.
+          {primeiroAcesso
+            ? "Para continuar acessando o Portal AD Jacaré, crie uma senha definitiva."
+            : "Crie uma nova senha para acessar o Sistema Geral ADJACARÉ."}
         </p>
 
         <form onSubmit={salvar}>
@@ -100,16 +120,22 @@ export default function TrocarSenha({ user, setUser }) {
             }}
           >
             <button disabled={carregando}>
-              {carregando ? "Salvando..." : "Salvar nova senha"}
+              {carregando
+                ? "Salvando..."
+                : primeiroAcesso
+                ? "Criar senha"
+                : "Salvar nova senha"}
             </button>
 
-            <button
-              type="button"
-              className="btn-cancelar"
-              onClick={() => navigate("/dashboard")}
-            >
-              Cancelar
-            </button>
+            {!primeiroAcesso && (
+              <button
+                type="button"
+                className="btn-cancelar"
+                onClick={() => navigate("/dashboard")}
+              >
+                Cancelar
+              </button>
+            )}
           </div>
         </form>
       </div>

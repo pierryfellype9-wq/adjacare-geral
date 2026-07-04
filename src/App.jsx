@@ -85,6 +85,8 @@ export default function App() {
     return () => clearInterval(interval)
   }, [])
 
+  const primeiroAcesso = user?.primeiro_acesso === true
+
   const podeVerEscala =
     user?.role === "Administrador" ||
     user?.role === "Dirigente" ||
@@ -154,6 +156,22 @@ export default function App() {
                   <button className="login-btn">Entrar</button>
                 </form>
               </div>
+            </div>
+          }
+        />
+      ) : primeiroAcesso ? (
+        <Route
+          path="*"
+          element={
+            <div className="dashboard">
+              <Routes>
+                <Route
+                  path="/trocar-senha"
+                  element={<TrocarSenha user={user} setUser={setUser} />}
+                />
+
+                <Route path="*" element={<Navigate to="/trocar-senha" replace />} />
+              </Routes>
             </div>
           }
         />
@@ -241,15 +259,15 @@ export default function App() {
                 />
 
                 <Route
-  path="/ebd/solicitacoes-professores"
-  element={<EBDSolicitacoesProfessores user={user} />}
-/>
+                  path="/ebd/solicitacoes-professores"
+                  element={<EBDSolicitacoesProfessores user={user} />}
+                />
 
                 <Route
-  path="/ebd/solicitacoes-professores/:id"
-  element={<EBDSolicitacaoProfessor user={user} />}
-/>
-                
+                  path="/ebd/solicitacoes-professores/:id"
+                  element={<EBDSolicitacaoProfessor user={user} />}
+                />
+
                 <Route path="/ebd" element={<EBD user={user} />} />
                 <Route path="/ebd/alunos" element={<EBDAlunos user={user} />} />
                 <Route path="/ebd/chamada" element={<EBDChamada user={user} />} />

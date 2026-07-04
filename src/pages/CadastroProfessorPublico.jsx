@@ -90,17 +90,19 @@ export default function CadastroProfessorPublico() {
 
     setEnviando(true)
 
-    const { error } = await supabase.from("ebd_solicitacoes_professores").insert([
-      {
-        nome_completo: form.nome_completo.trim(),
-        data_nascimento: form.data_nascimento,
-        telefone: form.telefone.trim(),
-        email: form.email.trim(),
-        turmas_ebd: form.turmas_ebd,
-        observacoes: form.observacoes.trim(),
-        status: "Pendente",
-      },
-    ])
+    const { error } = await supabase
+      .from("ebd_solicitacoes_professores")
+      .insert([
+        {
+          nome_completo: form.nome_completo.trim(),
+          data_nascimento: form.data_nascimento,
+          telefone: form.telefone.trim(),
+          email: form.email.trim(),
+          turmas_ebd: form.turmas_ebd,
+          observacoes: form.observacoes.trim(),
+          status: "Pendente",
+        },
+      ])
 
     setEnviando(false)
 
@@ -121,42 +123,42 @@ export default function CadastroProfessorPublico() {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: "20px 12px",
+      padding: "16px 10px",
     },
     card: {
       width: "100%",
-      maxWidth: "760px",
+      maxWidth: "720px",
       background: "#ffffff",
-      borderRadius: "24px",
-      boxShadow: "0 20px 50px rgba(15, 23, 42, 0.12)",
-      padding: "28px",
+      borderRadius: "22px",
+      boxShadow: "0 16px 42px rgba(15, 23, 42, 0.10)",
+      padding: "22px 16px",
       boxSizing: "border-box",
     },
     header: {
       textAlign: "center",
-      marginBottom: "26px",
+      marginBottom: "24px",
     },
     logo: {
-      width: "78px",
-      height: "78px",
+      width: "70px",
+      height: "70px",
       objectFit: "contain",
-      marginBottom: "14px",
+      marginBottom: "12px",
     },
     titulo: {
       margin: 0,
-      fontSize: "clamp(26px, 7vw, 36px)",
+      fontSize: "clamp(24px, 6vw, 32px)",
       color: "#0f172a",
       fontWeight: "800",
       lineHeight: "1.2",
     },
     subtitulo: {
-      marginTop: "12px",
+      marginTop: "10px",
       color: "#64748b",
-      lineHeight: "1.6",
-      fontSize: "clamp(15px, 4vw, 18px)",
+      lineHeight: "1.55",
+      fontSize: "15px",
     },
     secao: {
-      marginTop: "20px",
+      marginTop: "18px",
     },
     secaoTitulo: {
       fontSize: "16px",
@@ -173,12 +175,12 @@ export default function CadastroProfessorPublico() {
     },
     grid2: {
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-      gap: "14px",
+      gridTemplateColumns: "1fr",
+      gap: "12px",
     },
     input: {
       width: "100%",
-      padding: "14px",
+      padding: "13px",
       borderRadius: "12px",
       border: "1px solid #cbd5e1",
       outline: "none",
@@ -187,14 +189,14 @@ export default function CadastroProfessorPublico() {
     },
     turmasGrid: {
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))",
-      gap: "10px",
+      gridTemplateColumns: "1fr",
+      gap: "8px",
     },
     turmaCard: {
       border: "1px solid #cbd5e1",
-      borderRadius: "14px",
-      padding: "10px 12px",
-      minHeight: "48px",
+      borderRadius: "12px",
+      padding: "11px 12px",
+      minHeight: "44px",
       cursor: "pointer",
       display: "flex",
       alignItems: "center",
@@ -206,15 +208,15 @@ export default function CadastroProfessorPublico() {
       boxSizing: "border-box",
     },
     checkbox: {
-      width: "18px",
-      height: "18px",
-      minWidth: "18px",
+      width: "16px",
+      height: "16px",
+      minWidth: "16px",
       margin: 0,
     },
     textarea: {
       width: "100%",
-      minHeight: "105px",
-      padding: "14px",
+      minHeight: "100px",
+      padding: "13px",
       borderRadius: "12px",
       border: "1px solid #cbd5e1",
       outline: "none",
@@ -224,8 +226,8 @@ export default function CadastroProfessorPublico() {
     },
     botao: {
       width: "100%",
-      marginTop: "24px",
-      padding: "15px",
+      marginTop: "22px",
+      padding: "14px",
       border: "none",
       borderRadius: "14px",
       background: "#2563eb",
@@ -238,7 +240,7 @@ export default function CadastroProfessorPublico() {
       background: "#fff7ed",
       border: "1px solid #fed7aa",
       color: "#9a3412",
-      padding: "16px",
+      padding: "14px",
       borderRadius: "14px",
       lineHeight: "1.6",
       textAlign: "center",
@@ -247,7 +249,7 @@ export default function CadastroProfessorPublico() {
       background: "#f0fdf4",
       border: "1px solid #bbf7d0",
       color: "#166534",
-      padding: "16px",
+      padding: "14px",
       borderRadius: "14px",
       lineHeight: "1.6",
       textAlign: "center",
@@ -307,6 +309,7 @@ export default function CadastroProfessorPublico() {
           <div style={estilos.secao}>
             <div style={estilos.secaoTitulo}>Dados do professor</div>
 
+            <label style={estilos.labelCampo}>Nome completo</label>
             <input
               style={estilos.input}
               placeholder="Nome completo"

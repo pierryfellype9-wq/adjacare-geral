@@ -125,8 +125,8 @@ export default function EBD({ user }) {
       <div className="ebd-hero">
         <h1>Escola Bíblica Dominical</h1>
         <p>
-          Gerencie alunos, chamadas, trimestres, relatórios e financeiro em um só
-          lugar.
+          Gerencie alunos, chamadas, trimestres, relatórios, financeiro e
+          solicitações de professores em um só lugar.
         </p>
       </div>
 
@@ -164,8 +164,19 @@ export default function EBD({ user }) {
         <div className="ebd-card" onClick={() => navigate("/ebd/relatorios")}>
           <div className="icon">📈</div>
           <h3>Relatórios</h3>
-          <p>Visualizar frequência e faltas.</p>
+          <p>Visualizar frequência, faltas e dados das turmas.</p>
         </div>
+
+        {podeVerTudo && (
+          <div
+            className="ebd-card"
+            onClick={() => navigate("/ebd/solicitacoes-professores")}
+          >
+            <div className="icon">📋</div>
+            <h3>Solicitações de Professores</h3>
+            <p>Aprove ou recuse cadastros enviados pelos professores da EBD.</p>
+          </div>
+        )}
       </div>
     </div>
   )

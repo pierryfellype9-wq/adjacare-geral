@@ -36,23 +36,34 @@ export default function EBDAlunos({ user }) {
     (usuario?.role === "EBD" && usuario?.turma_ebd === "Superintendente")
 
   const podeGerenciarStatusAluno =
-  usuario?.role === "Administrador" ||
-  usuario?.role === "Dirigente" ||
-  usuario?.turma_ebd === "Superintendente"
+    usuario?.role === "Administrador" ||
+    usuario?.role === "Dirigente" ||
+    usuario?.turma_ebd === "Superintendente"
 
   const turmasPermitidas = Array.isArray(usuario?.turmas_ebd)
-  ? usuario.turmas_ebd
-  : []
+    ? usuario.turmas_ebd
+    : []
 
-const professorEBD =
-  !podeVerTudoEBD &&
-  turmasPermitidas.length > 0
+  const professorEBD =
+    !podeVerTudoEBD &&
+    turmasPermitidas.length > 0
 
   useEffect(() => {
     if (temAcessoEBD) {
       carregarDados()
     }
   }, [])
+
+  function baixarFicha(tipo) {
+    if (tipo === "maiores") {
+      window.open("/fichas/ficha-ebd-maiores.pdf", "_blank")
+      return
+    }
+
+    if (tipo === "menores") {
+      window.open("/fichas/ficha-ebd-menores.pdf", "_blank")
+    }
+  }
 
   async function carregarDados() {
     const { data: turmasData } = await supabase
@@ -68,8 +79,8 @@ const professorEBD =
       .order("nome", { ascending: true })
 
     if (professorEBD) {
-  query = query.in("turma_id", turmasPermitidas)
-}
+      query = query.in("turma_id", turmasPermitidas)
+    }
 
     const { data: alunosData, error } = await query
 
@@ -211,12 +222,12 @@ const professorEBD =
   const alunosAtivos = alunos.filter((aluno) => aluno.ativo !== false)
   const alunosInativos = alunos.filter((aluno) => aluno.ativo === false)
 
-const alunosDaAba = aba === "ativos" ? alunosAtivos : alunosInativos
+  const alunosDaAba = aba === "ativos" ? alunosAtivos : alunosInativos
 
-const alunosFiltrados = alunosDaAba.filter((aluno) =>
-  aluno.nome?.toLowerCase().includes(busca.toLowerCase())
-)
-  
+  const alunosFiltrados = alunosDaAba.filter((aluno) =>
+    aluno.nome?.toLowerCase().includes(busca.toLowerCase())
+  )
+
   function limparFormulario() {
     setNome("")
     setDataNascimento("")
@@ -285,13 +296,13 @@ const alunosFiltrados = alunosDaAba.filter((aluno) =>
     }
 
     if (
-  professorEBD &&
-  turmaFinal &&
-  !turmasPermitidas.includes(turmaFinal.id)
-) {
-  alert("Você não possui acesso a essa turma.")
-  return
-}
+      professorEBD &&
+      turmaFinal &&
+      !turmasPermitidas.includes(turmaFinal.id)
+    ) {
+      alert("Você não possui acesso a essa turma.")
+      return
+    }
 
     setCarregando(true)
 
@@ -311,18 +322,18 @@ const alunosFiltrados = alunosDaAba.filter((aluno) =>
 
     if (editando) {
       const resposta = await supabase
-  .from("ebd_alunos")
-  .update(dadosAluno)
-  .eq("id", alunoId)
-  .select()
+        .from("ebd_alunos")
+        .update(dadosAluno)
+        .eq("id", alunoId)
+        .select()
 
-error = resposta.error
+      error = resposta.error
 
-if (!resposta.data || resposta.data.length === 0) {
-  setCarregando(false)
-  alert("Nenhum aluno foi atualizado. Verifique as permissões do Supabase.")
-  return
-}
+      if (!resposta.data || resposta.data.length === 0) {
+        setCarregando(false)
+        alert("Nenhum aluno foi atualizado. Verifique as permissões do Supabase.")
+        return
+      }
     } else {
       const resposta = await supabase.from("ebd_alunos").insert({
         ...dadosAluno,
@@ -342,25 +353,25 @@ if (!resposta.data || resposta.data.length === 0) {
     }
 
     if (!editando && contato?.trim()) {
-  try {
-    await fetch("/api/enviar-whatsapp-aluno", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        nome: nome.trim(),
-        contato: contato.trim(),
-        login: emailPortal,
-        senha: senhaPortal,
-        turma: turmaFinal?.nome || "Sem turma",
-      }),
-    })
-  } catch (erroWhatsapp) {
-    console.error("Erro ao enviar WhatsApp:", erroWhatsapp)
-  }
-}
-    
+      try {
+        await fetch("/api/enviar-whatsapp-aluno", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nome: nome.trim(),
+            contato: contato.trim(),
+            login: emailPortal,
+            senha: senhaPortal,
+            turma: turmaFinal?.nome || "Sem turma",
+          }),
+        })
+      } catch (erroWhatsapp) {
+        console.error("Erro ao enviar WhatsApp:", erroWhatsapp)
+      }
+    }
+
     await carregarDados()
     limparFormulario()
 
@@ -368,78 +379,78 @@ if (!resposta.data || resposta.data.length === 0) {
   }
 
   async function enviarWhatsappAluno(aluno) {
-  try {
-    const resposta = await fetch("/api/enviar-whatsapp-aluno", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        nome: aluno.nome,
-        contato: aluno.contato,
-        login:
-          aluno.email_portal ||
-          gerarEmailPortal(aluno.nome),
+    try {
+      const resposta = await fetch("/api/enviar-whatsapp-aluno", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nome: aluno.nome,
+          contato: aluno.contato,
+          login:
+            aluno.email_portal ||
+            gerarEmailPortal(aluno.nome),
 
-        senha:
-          aluno.senha_portal ||
-          gerarSenhaPortal(aluno.data_nascimento),
+          senha:
+            aluno.senha_portal ||
+            gerarSenhaPortal(aluno.data_nascimento),
 
-        turma:
-          aluno.ebd_turmas?.nome ||
-          "Sem turma",
-      }),
-    })
+          turma:
+            aluno.ebd_turmas?.nome ||
+            "Sem turma",
+        }),
+      })
 
-    if (!resposta.ok) {
-      alert("Erro ao enviar mensagem.")
+      if (!resposta.ok) {
+        alert("Erro ao enviar mensagem.")
+        return
+      }
+
+      alert("Mensagem enviada com sucesso.")
+    } catch (error) {
+      console.error(error)
+      alert("Erro ao enviar WhatsApp.")
+    }
+  }
+
+  async function alterarStatusAluno(aluno) {
+    if (!podeGerenciarStatusAluno) {
+      alert("Apenas administradores, dirigentes ou superintendente podem alterar o status do aluno.")
       return
     }
 
-    alert("Mensagem enviada com sucesso.")
-  } catch (error) {
-    console.error(error)
-    alert("Erro ao enviar WhatsApp.")
+    const novoStatus = aluno.ativo === false ? true : false
+
+    const confirmar = confirm(
+      novoStatus
+        ? `Deseja ativar o aluno ${aluno.nome}?`
+        : `Deseja inativar o aluno ${aluno.nome}?`
+    )
+
+    if (!confirmar) return
+
+    const { data, error } = await supabase
+      .from("ebd_alunos")
+      .update({ ativo: novoStatus })
+      .eq("id", aluno.id)
+      .select()
+
+    if (error) {
+      console.error("Erro ao alterar status:", error)
+      alert("Erro ao alterar status do aluno: " + error.message)
+      return
+    }
+
+    if (!data || data.length === 0) {
+      alert("Nenhum aluno foi alterado. Verifique se a coluna ativo existe e se as permissões do Supabase permitem update.")
+      return
+    }
+
+    await carregarDados()
+
+    setAba(novoStatus ? "ativos" : "inativos")
   }
-}
-  
-  async function alterarStatusAluno(aluno) {
-  if (!podeGerenciarStatusAluno) {
-    alert("Apenas administradores, dirigentes ou superintendente podem alterar o status do aluno.")
-    return
-  }
-
-  const novoStatus = aluno.ativo === false ? true : false
-
-  const confirmar = confirm(
-    novoStatus
-      ? `Deseja ativar o aluno ${aluno.nome}?`
-      : `Deseja inativar o aluno ${aluno.nome}?`
-  )
-
-  if (!confirmar) return
-
-  const { data, error } = await supabase
-    .from("ebd_alunos")
-    .update({ ativo: novoStatus })
-    .eq("id", aluno.id)
-    .select()
-
-  if (error) {
-    console.error("Erro ao alterar status:", error)
-    alert("Erro ao alterar status do aluno: " + error.message)
-    return
-  }
-
-  if (!data || data.length === 0) {
-    alert("Nenhum aluno foi alterado. Verifique se a coluna ativo existe e se as permissões do Supabase permitem update.")
-    return
-  }
-
-  await carregarDados()
-
-  setAba(novoStatus ? "ativos" : "inativos")
-}
 
   async function excluirAluno(id) {
     if (!podeVerTudoEBD) {
@@ -489,6 +500,31 @@ if (!resposta.data || resposta.data.length === 0) {
         <div>
           <h1>Alunos da EBD</h1>
           <p>Cadastro e gerenciamento dos alunos da Escola Bíblica Dominical.</p>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+            marginTop: "12px",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => baixarFicha("maiores")}
+            style={btnFichaStyle}
+          >
+            Ficha maiores de 18 anos
+          </button>
+
+          <button
+            type="button"
+            onClick={() => baixarFicha("menores")}
+            style={btnFichaStyle}
+          >
+            Ficha menores de 18 anos
+          </button>
         </div>
       </div>
 
@@ -658,10 +694,9 @@ if (!resposta.data || resposta.data.length === 0) {
             <h2>
               Alunos cadastrados
               {professorEBD &&
-  ` — ${turmasPermitidas.length} turma${
-    turmasPermitidas.length > 1 ? "s" : ""
-  }`}
-              
+                ` — ${turmasPermitidas.length} turma${
+                  turmasPermitidas.length > 1 ? "s" : ""
+                }`}
             </h2>
 
             <p>
@@ -673,19 +708,19 @@ if (!resposta.data || resposta.data.length === 0) {
 
         <div className="form-actions" style={{ marginBottom: "20px" }}>
           <input
-  type="text"
-  placeholder="Pesquisar aluno..."
-  value={busca}
-  onChange={(e) => setBusca(e.target.value)}
-  style={{
-    width: "100%",
-    padding: "12px",
-    borderRadius: "10px",
-    border: "1px solid #ccc",
-    marginBottom: "15px",
-  }}
-/>
-        
+            type="text"
+            placeholder="Pesquisar aluno..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "10px",
+              border: "1px solid #ccc",
+              marginBottom: "15px",
+            }}
+          />
+
           <button
             type="button"
             className={aba === "ativos" ? "" : "btn-cancelar"}
@@ -786,13 +821,13 @@ if (!resposta.data || resposta.data.length === 0) {
                 )}
 
                 {aluno.ativo !== false && (
-  <button
-    type="button"
-    onClick={() => enviarWhatsappAluno(aluno)}
-  >
-    Enviar acesso
-  </button>
-)}
+                  <button
+                    type="button"
+                    onClick={() => enviarWhatsappAluno(aluno)}
+                  >
+                    Enviar acesso
+                  </button>
+                )}
 
                 {podeGerenciarStatusAluno && (
                   <button
@@ -819,4 +854,14 @@ if (!resposta.data || resposta.data.length === 0) {
       </div>
     </div>
   )
+}
+
+const btnFichaStyle = {
+  padding: "10px 14px",
+  border: "none",
+  borderRadius: "10px",
+  background: "#111827",
+  color: "#ffffff",
+  cursor: "pointer",
+  fontWeight: "700",
 }

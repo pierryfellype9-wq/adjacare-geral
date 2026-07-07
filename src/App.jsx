@@ -133,7 +133,7 @@ export default function App() {
                   />
 
                   <h2 style={{ margin: 0, lineHeight: "1.2" }}>
-                    Sistema Geral
+                    Sistema
                     <br />
                     ADJACARÉ
                   </h2>

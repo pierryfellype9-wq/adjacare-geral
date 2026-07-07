@@ -58,11 +58,11 @@ export default function Dashboard({ user }){
     <main className="main">
 
       <h1 className="title">
-        Bem-vindo ao Sistema Geral
+        Bem-vindo ao Sistema da
       </h1>
 
       <h2 className="subtitle">
-        da Assembleia de Deus – Bairro Jacaré
+        Assembleia de Deus – Bairro Jacaré
       </h2>
 
       <hr className="divider"/>

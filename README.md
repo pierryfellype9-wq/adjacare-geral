@@ -21,7 +21,6 @@ Tecnologias utilizadas
 - Vite
 - Supabase
 - Vercel
-- Kommo CRM
 - Resend (envio de emails)
 
  Estrutura do sistema

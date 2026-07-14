@@ -1,0 +1,2 @@
+import { InnerPage } from "../EventShell";
+export default function Localizacao() { return <InnerPage eyebrow="Onde será" title="AD Jacaré"><section className="standalone-location"><div><h2>Esperamos você.</h2><address>Av. Ver. José Donato, 913<br/>Cabreúva — SP<br/>CEP 13318-000</address><a className="event-button dark" href="https://www.google.com/maps/search/?api=1&query=Av.+Ver.+José+Donato,+913,+Cabreúva,+SP" target="_blank" rel="noreferrer">Abrir no mapa</a></div><div className="location-mark">913</div></section></InnerPage>; }

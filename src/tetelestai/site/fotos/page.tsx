@@ -1,0 +1,2 @@
+import { InnerPage } from "../EventShell";
+export default function Fotos() { return <InnerPage eyebrow="Memórias" title="Fotos"><section className="standalone-photos"><div><h2>Galeria em breve.</h2><p>Os registros do congresso aparecerão aqui.</p></div><div className="photos-wall" aria-hidden="true"><div><span>01</span></div><div><span>02</span></div><div><span>03</span></div><div><span>04</span></div><div><span>05</span></div></div></section></InnerPage>; }

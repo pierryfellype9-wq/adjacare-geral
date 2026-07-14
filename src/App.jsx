@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { lazy, Suspense, useState, useEffect } from "react"
 import { Routes, Route, Navigate } from "react-router-dom"
 
 import Dashboard from "./pages/Dashboard"
@@ -17,7 +17,6 @@ import PortalAluno from "./pages/PortalAluno"
 import EBDFinanceiro from "./pages/EBDFinanceiro"
 import Membros from "./pages/Membros"
 import WhatsApp from "./pages/WhatsApp"
-import LojaTetelestai from "./pages/LojaTetelestai"
 
 import EBD from "./pages/EBD"
 import EBDAlunos from "./pages/EBDAlunos"
@@ -30,8 +29,17 @@ import EBDSolicitacaoProfessor from "./pages/EBDSolicitacaoProfessor"
 
 import Sidebar from "./components/Sidebar"
 import { supabase } from "./lib/supabase"
+const TetelestaiApp = lazy(() => import("./tetelestai/TetelestaiApp"))
+
+function isTetelestaiRequest() {
+  const host = window.location.hostname.toLowerCase()
+  const path = window.location.pathname.toLowerCase()
+  return host === "tetelestai.adjacare.org" || host.startsWith("tetelestai.") || path === "/site" || path.startsWith("/site/")
+}
 
 export default function App() {
+  if (isTetelestaiRequest()) return <Suspense fallback={<div style={{minHeight:"100vh",background:"#020306"}} />}><TetelestaiApp /></Suspense>
+
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
   const [user, setUser] = useState(null)
@@ -220,7 +228,6 @@ export default function App() {
                 <Route path="/usuarios" element={<Usuarios user={user} />} />
                 <Route path="/ebd/financeiro" element={<EBDFinanceiro user={user} />} />
                 <Route path="/whatsapp" element={<WhatsApp user={user} />} />
-                <Route path="/loja-tetelestai" element={<LojaTetelestai user={user} />} />
 
                 <Route
                   path="/trocar-senha"

@@ -1,0 +1,2 @@
+import { InnerPage } from "../EventShell";
+export default function Tema() { return <InnerPage eyebrow="O tema" title="Tetelestai"><section className="standalone-theme"><blockquote><p>“Está consumado.”</p><cite>João 19:30</cite></blockquote><div><h2>O brado da vitória.</h2><p>Tetelestai é o tema do congresso de 2026. Jovens e adolescentes se reunirão para viver dias de adoração, palavra e comunhão, anunciando que a dívida foi paga e a obra foi consumada.</p></div></section></InnerPage>; }

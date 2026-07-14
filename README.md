@@ -22,10 +22,7 @@ Tecnologias utilizadas
 - Supabase
 - Vercel
 - Resend (envio de emails)
-
- Estrutura do sistema
-- Fluxo: WhatsApp → Kommo → API → Supabase → Vercel → React → Sistema interno
-
+  
 Objetivo
 - O objetivo do sistema é melhorar a organização interna da igreja, garantindo que pedidos, escalas e comunicações sejam registrados e acompanhados de forma clara e eficiente.
 

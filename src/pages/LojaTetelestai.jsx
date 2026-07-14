@@ -97,7 +97,16 @@ export default function LojaTetelestai({ user }) {
       }
       if (variacoes.length) {
         await supabase.from("loja_variacoes").delete().eq("produto_id", salvo.id)
-        const linhas = variacoes.map((v,i) => ({ ...v, id:undefined, produto_id:salvo.id, ordem:i, estoque:v.estoque === "" ? null : Number(v.estoque), preco_adicional:Number(v.preco_adicional || 0) }))
+        const linhas = variacoes.map((v, i) => {
+          const { id, criado_em, atualizado_em, ...dadosVariacao } = v
+          return {
+            ...dadosVariacao,
+            produto_id: salvo.id,
+            ordem: i,
+            estoque: v.estoque === "" ? null : Number(v.estoque),
+            preco_adicional: Number(v.preco_adicional || 0),
+          }
+        })
         const { error } = await supabase.from("loja_variacoes").insert(linhas); if (error) throw error
       }
       setProduto(null); await carregar(); setAba("Produtos")

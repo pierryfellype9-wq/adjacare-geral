@@ -17,6 +17,7 @@ import PortalAluno from "./pages/PortalAluno"
 import EBDFinanceiro from "./pages/EBDFinanceiro"
 import Membros from "./pages/Membros"
 import WhatsApp from "./pages/WhatsApp"
+import LojaTetelestai from "./pages/LojaTetelestai"
 
 import EBD from "./pages/EBD"
 import EBDAlunos from "./pages/EBDAlunos"
@@ -219,6 +220,7 @@ export default function App() {
                 <Route path="/usuarios" element={<Usuarios user={user} />} />
                 <Route path="/ebd/financeiro" element={<EBDFinanceiro user={user} />} />
                 <Route path="/whatsapp" element={<WhatsApp user={user} />} />
+                <Route path="/loja-tetelestai" element={<LojaTetelestai user={user} />} />
 
                 <Route
                   path="/trocar-senha"

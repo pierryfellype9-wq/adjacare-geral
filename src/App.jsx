@@ -17,6 +17,7 @@ import PortalAluno from "./pages/PortalAluno"
 import EBDFinanceiro from "./pages/EBDFinanceiro"
 import Membros from "./pages/Membros"
 import WhatsApp from "./pages/WhatsApp"
+import LojaTetelestai from "./pages/LojaTetelestai"
 
 import EBD from "./pages/EBD"
 import EBDAlunos from "./pages/EBDAlunos"
@@ -286,6 +287,7 @@ export default function App() {
                 <Route path="/ebd/relatorios" element={<EBDRelatorios user={user} />} />
                 <Route path="/ebd/dashboard" element={<EBDDashboard user={user} />} />
                 <Route path="/membros" element={<Membros user={user} />} />
+                <Route path="/loja-tetelestai" element={<LojaTetelestai user={user} />} />
               </Routes>
             </div>
           }

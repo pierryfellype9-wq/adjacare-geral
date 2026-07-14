@@ -6,6 +6,7 @@
 
 .tetelestai-root,.tetelestai-root * { box-sizing: border-box; }
 .tetelestai-root { min-height:100vh; margin:0; color:var(--paper); background:var(--ink); font-family:Arial,Helvetica,sans-serif; }
+.tetelestai-loading { background:#000; }
 
 .coming-soon {
   position: relative;

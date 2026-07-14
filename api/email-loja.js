@@ -1,0 +1,2 @@
+import { enviarEmailPedido } from "./_emailLoja.js"
+export default async function handler(req,res){if(req.method!=="POST")return res.status(405).json({error:"Método não permitido"});try{const {pedido_id,tipo}=req.body||{};if(!pedido_id||!tipo)return res.status(400).json({error:"Pedido e tipo são obrigatórios."});return res.status(200).json(await enviarEmailPedido(pedido_id,tipo))}catch(e){return res.status(500).json({error:e.message||"Erro ao enviar e-mail"})}}

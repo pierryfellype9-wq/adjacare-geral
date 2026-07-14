@@ -62,6 +62,21 @@ create table if not exists public.loja_movimentos_caixa (
   criado_em timestamptz not null default now()
 );
 
+create table if not exists public.loja_email_eventos (
+  id uuid primary key default gen_random_uuid(),
+  pedido_id uuid not null references public.loja_pedidos(id) on delete cascade,
+  tipo text not null,
+  chave text not null,
+  destinatario text not null,
+  status text not null default 'processando' check (status in ('processando','enviado','erro')),
+  automatico boolean not null default false,
+  provedor_id text,
+  erro text,
+  criado_em timestamptz not null default now(),
+  enviado_em timestamptz,
+  unique(pedido_id, chave)
+);
+
 create index if not exists idx_conferencia_pedido on public.loja_conferencia_itens(pedido_id);
 create index if not exists idx_pagamentos_pedido on public.loja_pagamentos(pedido_id, status);
 create index if not exists idx_pagamentos_caixa on public.loja_pagamentos(caixa_id, criado_em);
@@ -71,3 +86,4 @@ alter table public.loja_conferencia_itens disable row level security;
 alter table public.loja_caixas disable row level security;
 alter table public.loja_pagamentos disable row level security;
 alter table public.loja_movimentos_caixa disable row level security;
+alter table public.loja_email_eventos disable row level security;

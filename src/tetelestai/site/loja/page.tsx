@@ -58,6 +58,7 @@ export default function LojaPublica() {
       const pedidoPayload = { cliente_id:clienteId, origem:"site", status:forma === "retirada" ? "pagamento_na_retirada":"aguardando_pagamento", forma_pagamento:forma, status_pagamento:forma === "retirada" ? "na_retirada":"pendente", subtotal:total, desconto:0, total, confirmou_medidas:Boolean(fd.get("medidas")), observacoes_cliente:String(fd.get("observacoes") || "") };
       const pedido = await supabaseRest("loja_pedidos", { method:"POST", headers:{Prefer:"return=representation"}, body:JSON.stringify(pedidoPayload) });
       await supabaseRest("loja_pedido_itens", { method:"POST", body:JSON.stringify(carrinho.map(i => ({ pedido_id:pedido[0].id, produto_id:i.produto.id, variacao_id:i.variacao.id, produto_nome:i.produto.nome, modelo:i.variacao.modelo, publico:i.variacao.publico, tamanho:i.variacao.tamanho, comprimento_cm:i.variacao.comprimento_cm, largura_cm:i.variacao.largura_cm, quantidade:i.quantidade, valor_unitario:Number(i.produto.preco)+Number(i.variacao.preco_adicional || 0), valor_total:(Number(i.produto.preco)+Number(i.variacao.preco_adicional || 0))*i.quantidade })))});
+      fetch("/api/email-loja", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ pedido_id:pedido[0].id, tipo:"pedido_criado" }) }).catch(() => {});
       setConcluido({numero:pedido[0].numero, forma}); setCarrinho([]); setCheckout(false);
     } catch (err) { setErro(err instanceof Error ? err.message : "Não foi possível concluir seu pedido."); } finally { setEnviando(false); }
   }

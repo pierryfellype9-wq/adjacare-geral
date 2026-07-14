@@ -15,6 +15,10 @@ export default function TetelestaiApp() {
   const [publicacao, setPublicacao] = useState(null)
 
   useEffect(() => {
+    document.title = "Tetelestai 2026 | AD Jacaré"
+    let favicon = document.querySelector("link[rel='icon']")
+    if (!favicon) { favicon = document.createElement("link"); favicon.rel = "icon"; document.head.appendChild(favicon) }
+    favicon.href = "/logo-tetelestai-provisoria.svg"
     supabaseRest("loja_configuracoes?chave=eq.tetelestai-2026&select=site_publicado,lancamento_em&limit=1")
       .then((dados) => setPublicacao(dados[0] || { site_publicado:false, lancamento_em:null }))
       .catch(() => setPublicacao({ site_publicado:false, lancamento_em:null }))

@@ -40,6 +40,8 @@ function isTetelestaiRequest() {
 export default function App() {
   if (isTetelestaiRequest()) return <Suspense fallback={<div style={{minHeight:"100vh",background:"#020306"}} />}><TetelestaiApp /></Suspense>
 
+  useEffect(() => { document.title = "Sistema AD Jacaré" }, [])
+
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
   const [user, setUser] = useState(null)

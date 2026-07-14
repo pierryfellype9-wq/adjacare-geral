@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
 import "./LojaTetelestai.css"
 
-const abas = ["Visão geral", "Produtos", "Pedidos", "Clientes", "Configurações"]
+const abas = ["Visão geral", "Produtos", "Pedidos", "Conferência e retirada", "Caixa", "Clientes", "Configurações"]
 const statusPedido = {
   rascunho: "Rascunho", aguardando_pagamento: "Aguardando pagamento", pago: "Pago",
   pagamento_na_retirada: "Pagamento na retirada", em_separacao: "Em separação",
@@ -27,6 +27,7 @@ export default function LojaTetelestai({ user }) {
   const [produtos, setProdutos] = useState([])
   const [pedidos, setPedidos] = useState([])
   const [clientes, setClientes] = useState([])
+  const [pagamentos, setPagamentos] = useState([])
   const [produto, setProduto] = useState(null)
   const [variacoes, setVariacoes] = useState([])
   const [busca, setBusca] = useState("")
@@ -36,14 +37,15 @@ export default function LojaTetelestai({ user }) {
 
   async function carregar() {
     setLoading(true)
-    const [c, p, pe, cl] = await Promise.all([
+    const [c, p, pe, cl, pg] = await Promise.all([
       supabase.from("loja_configuracoes").select("*").eq("chave", "tetelestai-2026").single(),
       supabase.from("loja_produtos").select("*, loja_variacoes(count)").order("ordem").order("criado_em", { ascending:false }),
       supabase.from("loja_pedidos").select("*, loja_clientes(nome_completo,celular,email), loja_pedido_itens(*)").order("criado_em", { ascending:false }),
       supabase.from("loja_clientes").select("*").order("criado_em", { ascending:false }),
+      supabase.from("loja_pagamentos").select("*").eq("status", "confirmado").order("criado_em", { ascending:false }),
     ])
     if (c.error && c.error.code === "42P01") alert("A loja ainda não foi instalada. Execute o SQL enviado no Supabase.")
-    setConfig(c.data || null); setProdutos(p.data || []); setPedidos(pe.data || []); setClientes(cl.data || [])
+    setConfig(c.data || null); setProdutos(p.data || []); setPedidos(pe.data || []); setClientes(cl.data || []); setPagamentos(pg.data || [])
     setLoading(false)
   }
 
@@ -155,6 +157,10 @@ export default function LojaTetelestai({ user }) {
 
     {aba === "Pedidos" && <section className="loja-painel"><div className="loja-painel-titulo"><div><h2>Pedidos da loja</h2><p>Os itens de diferentes modelos ficam agrupados no mesmo pedido.</p></div></div><TabelaPedidos pedidos={pedidos} alterarStatus={alterarStatus} detalhada /></section>}
 
+    {aba === "Conferência e retirada" && <ConferenciaRetirada pedidos={pedidos} user={user} recarregar={carregar} />}
+
+    {aba === "Caixa" && <Caixa pedidos={pedidos} pagamentos={pagamentos} user={user} recarregar={carregar} />}
+
     {aba === "Clientes" && <section className="loja-painel"><div className="loja-painel-titulo"><div><h2>Clientes</h2><p>Cadastros criados pelo site, WhatsApp ou atendimento manual.</p></div><input className="busca" placeholder="Buscar nome, celular ou e-mail" value={busca} onChange={e => setBusca(e.target.value)} /></div><div className="tabela-wrap"><table><thead><tr><th>Nome completo</th><th>Celular</th><th>E-mail</th><th>Origem</th><th>Cadastro</th></tr></thead><tbody>{clientes.filter(c => JSON.stringify(c).toLowerCase().includes(busca.toLowerCase())).map(c => <tr key={c.id}><td><b>{c.nome_completo}</b></td><td>{c.celular}</td><td>{c.email}</td><td>{c.origem}</td><td>{dataHora(c.criado_em)}</td></tr>)}</tbody></table></div></section>}
 
     {aba === "Configurações" && config && <ConfigLoja config={config} setConfig={setConfig} salvar={salvarConfig} salvando={salvando} />}
@@ -181,9 +187,72 @@ function TabelaPedidos({ pedidos, alterarStatus, detalhada=false }) {
 function ConfigLoja({ config, setConfig, salvar, salvando }) {
   const campo = (k,v) => setConfig({...config,[k]:v})
   return <form className="loja-painel" onSubmit={salvar}><div className="loja-painel-titulo"><div><h2>Configurações da loja</h2><p>Controle a publicação sem alterar o código.</p></div><button className="primario" disabled={salvando}>{salvando ? "Salvando...":"Salvar configurações"}</button></div>
-    <h3>Publicação</h3><div className="checks destaque"><label><input type="checkbox" checked={config.loja_ativa} onChange={e => campo("loja_ativa",e.target.checked)}/> Loja aberta para pedidos</label><label><input type="checkbox" checked={config.mostrar_botao_topo} onChange={e => campo("mostrar_botao_topo",e.target.checked)}/> Mostrar botão no topo do site</label><label><input type="checkbox" checked={config.whatsapp_ativo} onChange={e => campo("whatsapp_ativo",e.target.checked)}/> Permitir pedidos pelo WhatsApp</label></div>
-    <div className="form-grid"><label>Nome da loja<input value={config.nome_loja} onChange={e => campo("nome_loja",e.target.value)}/></label><label>Texto do botão do topo<input value={config.texto_botao_topo} onChange={e => campo("texto_botao_topo",e.target.value)}/></label><label>Título da vitrine<input value={config.titulo_vitrine} onChange={e => campo("titulo_vitrine",e.target.value)}/></label><label className="form-largo">Descrição da vitrine<textarea value={config.descricao_vitrine || ""} onChange={e => campo("descricao_vitrine",e.target.value)}/></label><label>Início das vendas<input type="datetime-local" value={config.vendas_inicio?.slice(0,16) || ""} onChange={e => campo("vendas_inicio",e.target.value || null)}/></label><label>Fim das vendas<input type="datetime-local" value={config.vendas_fim?.slice(0,16) || ""} onChange={e => campo("vendas_fim",e.target.value || null)}/></label><label className="form-largo">Mensagem com a loja fechada<textarea value={config.mensagem_loja_fechada || ""} onChange={e => campo("mensagem_loja_fechada",e.target.value)}/></label></div>
+    <h3>Publicação</h3><div className="checks destaque"><label><input type="checkbox" checked={Boolean(config.site_publicado)} onChange={e => campo("site_publicado",e.target.checked)}/> Site completo publicado</label><label><input type="checkbox" checked={config.loja_ativa} onChange={e => campo("loja_ativa",e.target.checked)}/> Loja aberta para pedidos</label><label><input type="checkbox" checked={config.mostrar_botao_topo} onChange={e => campo("mostrar_botao_topo",e.target.checked)}/> Mostrar botão no topo do site</label><label><input type="checkbox" checked={config.whatsapp_ativo} onChange={e => campo("whatsapp_ativo",e.target.checked)}/> Permitir pedidos pelo WhatsApp</label></div>
+    <div className="form-grid"><label>Nome da loja<input value={config.nome_loja} onChange={e => campo("nome_loja",e.target.value)}/></label><label>Lançamento automático do site<input type="datetime-local" value={config.lancamento_em?.slice(0,16) || ""} onChange={e => campo("lancamento_em",e.target.value || null)}/></label><label>Texto do botão do topo<input value={config.texto_botao_topo} onChange={e => campo("texto_botao_topo",e.target.value)}/></label><label>Título da vitrine<input value={config.titulo_vitrine} onChange={e => campo("titulo_vitrine",e.target.value)}/></label><label className="form-largo">Descrição da vitrine<textarea value={config.descricao_vitrine || ""} onChange={e => campo("descricao_vitrine",e.target.value)}/></label><label>Início das vendas<input type="datetime-local" value={config.vendas_inicio?.slice(0,16) || ""} onChange={e => campo("vendas_inicio",e.target.value || null)}/></label><label>Fim das vendas<input type="datetime-local" value={config.vendas_fim?.slice(0,16) || ""} onChange={e => campo("vendas_fim",e.target.value || null)}/></label><label className="form-largo">Mensagem com a loja fechada<textarea value={config.mensagem_loja_fechada || ""} onChange={e => campo("mensagem_loja_fechada",e.target.value)}/></label></div>
     <h3>Pagamento</h3><div className="checks"><label><input type="checkbox" checked={config.aceitar_pix} onChange={e => campo("aceitar_pix",e.target.checked)}/> Pix</label><label><input type="checkbox" checked={config.aceitar_cartao} onChange={e => campo("aceitar_cartao",e.target.checked)}/> Cartão</label><label><input type="checkbox" checked={config.aceitar_retirada} onChange={e => campo("aceitar_retirada",e.target.checked)}/> Pagamento na retirada</label><label><input type="checkbox" checked={config.exigir_confirmacao_medidas} onChange={e => campo("exigir_confirmacao_medidas",e.target.checked)}/> Exigir confirmação das medidas</label></div>
     <h3>Retirada única</h3><div className="form-grid"><label>Data<input type="date" value={config.retirada_data || ""} onChange={e => campo("retirada_data",e.target.value || null)}/></label><label>Início<input type="time" value={config.retirada_inicio || ""} onChange={e => campo("retirada_inicio",e.target.value || null)}/></label><label>Fim<input type="time" value={config.retirada_fim || ""} onChange={e => campo("retirada_fim",e.target.value || null)}/></label><label className="form-largo">Local<input value={config.retirada_local || ""} onChange={e => campo("retirada_local",e.target.value)}/></label><label className="form-largo">Orientações<textarea value={config.retirada_instrucoes || ""} onChange={e => campo("retirada_instrucoes",e.target.value)}/></label></div>
   </form>
+}
+
+function localizar(pedidos, busca) {
+  const termo = busca.trim().toLowerCase().replace(/^#/, "")
+  if (!termo) return []
+  return pedidos.filter(p => [p.numero, p.loja_clientes?.nome_completo, p.loja_clientes?.celular, p.loja_clientes?.email].some(v => String(v || "").toLowerCase().includes(termo))).slice(0, 15)
+}
+
+function ConferenciaRetirada({ pedidos, user, recarregar }) {
+  const [busca, setBusca] = useState("")
+  const [selecionado, setSelecionado] = useState(null)
+  const [checks, setChecks] = useState({})
+  const [divergencia, setDivergencia] = useState("")
+  const [retiradoPor, setRetiradoPor] = useState("")
+  const [celularRetirada, setCelularRetirada] = useState("")
+  const resultados = localizar(pedidos, busca)
+
+  async function abrir(p) {
+    const { data } = await supabase.from("loja_conferencia_itens").select("pedido_item_id,conferido,divergencia").eq("pedido_id", p.id)
+    const salvos = Object.fromEntries((data || []).map(i => [i.pedido_item_id, i.conferido]))
+    setSelecionado(p); setChecks(Object.fromEntries((p.loja_pedido_itens || []).map(i => [i.id, Boolean(salvos[i.id])]))); setDivergencia((data || []).find(i => i.divergencia)?.divergencia || p.conferencia_divergencia || ""); setRetiradoPor(p.retirado_por_nome || p.loja_clientes?.nome_completo || ""); setCelularRetirada(p.retirado_por_celular || p.loja_clientes?.celular || "")
+  }
+  async function registrar(status) {
+    if (!selecionado) return
+    const todos = (selecionado.loja_pedido_itens || []).every(i => checks[i.id])
+    if (["pronto_retirada", "retirado"].includes(status) && !todos) return alert("Confira todos os itens antes de continuar.")
+    if (status === "retirado" && selecionado.status_pagamento !== "aprovado") return alert("O pedido ainda não está pago. Receba o pagamento na aba Caixa antes de entregar.")
+    if (status === "retirado" && !retiradoPor.trim()) return alert("Informe o nome de quem está retirando.")
+    const agora = new Date().toISOString()
+    const dados = { status, atualizado_em: agora, conferencia_divergencia: divergencia || null, conferido_por: user?.nome, conferido_em: todos ? agora : null }
+    if (status === "retirado") Object.assign(dados, { retirado_em: agora, retirado_por_nome: retiradoPor.trim(), retirado_por_celular: celularRetirada.trim(), retirado_por_operador: user?.nome })
+    const { error } = await supabase.from("loja_pedidos").update(dados).eq("id", selecionado.id)
+    if (error) return alert(`Erro: ${error.message}. Execute o SQL de Conferência e Caixa.`)
+    await supabase.from("loja_conferencia_itens").upsert((selecionado.loja_pedido_itens || []).map(i => ({ pedido_id:selecionado.id, pedido_item_id:i.id, quantidade_conferida:checks[i.id] ? i.quantidade : 0, conferido:Boolean(checks[i.id]), divergencia:divergencia || null, conferido_por:user?.nome, conferido_em:checks[i.id] ? agora : null })), { onConflict:"pedido_item_id" })
+    await supabase.from("loja_pedido_historico").insert({ pedido_id:selecionado.id, status_anterior:selecionado.status, status_novo:status, descricao:status === "retirado" ? `Retirado por ${retiradoPor}` : divergencia || "Conferência registrada", alterado_por:user?.nome })
+    alert(status === "retirado" ? "Retirada registrada com sucesso." : "Conferência salva."); setSelecionado(null); setBusca(""); await recarregar()
+  }
+  return <section className="loja-painel operacao"><div className="loja-painel-titulo"><div><h2>Conferência e retirada</h2><p>Localize, confira peça por peça e registre quem recebeu o pedido.</p></div></div>
+    <input className="busca busca-grande" autoFocus placeholder="Pedido, nome, celular ou e-mail" value={busca} onChange={e => setBusca(e.target.value)} />
+    {!selecionado && busca && <div className="resultado-lista">{resultados.map(p => <button key={p.id} onClick={() => abrir(p)}><b>#{String(p.numero).padStart(5,"0")} · {p.loja_clientes?.nome_completo}</b><span>{p.loja_clientes?.celular} · {moeda(p.total)} · {statusPedido[p.status]}</span></button>)}{!resultados.length && <p>Nenhum pedido encontrado.</p>}</div>}
+    {selecionado && <div className="operacao-grid"><div><div className="pedido-identificacao"><strong>#{String(selecionado.numero).padStart(5,"0")}</strong><div><h3>{selecionado.loja_clientes?.nome_completo}</h3><p>{selecionado.loja_clientes?.celular} · {selecionado.loja_clientes?.email}</p></div><button onClick={() => setSelecionado(null)}>Trocar pedido</button></div>
+      <div className="check-itens">{selecionado.loja_pedido_itens?.map(i => <label key={i.id} className={checks[i.id] ? "ok":""}><input type="checkbox" checked={Boolean(checks[i.id])} onChange={e => setChecks({...checks,[i.id]:e.target.checked})}/><span><b>{i.quantidade}× {i.produto_nome}</b><small>{i.modelo}{i.publico === "Feminino" ? " · CAMISETA FEMININA" : ""} · {i.tamanho} · {i.comprimento_cm} × {i.largura_cm} cm</small></span></label>)}</div></div>
+      <aside className="operacao-lateral"><div className={`pagamento-selo ${selecionado.status_pagamento === "aprovado" ? "pago":"pendente"}`}>{selecionado.status_pagamento === "aprovado" ? "PAGAMENTO CONFIRMADO" : "PAGAMENTO PENDENTE"}</div><label>Divergência ou observação<textarea rows="3" value={divergencia} onChange={e => setDivergencia(e.target.value)}/></label><label>Nome de quem retirou<input value={retiradoPor} onChange={e => setRetiradoPor(e.target.value)}/></label><label>Celular de quem retirou<input value={celularRetirada} onChange={e => setCelularRetirada(e.target.value)}/></label><button onClick={() => registrar("em_separacao")}>Salvar separação</button><button className="primario" onClick={() => registrar("pronto_retirada")}>Marcar pronto</button><button className="entregar" onClick={() => registrar("retirado")}>Confirmar entrega</button></aside></div>}
+  </section>
+}
+
+function Caixa({ pedidos, pagamentos, user, recarregar }) {
+  const [caixa, setCaixa] = useState(null), [busca, setBusca] = useState(""), [pedido, setPedido] = useState(null)
+  const [inicial, setInicial] = useState("0"), [forma, setForma] = useState("dinheiro"), [valor, setValor] = useState(""), [recebido, setRecebido] = useState("")
+  const [resumo, setResumo] = useState({ total:0, dinheiro:0, suprimentos:0, sangrias:0 })
+  useEffect(() => { supabase.from("loja_caixas").select("*").eq("status","aberto").order("aberto_em",{ascending:false}).limit(1).maybeSingle().then(({data}) => setCaixa(data || null)) }, [])
+  async function abrirCaixa() { const {data,error}=await supabase.from("loja_caixas").insert({aberto_por:user?.nome,valor_inicial:Number(inicial||0)}).select().single(); if(error)return alert(`Erro: ${error.message}. Execute o SQL de Conferência e Caixa.`); setCaixa(data) }
+  async function atualizarResumo(id=caixa?.id) { if(!id)return; const [{data},{data:movimentos}]=await Promise.all([supabase.from("loja_pagamentos").select("valor,forma").eq("caixa_id",id).eq("status","confirmado"),supabase.from("loja_movimentos_caixa").select("tipo,valor").eq("caixa_id",id)]); setResumo({total:(data||[]).reduce((s,x)=>s+Number(x.valor),0),dinheiro:(data||[]).filter(x=>x.forma==="dinheiro").reduce((s,x)=>s+Number(x.valor),0),suprimentos:(movimentos||[]).filter(x=>x.tipo==="suprimento").reduce((s,x)=>s+Number(x.valor),0),sangrias:(movimentos||[]).filter(x=>x.tipo==="sangria").reduce((s,x)=>s+Number(x.valor),0)}) }
+  useEffect(() => { atualizarResumo() }, [caixa?.id])
+  function saldo(p){return Math.max(0,Number(p.total||0)-pagamentos.filter(x=>x.pedido_id===p.id&&x.status==="confirmado").reduce((s,x)=>s+Number(x.valor),0))}
+  function selecionar(p){setPedido(p);setValor(String(saldo(p)));setRecebido("")}
+  async function receber(e){e.preventDefault();if(!pedido||!caixa)return;const v=Number(valor), restante=saldo(pedido);if(!v||v<=0)return alert("Informe o valor recebido.");if(v>restante+.009)return alert(`O valor lançado não pode ultrapassar o saldo de ${moeda(restante)}. Para dinheiro, informe a quantia entregue no campo próprio para calcular o troco.`);const {error}=await supabase.from("loja_pagamentos").insert({pedido_id:pedido.id,caixa_id:caixa.id,forma,valor:v,status:"confirmado",recebido_por:user?.nome});if(error)return alert(error.message);await supabase.from("loja_movimentos_caixa").insert({caixa_id:caixa.id,pedido_id:pedido.id,tipo:"recebimento",valor:v,descricao:`Pagamento ${forma} do pedido #${pedido.numero}`,operador:user?.nome});const quitado=v>=restante-.009;if(quitado){const proximoStatus=["em_separacao","pronto_retirada","retirado"].includes(pedido.status)?pedido.status:"pago";await supabase.from("loja_pedidos").update({status:proximoStatus,status_pagamento:"aprovado",pago_em:new Date().toISOString(),forma_pagamento:forma==="dinheiro"?"retirada":forma==="pix"?"pix":"cartao",atualizado_em:new Date().toISOString()}).eq("id",pedido.id);await supabase.from("loja_pedido_historico").insert({pedido_id:pedido.id,status_anterior:pedido.status,status_novo:proximoStatus,descricao:`Pagamento integral confirmado no caixa por ${forma}.`,alterado_por:user?.nome})}else{await supabase.from("loja_pedido_historico").insert({pedido_id:pedido.id,status_anterior:pedido.status,status_novo:pedido.status,descricao:`Pagamento parcial de ${moeda(v)} por ${forma}. Saldo restante: ${moeda(restante-v)}.`,alterado_por:user?.nome})}alert(`Pagamento registrado.${quitado?" Pedido quitado.":` Saldo restante: ${moeda(restante-v)}.`}${forma==="dinheiro"&&Number(recebido)>v?` Troco: ${moeda(Number(recebido)-v)}`:""}`);setPedido(null);setBusca("");await recarregar();await atualizarResumo()}
+  async function movimentar(tipo){const valorInformado=prompt(`Valor do ${tipo}:`);if(valorInformado===null)return;const v=Number(String(valorInformado).replace(",","."));if(!v||v<=0)return alert("Informe um valor válido.");const descricao=prompt("Motivo/descrição do movimento:");if(!descricao?.trim())return alert("A descrição é obrigatória para auditoria.");const {error}=await supabase.from("loja_movimentos_caixa").insert({caixa_id:caixa.id,tipo,valor:v,descricao:descricao.trim(),operador:user?.nome});if(error)return alert(error.message);await atualizarResumo();alert(tipo==="suprimento"?"Suprimento registrado.":"Sangria registrada.")}
+  async function fechar(){const contado=prompt("Informe o valor total contado em dinheiro no caixa:");if(contado===null)return;const esperado=Number(caixa.valor_inicial)+resumo.dinheiro+resumo.suprimentos-resumo.sangrias;const {error}=await supabase.from("loja_caixas").update({status:"fechado",fechado_em:new Date().toISOString(),fechado_por:user?.nome,valor_esperado:esperado,valor_contado:Number(contado),diferenca:Number(contado)-esperado}).eq("id",caixa.id);if(error)return alert(error.message);alert(`Caixa fechado. Diferença: ${moeda(Number(contado)-esperado)}`);setCaixa(null)}
+  const resultados=localizar(pedidos,busca).filter(p=>p.status!=="cancelado"&&saldo(p)>0)
+  if(!caixa)return <section className="loja-painel caixa-abertura"><span>OPERAÇÃO FINANCEIRA</span><h2>Abra o caixa para começar</h2><p>O valor inicial registra o dinheiro disponível para troco.</p><label>Valor inicial em dinheiro<input type="number" min="0" step="0.01" value={inicial} onChange={e=>setInicial(e.target.value)}/></label><button className="primario" onClick={abrirCaixa}>Abrir caixa</button></section>
+  const dinheiroEsperado=Number(caixa.valor_inicial)+resumo.dinheiro+resumo.suprimentos-resumo.sangrias
+  return <section className="loja-painel operacao"><div className="loja-painel-titulo"><div><h2>Caixa</h2><p>Aberto por {caixa.aberto_por} em {dataHora(caixa.aberto_em)}</p></div><div className="caixa-acoes"><button onClick={()=>movimentar("suprimento")}>+ Suprimento</button><button onClick={()=>movimentar("sangria")}>− Sangria</button><button className="perigo" onClick={fechar}>Fechar caixa</button></div></div><section className="caixa-resumo"><article><span>Valor inicial</span><b>{moeda(caixa.valor_inicial)}</b></article><article><span>Recebido nesta sessão</span><b>{moeda(resumo.total)}</b><small>Suprimentos {moeda(resumo.suprimentos)} · Sangrias {moeda(resumo.sangrias)}</small></article><article><span>Dinheiro esperado</span><b>{moeda(dinheiroEsperado)}</b></article></section><input className="busca busca-grande" placeholder="Buscar pedido pendente" value={busca} onChange={e=>setBusca(e.target.value)}/>{!pedido&&busca&&<div className="resultado-lista">{resultados.map(p=><button key={p.id} onClick={()=>selecionar(p)}><b>#{String(p.numero).padStart(5,"0")} · {p.loja_clientes?.nome_completo}</b><span>{p.loja_clientes?.celular} · saldo do pedido {moeda(saldo(p))}</span></button>)}</div>}{pedido&&<form className="recebimento" onSubmit={receber}><div><small>PEDIDO #{String(pedido.numero).padStart(5,"0")}</small><h3>{pedido.loja_clientes?.nome_completo}</h3><b>Total: {moeda(pedido.total)} · Saldo: {moeda(saldo(pedido))}</b></div><label>Forma<select value={forma} onChange={e=>setForma(e.target.value)}><option value="dinheiro">Dinheiro</option><option value="pix">Pix</option><option value="cartao_debito">Cartão de débito</option><option value="cartao_credito">Cartão de crédito</option></select></label><label>Valor a lançar<input type="number" min="0.01" max={saldo(pedido)} step="0.01" value={valor} onChange={e=>setValor(e.target.value)}/></label>{forma==="dinheiro"&&<label>Valor entregue pelo cliente<input type="number" min="0" step="0.01" value={recebido} onChange={e=>setRecebido(e.target.value)}/><small>Troco: {moeda(Math.max(0,Number(recebido||0)-Number(valor||0)))}</small></label>}<div><button type="button" onClick={()=>setPedido(null)}>Cancelar</button><button className="primario">Confirmar pagamento</button></div></form>}</section>
 }

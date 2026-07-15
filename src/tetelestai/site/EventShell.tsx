@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import StoreHeaderButton from "./loja/StoreHeaderButton";
 import { siteUrl } from "./links";
 
 export function EventHeader() {
@@ -16,7 +15,6 @@ export function EventHeader() {
         <a href={siteUrl("fotos")}>Fotos</a>
         <a href={siteUrl("localizacao")}>Local</a>
       </nav>
-      <StoreHeaderButton />
     </header>
   );
 }

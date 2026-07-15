@@ -31,10 +31,6 @@ export default function Sidebar({ open, setOpen, user }) {
     user?.role === "Sonoplastia"
 
   const podeVerEBD = true
-  const podeVerLoja =
-    user?.role === "Administrador" ||
-    user?.role === "Dirigente"
-
   return (
     <div className={`sidebar ${open ? "open" : ""}`}>
       <div className="sidebar-header">
@@ -64,12 +60,6 @@ export default function Sidebar({ open, setOpen, user }) {
         {podeVerWhatsApp && (
           <div className="menu-item" onClick={() => navegar("/whatsapp")}>
             WhatsApp
-          </div>
-        )}
-
-        {podeVerLoja && (
-          <div className="menu-item" onClick={() => navegar("/loja-tetelestai")}>
-            Loja Tetelestai
           </div>
         )}
 

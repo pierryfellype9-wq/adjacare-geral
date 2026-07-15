@@ -8,8 +8,6 @@ import Programacao from "./site/programacao/page"
 import Playlist from "./site/playlist/page"
 import Fotos from "./site/fotos/page"
 import Localizacao from "./site/localizacao/page"
-import Camisetas from "./site/camisetas/page"
-import Loja from "./site/loja/page"
 
 function ScrollCrown() {
   const crownRef = useRef(null)
@@ -89,9 +87,7 @@ export default function TetelestaiApp() {
     "/playlist": Playlist,
     "/fotos": Fotos,
     "/localizacao": Localizacao,
-    "/camisetas": Camisetas,
-    "/loja": Loja,
   }
   const Pagina = paginas[path] || SiteInicial
-  return <div className="tetelestai-root"><ScrollCrown />{previewAutorizado && <div className="preview-ribbon">PRÉ-VISUALIZAÇÃO • O SITE PÚBLICO CONTINUA FECHADO</div>}<Pagina /></div>
+  return <div className="tetelestai-root"><ScrollCrown /><Pagina /></div>
 }

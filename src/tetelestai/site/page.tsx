@@ -51,8 +51,7 @@ export default function SiteInicial() {
           <a className="explore-card blue" href={siteUrl("tema")}><span className="card-number">02</span><div><small>João 19:30</small><h3>O tema</h3></div><b>→</b></a>
           <a className="explore-card music" href={siteUrl("playlist")}><span className="card-number">03</span><div><small>Playlist oficial</small><h3>Ouça agora</h3></div><b>♫</b></a>
           <a className="explore-card location" href={siteUrl("localizacao")}><span className="card-number">04</span><div><small>Como chegar</small><h3>Localização</h3></div><b>↗</b></a>
-          <a className="explore-card shirt" href={siteUrl("loja")}><span className="card-number">05</span><div><small>Loja oficial</small><h3>Camisetas</h3></div><b>+</b></a>
-          <a className="explore-card photos" href={siteUrl("fotos")}><span className="card-number">06</span><div><small>Em breve</small><h3>Fotos</h3></div><b>→</b></a>
+          <a className="explore-card photos" href={siteUrl("fotos")}><span className="card-number">05</span><div><small>Em breve</small><h3>Fotos</h3></div><b>→</b></a>
         </div>
       </section>
       <EventFooter />

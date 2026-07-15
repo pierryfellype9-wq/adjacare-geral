@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import { iniciarPedidoTetelestai, processarPedidoTetelestai } from "../server/whatsappTetelestai.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -96,7 +95,6 @@ async function enviarMenuPrincipal(telefone) {
       { id:"menu_atendente", title:"Falar com atendente", description:"Atendimento humano" },
       { id:"menu_som", title:"Som e Projeção", description:"Enviar hino, áudio ou vídeo" },
       { id:"menu_outros", title:"Outras opções", description:"Mídia, Secretaria ou Suporte" },
-      { id:"menu_tetelestai", title:"Camisetas Tetelestai", description:"Montar ou consultar seu pedido" },
     ] }],
   });
 }
@@ -187,7 +185,7 @@ export default async function handler(req, res) {
 
     const telefone = mensagem.from;
     const interacaoId = mensagem.interactive?.list_reply?.id || mensagem.interactive?.button_reply?.id;
-    const aliases = { menu_midia:"1", menu_ebd:"2", menu_atendente:"3", menu_som:"4", menu_outros:"5", menu_tetelestai:"6", outros_midia:"1", outros_secretaria:"2", outros_suporte:"3", outros_menu:"4" };
+    const aliases = { menu_midia:"1", menu_ebd:"2", menu_atendente:"3", menu_som:"4", menu_outros:"5", outros_midia:"1", outros_secretaria:"2", outros_suporte:"3", outros_menu:"4" };
     const texto = aliases[interacaoId] || interacaoId || mensagem.text?.body?.trim();
 
     if (texto) {
@@ -335,11 +333,6 @@ Informe seu nome para começarmos:`
         return res.status(200).send("ok");
       }
 
-      if (texto === "6") {
-        await iniciarPedidoTetelestai({ telefone, enviarMensagem });
-        return res.status(200).send("ok");
-      }
-
       await enviarMensagem(telefone, "Não consegui identificar essa opção.");
       await enviarMenuPrincipal(telefone);
       return res.status(200).send("ok");
@@ -379,7 +372,10 @@ Informe seu nome para começarmos:`
       return res.status(200).send("ok");
     }
 
-    if (await processarPedidoTetelestai({ telefone, texto, sessao, enviarMensagem, enviarLista, enviarBotoes })) {
+    if (sessao.etapa?.startsWith("tetelestai_")) {
+      await supabase.from("whatsapp_sessoes").update({ etapa:"menu", dados:{} }).eq("telefone", telefone);
+      await enviarMensagem(telefone, "A opção de camisetas não está mais disponível por aqui.");
+      await enviarMenuPrincipal(telefone);
       return res.status(200).send("ok");
     }
 

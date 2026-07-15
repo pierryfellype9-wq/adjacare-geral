@@ -5,6 +5,7 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+const WHATSAPP_API_VERSION = process.env.WHATSAPP_API_VERSION || "v25.0";
 
 async function salvarMensagem(telefone, direcao, mensagem) {
   await supabase.from("whatsapp_mensagens").insert({
@@ -16,7 +17,7 @@ async function salvarMensagem(telefone, direcao, mensagem) {
 
 async function enviarMensagem(telefone, texto) {
   await fetch(
-    `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+    `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
     {
       method: "POST",
       headers: {
@@ -25,6 +26,7 @@ async function enviarMensagem(telefone, texto) {
       },
       body: JSON.stringify({
         messaging_product: "whatsapp",
+        recipient_type: "individual",
         to: telefone,
         type: "text",
         text: {
@@ -39,10 +41,10 @@ async function enviarMensagem(telefone, texto) {
 }
 
 async function enviarInterativo(telefone, interactive, registro) {
-  const resposta = await fetch(`https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+  const resposta = await fetch(`https://graph.facebook.com/${WHATSAPP_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ messaging_product: "whatsapp", to: telefone, type: "interactive", interactive }),
+    body: JSON.stringify({ messaging_product: "whatsapp", recipient_type: "individual", to: telefone, type: "interactive", interactive }),
   });
   if (!resposta.ok) {
     const detalhe = await resposta.text();
@@ -172,6 +174,12 @@ export default async function handler(req, res) {
     const mensagem = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
     if (!mensagem) return res.status(200).send("Sem mensagem");
+
+    if (mensagem.id) {
+      const { error: erroEvento } = await supabase.from("whatsapp_eventos_processados").insert({ mensagem_id: mensagem.id });
+      if (erroEvento?.code === "23505") return res.status(200).send("Mensagem já processada");
+      if (erroEvento) console.error("Deduplicação indisponível:", erroEvento.message);
+    }
 
     const telefone = mensagem.from;
     const interacaoId = mensagem.interactive?.list_reply?.id || mensagem.interactive?.button_reply?.id;
@@ -962,7 +970,7 @@ Conversa encerrada. Para uma nova solicitação, envie "menu" e faça a autentic
     return res.status(200).send("ok");
   } catch (error) {
     console.error("Erro no webhook:", error);
-    return res.status(500).send("Erro interno");
+    return res.status(200).send("Erro registrado");
   }
 }
 

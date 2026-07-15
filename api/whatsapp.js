@@ -52,20 +52,31 @@ async function enviarInterativo(telefone, interactive, registro) {
 }
 
 async function enviarLista(telefone, { cabecalho, corpo, botao, secoes }) {
-  await enviarInterativo(telefone, {
-    type: "list",
-    header: cabecalho ? { type: "text", text: cabecalho.slice(0, 60) } : undefined,
-    body: { text: corpo.slice(0, 1024) },
-    action: { button: botao.slice(0, 20), sections: secoes },
-  }, `${cabecalho || "Lista"}\n${corpo}`);
+  try {
+    await enviarInterativo(telefone, {
+      type: "list",
+      header: cabecalho ? { type: "text", text: cabecalho.slice(0, 60) } : undefined,
+      body: { text: corpo.slice(0, 1024) },
+      action: { button: botao.slice(0, 20), sections: secoes },
+    }, `${cabecalho || "Lista"}\n${corpo}`);
+  } catch (error) {
+    console.error("Falha ao enviar lista; usando texto:", error.message);
+    const linhas = secoes.flatMap(s => s.rows).map((r,i) => `${i + 1}. ${r.title}${r.description ? ` — ${r.description}` : ""}`).join("\n");
+    await enviarMensagem(telefone, `*${cabecalho || "Escolha uma opção"}*\n\n${corpo}\n\n${linhas}\n\nResponda com o número da opção.`);
+  }
 }
 
 async function enviarBotoes(telefone, { corpo, botoes }) {
-  await enviarInterativo(telefone, {
-    type: "button",
-    body: { text: corpo.slice(0, 1024) },
-    action: { buttons: botoes.slice(0, 3).map(b => ({ type: "reply", reply: { id: b.id.slice(0, 256), title: b.title.slice(0, 20) } })) },
-  }, corpo);
+  try {
+    await enviarInterativo(telefone, {
+      type: "button",
+      body: { text: corpo.slice(0, 1024) },
+      action: { buttons: botoes.slice(0, 3).map(b => ({ type: "reply", reply: { id: b.id.slice(0, 256), title: b.title.slice(0, 20) } })) },
+    }, corpo);
+  } catch (error) {
+    console.error("Falha ao enviar botões; usando texto:", error.message);
+    await enviarMensagem(telefone, `${corpo}\n\n${botoes.map((b,i)=>`${i+1}. ${b.title}`).join("\n")}\n\nResponda com o número da opção.`);
+  }
 }
 
 async function enviarMenuPrincipal(telefone) {
@@ -74,12 +85,12 @@ async function enviarMenuPrincipal(telefone) {
     corpo: "Olá! Escolha como podemos ajudar.",
     botao: "Abrir opções",
     secoes: [{ titulo: "Atendimento", rows: [
-      { id:"menu_tetelestai", title:"Camisetas Tetelestai", description:"Montar ou consultar seu pedido" },
       { id:"menu_midia", title:"Pedido para Mídia", description:"Solicitar arte, divulgação ou mídia" },
       { id:"menu_ebd", title:"Senha da EBD", description:"Consultar acesso do aluno" },
       { id:"menu_atendente", title:"Falar com atendente", description:"Atendimento humano" },
       { id:"menu_som", title:"Som e Projeção", description:"Enviar hino, áudio ou vídeo" },
       { id:"menu_outros", title:"Outras opções", description:"Mídia, Secretaria ou Suporte" },
+      { id:"menu_tetelestai", title:"Camisetas Tetelestai", description:"Montar ou consultar seu pedido" },
     ] }],
   });
 }
@@ -110,6 +121,11 @@ function menuOutrasOpcoes() {
 2️⃣ Falar com a Secretaria
 3️⃣ Falar com o Suporte
 4️⃣ Voltar ao menu principal`;
+}
+
+function ehSaudacao(texto = "") {
+  const normalizado = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z\s]/g, "").trim();
+  return /^(oi|ola|opa|e ai|bom dia|boa tarde|boa noite|iniciar|inicio|comecar|atendimento)$/.test(normalizado);
 }
 
 async function ativarAtendimentoHumano(telefone, destino = "Atendimento") {
@@ -197,10 +213,6 @@ export default async function handler(req, res) {
       return res.status(200).send("ok");
     }
 
-    if (sessao.atendimento_humano === true) {
-      return res.status(200).send("Atendimento humano ativo");
-    }
-
     if (!texto) {
       await enviarMensagem(
         telefone,
@@ -211,7 +223,7 @@ Para enviar hino, áudio ou vídeo para Som/Projeção, digite *4* no menu princ
       return res.status(200).send("ok");
     }
 
-    if (texto.toLowerCase() === "menu") {
+    if (texto.toLowerCase() === "menu" || ehSaudacao(texto)) {
       await supabase
         .from("whatsapp_sessoes")
         .update({
@@ -227,6 +239,10 @@ Para enviar hino, áudio ou vídeo para Som/Projeção, digite *4* no menu princ
 
       await enviarMenuPrincipal(telefone);
       return res.status(200).send("ok");
+    }
+
+    if (sessao.atendimento_humano === true) {
+      return res.status(200).send("Atendimento humano ativo");
     }
 
     if (sessao.etapa === "menu") {

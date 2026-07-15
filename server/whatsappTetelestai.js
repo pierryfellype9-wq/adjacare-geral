@@ -83,18 +83,21 @@ export async function processarPedidoTetelestai({ telefone, texto, sessao, envia
   }
 
   if (sessao.etapa === "tetelestai_cliente_existente") {
-    if (texto === "tet_novo") { await listarProdutos(telefone, { ...dados, carrinho: [] }, enviarLista, enviarMensagem); return true; }
-    if (texto === "tet_consultar") {
+    const opcao = ({"1":"tet_novo","2":"tet_consultar","3":"tet_cancelar"})[texto] || texto;
+    if (opcao === "tet_novo") { await listarProdutos(telefone, { ...dados, carrinho: [] }, enviarLista, enviarMensagem); return true; }
+    if (opcao === "tet_consultar") {
       await enviarMensagem(telefone, `Seus pedidos:\n\n${(dados.pedidos_existentes || []).map(p => `#${String(p.numero).padStart(5,"0")} • ${p.status.replaceAll("_"," ")} • ${moeda(p.total)}`).join("\n")}\n\nEnvie *menu* para voltar ao início.`);
       await atualizar(telefone, "menu", {}); return true;
     }
-    if (texto === "tet_cancelar") { await atualizar(telefone, "menu", {}); await enviarMensagem(telefone, "Operação cancelada. Envie *menu* quando precisar."); return true; }
+    if (opcao === "tet_cancelar") { await atualizar(telefone, "menu", {}); await enviarMensagem(telefone, "Operação cancelada. Envie *menu* quando precisar."); return true; }
     await enviarMensagem(telefone, "Escolha uma das opções exibidas nos botões."); return true;
   }
 
   if (sessao.etapa === "tetelestai_produto") {
-    if (!texto.startsWith("tet_produto:")) { await enviarMensagem(telefone, "Selecione uma camiseta pela lista."); return true; }
-    const produtoId = texto.split(":")[1];
+    const produtoNumerico = /^\d+$/.test(texto) ? dados.produtos?.[Number(texto)-1]?.id : null;
+    const escolha = produtoNumerico ? `tet_produto:${produtoNumerico}` : texto;
+    if (!escolha.startsWith("tet_produto:")) { await enviarMensagem(telefone, "Selecione uma camiseta pela lista."); return true; }
+    const produtoId = escolha.split(":")[1];
     const produto = (dados.produtos || []).find(p => p.id === produtoId);
     const { data: variacoes } = await supabase.from("loja_variacoes").select("*").eq("produto_id", produtoId).eq("ativa", true).order("ordem");
     const disponiveis = (variacoes || []).filter(v => v.estoque !== 0);
@@ -106,9 +109,10 @@ export async function processarPedidoTetelestai({ telefone, texto, sessao, envia
   }
 
   if (sessao.etapa === "tetelestai_modelo") {
-    const indice = Number(texto.split(":")[1]);
+    const escolha = /^\d+$/.test(texto) ? `tet_modelo:${Number(texto)-1}` : texto;
+    const indice = Number(escolha.split(":")[1]);
     const modelo = dados.modelos?.[indice];
-    if (!texto.startsWith("tet_modelo:") || !modelo) { await enviarMensagem(telefone, "Escolha o modelo pela lista."); return true; }
+    if (!escolha.startsWith("tet_modelo:") || !modelo) { await enviarMensagem(telefone, "Escolha o modelo pela lista."); return true; }
     const variacoes = (dados.variacoes || []).filter(v => v.modelo === modelo).slice(0,10);
     await atualizar(telefone, "tetelestai_tamanho", { ...dados, modelo });
     await enviarLista(telefone, { cabecalho: `${dados.produto.nome} — ${modelo}`.slice(0,60), corpo: modelo === "Baby Look" ? "Atenção: Baby Look é CAMISETA FEMININA, menor e acinturada. Confira as medidas." : "Escolha o tamanho conferindo comprimento e largura.", botao:"Escolher tamanho", secoes:[{ titulo:"Tamanhos e medidas", rows:variacoes.map(v => ({ id:`tet_variacao:${v.id}`, title:`${v.tamanho} • ${v.comprimento_cm || "—"}×${v.largura_cm || "—"} cm`.slice(0,24), description:`${modelo}${v.publico === "Feminino" ? " — CAMISETA FEMININA" : ""}`.slice(0,72) })) }] });
@@ -116,8 +120,11 @@ export async function processarPedidoTetelestai({ telefone, texto, sessao, envia
   }
 
   if (sessao.etapa === "tetelestai_tamanho") {
-    if (!texto.startsWith("tet_variacao:")) { await enviarMensagem(telefone, "Escolha um tamanho pela lista."); return true; }
-    const variacao = (dados.variacoes || []).find(v => v.id === texto.split(":")[1]);
+    const variacoesModelo = (dados.variacoes || []).filter(v => v.modelo === dados.modelo).slice(0,10);
+    const variacaoNumerica = /^\d+$/.test(texto) ? variacoesModelo[Number(texto)-1]?.id : null;
+    const escolha = variacaoNumerica ? `tet_variacao:${variacaoNumerica}` : texto;
+    if (!escolha.startsWith("tet_variacao:")) { await enviarMensagem(telefone, "Escolha um tamanho pela lista."); return true; }
+    const variacao = (dados.variacoes || []).find(v => v.id === escolha.split(":")[1]);
     if (!variacao) { await enviarMensagem(telefone, "Tamanho indisponível. Escolha novamente."); return true; }
     await atualizar(telefone, "tetelestai_quantidade", { ...dados, variacao });
     await enviarLista(telefone, { cabecalho:"Quantidade", corpo:`${dados.produto.nome}\n${variacao.modelo}${variacao.publico === "Feminino" ? " — CAMISETA FEMININA" : ""} • ${variacao.tamanho}\n${variacao.comprimento_cm || "—"} × ${variacao.largura_cm || "—"} cm`, botao:"Escolher quantidade", secoes:[{ titulo:"Quantidade", rows:Array.from({length:10},(_,i)=>({id:`tet_qtd:${i+1}`,title:`${i+1} unidade${i ? "s" : ""}`})) }] });
@@ -125,8 +132,9 @@ export async function processarPedidoTetelestai({ telefone, texto, sessao, envia
   }
 
   if (sessao.etapa === "tetelestai_quantidade") {
-    const quantidade = Number(texto.split(":")[1]);
-    if (!texto.startsWith("tet_qtd:") || quantidade < 1 || quantidade > 10) { await enviarMensagem(telefone, "Escolha uma quantidade entre 1 e 10 pela lista."); return true; }
+    const escolha = /^\d+$/.test(texto) ? `tet_qtd:${texto}` : texto;
+    const quantidade = Number(escolha.split(":")[1]);
+    if (!escolha.startsWith("tet_qtd:") || quantidade < 1 || quantidade > 10) { await enviarMensagem(telefone, "Escolha uma quantidade entre 1 e 10 pela lista."); return true; }
     const v = dados.variacao, p = dados.produto, unitario = Number(p.preco) + Number(v.preco_adicional || 0);
     const item = { produto_id:p.id, variacao_id:v.id, produto_nome:p.nome, modelo:v.modelo, publico:v.publico, tamanho:v.tamanho, comprimento_cm:v.comprimento_cm, largura_cm:v.largura_cm, quantidade, valor_unitario:unitario, valor_total:unitario*quantidade };
     const carrinho = [...(dados.carrinho || [])];
@@ -139,9 +147,10 @@ export async function processarPedidoTetelestai({ telefone, texto, sessao, envia
   }
 
   if (sessao.etapa === "tetelestai_pos_item") {
-    if (texto === "tet_adicionar") { await listarProdutos(telefone, dados, enviarLista, enviarMensagem); return true; }
-    if (texto === "tet_cancelar") { await atualizar(telefone,"menu",{}); await enviarMensagem(telefone,"Pedido cancelado. Nenhuma informação de pedido foi salva."); return true; }
-    if (texto === "tet_revisar") {
+    const opcao = ({"1":"tet_adicionar","2":"tet_revisar","3":"tet_cancelar"})[texto] || texto;
+    if (opcao === "tet_adicionar") { await listarProdutos(telefone, dados, enviarLista, enviarMensagem); return true; }
+    if (opcao === "tet_cancelar") { await atualizar(telefone,"menu",{}); await enviarMensagem(telefone,"Pedido cancelado. Nenhuma informação de pedido foi salva."); return true; }
+    if (opcao === "tet_revisar") {
       await atualizar(telefone,"tetelestai_confirmacao",dados);
       await enviarBotoes(telefone,{ corpo:`*Confira cuidadosamente:*\n\n${resumoCarrinho(dados.carrinho)}\n\nAo confirmar, você declara que conferiu modelo, tamanho e medidas. Não haverá entrega; a retirada será na igreja.`, botoes:[{id:"tet_confirmar",title:"Confirmar pedido"},{id:"tet_adicionar",title:"Adicionar outra"},{id:"tet_cancelar",title:"Cancelar"}] });
       return true;
@@ -150,9 +159,10 @@ export async function processarPedidoTetelestai({ telefone, texto, sessao, envia
   }
 
   if (sessao.etapa === "tetelestai_confirmacao") {
-    if (texto === "tet_adicionar") { await listarProdutos(telefone,dados,enviarLista,enviarMensagem); return true; }
-    if (texto === "tet_cancelar") { await atualizar(telefone,"menu",{}); await enviarMensagem(telefone,"Pedido cancelado. Nenhum pedido foi gerado."); return true; }
-    if (texto !== "tet_confirmar") { await enviarMensagem(telefone,"Use os botões para confirmar, adicionar outra camiseta ou cancelar."); return true; }
+    const opcao = ({"1":"tet_confirmar","2":"tet_adicionar","3":"tet_cancelar"})[texto] || texto;
+    if (opcao === "tet_adicionar") { await listarProdutos(telefone,dados,enviarLista,enviarMensagem); return true; }
+    if (opcao === "tet_cancelar") { await atualizar(telefone,"menu",{}); await enviarMensagem(telefone,"Pedido cancelado. Nenhum pedido foi gerado."); return true; }
+    if (opcao !== "tet_confirmar") { await enviarMensagem(telefone,"Use os botões para confirmar, adicionar outra camiseta ou cancelar."); return true; }
     const total = (dados.carrinho || []).reduce((s,i)=>s+Number(i.valor_total),0);
     const { data: pedido, error } = await supabase.from("loja_pedidos").insert({ cliente_id:dados.cliente_id, origem:"whatsapp", status:"pagamento_na_retirada", forma_pagamento:"retirada", status_pagamento:"na_retirada", subtotal:total, desconto:0, total, confirmou_medidas:true, observacoes_cliente:"Pedido realizado pelo WhatsApp da igreja." }).select("id,numero").single();
     if (error) { await enviarMensagem(telefone,`Não foi possível gerar o pedido: ${error.message}`); return true; }

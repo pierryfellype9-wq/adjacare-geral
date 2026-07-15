@@ -728,6 +728,12 @@
 .event-hero .hero-copy>img{width:min(430px,70vw);max-height:46vh;transform:translateX(calc(10.8% - 5px))}
 .event-hero .hero-word{display:none}
 @media(min-width:761px){.event-hero .hero-copy{transform:translateX(7px)}}
+.hero-countdown{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 22px;padding:9px 12px;border:1px solid rgba(229,197,124,.2);border-radius:18px;background:rgba(12,9,7,.3);backdrop-filter:blur(10px)}
+.hero-countdown-label{padding:0 5px;color:var(--gold);font-size:.5rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase}
+.hero-countdown>div{display:grid;min-width:58px;place-items:center;padding:5px 8px;border-left:1px solid rgba(229,197,124,.15)}
+.hero-countdown strong{font-family:"Palatino Linotype",Georgia,serif;font-size:1.25rem;font-weight:400;line-height:1}
+.hero-countdown small{margin-top:4px;color:rgba(255,255,255,.55);font-size:.42rem;letter-spacing:.12em;text-transform:uppercase}
+@media(max-width:560px){.hero-countdown{width:100%;gap:2px;padding:8px 5px}.hero-countdown-label{display:none}.hero-countdown>div{min-width:0;flex:1;padding:5px 4px}.hero-countdown strong{font-size:1.08rem}.hero-countdown small{font-size:.37rem}}
 @media(max-width:900px){.standalone-theme,.standalone-location{grid-template-columns:1fr}.location-map,.location-map iframe{min-height:360px;height:360px}}
 @media(max-width:560px){.standalone-theme{padding:16px}.standalone-theme blockquote{border-radius:20px}.standalone-theme blockquote p{font-size:clamp(1.75rem,8vw,2.55rem)}.standalone-theme>div{padding:22px 6px 10px}.standalone-location{padding:18px}.location-details{padding:24px 8px 14px}.location-map,.location-map iframe{min-height:310px;height:310px;border-radius:20px}.event-hero .hero-copy>img{width:min(330px,76vw);transform:translateX(calc(10.8% - 4px))}}
 @media(max-width:560px){.preview-ribbon{right:8px;bottom:8px;max-width:calc(100% - 16px);box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}}

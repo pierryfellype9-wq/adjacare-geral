@@ -1,5 +1,30 @@
+import { useEffect, useState } from "react";
 import { EventFooter, EventHeader } from "./EventShell";
 import { siteUrl } from "./links";
+
+const INICIO_CONGRESSO = new Date("2026-09-04T19:30:00-03:00").getTime();
+
+function tempoRestante() {
+  const distancia = Math.max(0, INICIO_CONGRESSO - Date.now());
+  return {
+    dias: Math.floor(distancia / 86400000),
+    horas: Math.floor((distancia / 3600000) % 24),
+    minutos: Math.floor((distancia / 60000) % 60),
+    segundos: Math.floor((distancia / 1000) % 60),
+  };
+}
+
+function CongressoCountdown() {
+  const [tempo, setTempo] = useState(tempoRestante);
+  useEffect(() => {
+    const timer = window.setInterval(() => setTempo(tempoRestante()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  return <div className="hero-countdown" aria-label="Contagem regressiva para o congresso">
+    <span className="hero-countdown-label">Faltam</span>
+    {Object.entries(tempo).map(([rotulo, valor]) => <div key={rotulo}><strong>{String(valor).padStart(2,"0")}</strong><small>{rotulo}</small></div>)}
+  </div>;
+}
 
 export default function SiteInicial() {
   return (
@@ -14,6 +39,7 @@ export default function SiteInicial() {
           <h1 className="sr-only">Tetelestai</h1>
           <p>O brado da vitória. A dívida foi paga. A obra foi consumada.</p>
           <div className="hero-details"><strong>30 AGO</strong><i /><strong>04—06 SET</strong></div>
+          <CongressoCountdown />
           <a className="event-button" href={siteUrl("programacao")}>Ver programação</a>
         </div>
         <div className="scroll-hint">Explore o congresso <span>↓</span></div>

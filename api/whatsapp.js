@@ -55,11 +55,15 @@ async function enviarInterativo(telefone, interactive, registro) {
 
 async function enviarLista(telefone, { cabecalho, corpo, botao, secoes }) {
   try {
+    const sections = secoes.map(({ titulo, title, rows }) => ({
+      title: (title || titulo || "Opções").slice(0, 24),
+      rows,
+    }));
     await enviarInterativo(telefone, {
       type: "list",
       header: cabecalho ? { type: "text", text: cabecalho.slice(0, 60) } : undefined,
       body: { text: corpo.slice(0, 1024) },
-      action: { button: botao.slice(0, 20), sections: secoes },
+      action: { button: botao.slice(0, 20), sections },
     }, `${cabecalho || "Lista"}\n${corpo}`);
   } catch (error) {
     console.error("Falha ao enviar lista; usando texto:", error.message);

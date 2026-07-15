@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { iniciarPedidoTetelestai, processarPedidoTetelestai } from "../server/whatsappTetelestai.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -35,6 +36,58 @@ async function enviarMensagem(telefone, texto) {
   );
 
   await salvarMensagem(telefone, "enviada", texto);
+}
+
+async function enviarInterativo(telefone, interactive, registro) {
+  const resposta = await fetch(`https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ messaging_product: "whatsapp", to: telefone, type: "interactive", interactive }),
+  });
+  if (!resposta.ok) {
+    const detalhe = await resposta.text();
+    throw new Error(`WhatsApp recusou a mensagem interativa: ${detalhe}`);
+  }
+  await salvarMensagem(telefone, "enviada", registro);
+}
+
+async function enviarLista(telefone, { cabecalho, corpo, botao, secoes }) {
+  await enviarInterativo(telefone, {
+    type: "list",
+    header: cabecalho ? { type: "text", text: cabecalho.slice(0, 60) } : undefined,
+    body: { text: corpo.slice(0, 1024) },
+    action: { button: botao.slice(0, 20), sections: secoes },
+  }, `${cabecalho || "Lista"}\n${corpo}`);
+}
+
+async function enviarBotoes(telefone, { corpo, botoes }) {
+  await enviarInterativo(telefone, {
+    type: "button",
+    body: { text: corpo.slice(0, 1024) },
+    action: { buttons: botoes.slice(0, 3).map(b => ({ type: "reply", reply: { id: b.id.slice(0, 256), title: b.title.slice(0, 20) } })) },
+  }, corpo);
+}
+
+async function enviarMenuPrincipal(telefone) {
+  await enviarLista(telefone, {
+    cabecalho: "AD Jacaré",
+    corpo: "Olá! Escolha como podemos ajudar.",
+    botao: "Abrir opções",
+    secoes: [{ titulo: "Atendimento", rows: [
+      { id:"menu_tetelestai", title:"Camisetas Tetelestai", description:"Montar ou consultar seu pedido" },
+      { id:"menu_midia", title:"Pedido para Mídia", description:"Solicitar arte, divulgação ou mídia" },
+      { id:"menu_ebd", title:"Senha da EBD", description:"Consultar acesso do aluno" },
+      { id:"menu_atendente", title:"Falar com atendente", description:"Atendimento humano" },
+      { id:"menu_som", title:"Som e Projeção", description:"Enviar hino, áudio ou vídeo" },
+      { id:"menu_outros", title:"Outras opções", description:"Mídia, Secretaria ou Suporte" },
+    ] }],
+  });
+}
+
+async function enviarMenuOutrasOpcoes(telefone) {
+  await enviarLista(telefone, { cabecalho:"Outras opções", corpo:"Escolha o setor desejado.", botao:"Escolher setor", secoes:[{titulo:"Setores",rows:[
+    {id:"outros_midia",title:"Mídia"},{id:"outros_secretaria",title:"Secretaria"},{id:"outros_suporte",title:"Suporte"},{id:"outros_menu",title:"Menu principal"},
+  ]}] });
 }
 
 function menuPrincipal() {
@@ -105,10 +158,12 @@ export default async function handler(req, res) {
     if (!mensagem) return res.status(200).send("Sem mensagem");
 
     const telefone = mensagem.from;
-    const texto = mensagem.text?.body?.trim();
+    const interacaoId = mensagem.interactive?.list_reply?.id || mensagem.interactive?.button_reply?.id;
+    const aliases = { menu_midia:"1", menu_ebd:"2", menu_atendente:"3", menu_som:"4", menu_outros:"5", menu_tetelestai:"6", outros_midia:"1", outros_secretaria:"2", outros_suporte:"3", outros_menu:"4" };
+    const texto = aliases[interacaoId] || interacaoId || mensagem.text?.body?.trim();
 
     if (texto) {
-      await salvarMensagem(telefone, "recebida", texto);
+      await salvarMensagem(telefone, "recebida", mensagem.interactive?.list_reply?.title || mensagem.interactive?.button_reply?.title || texto);
     }
 
     const { data: sessoes } = await supabase
@@ -138,7 +193,7 @@ export default async function handler(req, res) {
       }
 
       sessao = novaSessao;
-      await enviarMensagem(telefone, menuPrincipal());
+      await enviarMenuPrincipal(telefone);
       return res.status(200).send("ok");
     }
 
@@ -170,7 +225,7 @@ Para enviar hino, áudio ou vídeo para Som/Projeção, digite *4* no menu princ
         })
         .eq("telefone", telefone);
 
-      await enviarMensagem(telefone, menuPrincipal());
+      await enviarMenuPrincipal(telefone);
       return res.status(200).send("ok");
     }
 
@@ -248,11 +303,17 @@ Informe seu nome para começarmos:`
           })
           .eq("telefone", telefone);
 
-        await enviarMensagem(telefone, menuOutrasOpcoes());
+        await enviarMenuOutrasOpcoes(telefone);
         return res.status(200).send("ok");
       }
 
-      await enviarMensagem(telefone, "Opção inválida.\n\n" + menuPrincipal());
+      if (texto === "6") {
+        await iniciarPedidoTetelestai({ telefone, enviarMensagem });
+        return res.status(200).send("ok");
+      }
+
+      await enviarMensagem(telefone, "Não consegui identificar essa opção.");
+      await enviarMenuPrincipal(telefone);
       return res.status(200).send("ok");
     }
 
@@ -281,11 +342,16 @@ Informe seu nome para começarmos:`
           })
           .eq("telefone", telefone);
 
-        await enviarMensagem(telefone, menuPrincipal());
+        await enviarMenuPrincipal(telefone);
         return res.status(200).send("ok");
       }
 
-      await enviarMensagem(telefone, "Opção inválida.\n\n" + menuOutrasOpcoes());
+      await enviarMensagem(telefone, "Não consegui identificar essa opção.");
+      await enviarMenuOutrasOpcoes(telefone);
+      return res.status(200).send("ok");
+    }
+
+    if (await processarPedidoTetelestai({ telefone, texto, sessao, enviarMensagem, enviarLista, enviarBotoes })) {
       return res.status(200).send("ok");
     }
 
@@ -443,7 +509,7 @@ Digite:
       })
       .eq("telefone", telefone);
 
-    await enviarMensagem(telefone, menuPrincipal());
+    await enviarMenuPrincipal(telefone);
 
     return res.status(200).send("ok");
   }
@@ -876,7 +942,7 @@ Conversa encerrada. Para uma nova solicitação, envie "menu" e faça a autentic
       return res.status(200).send("ok");
     }
 
-    await enviarMensagem(telefone, menuPrincipal());
+    await enviarMenuPrincipal(telefone);
     return res.status(200).send("ok");
   } catch (error) {
     console.error("Erro no webhook:", error);

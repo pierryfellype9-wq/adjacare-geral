@@ -9,9 +9,9 @@ export default function SiteInicial() {
         <div className="hero-glow" />
         <div className="hero-word" aria-hidden="true">TETELESTAI</div>
         <div className="hero-copy">
-          <span className="hero-kicker">Congresso de Jovens e Adolescentes</span>
-          <img src="/logo-tetelestai-provisoria.svg" alt="Congresso Tetelestai 2026" />
-          <h1>Tetelestai</h1>
+          <span className="hero-kicker">7º Congresso de Jovens e Adolescentes</span>
+          <img src="/tetelestai-oficial/logo-oficial-clara.png" alt="Tetelestai — João 19:30" />
+          <h1 className="sr-only">Tetelestai</h1>
           <p>O brado da vitória. A dívida foi paga. A obra foi consumada.</p>
           <div className="hero-details"><strong>30 AGO</strong><i /><strong>04—06 SET</strong></div>
           <a className="event-button" href={siteUrl("programacao")}>Ver programação</a>

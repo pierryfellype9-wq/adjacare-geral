@@ -13,6 +13,10 @@ function Tabela({ dados }: { dados: (string | number)[][] }) {
 
 export default function Camisetas() {
   return <InnerPage eyebrow="Loja oficial" title="Camisetas">
+    <section className="official-shirts-showcase">
+      <article><div><span>Cor oficial 01</span><h2>Marrom</h2><p>Coroa dourada, Tetelestai em off-white e acabamento posterior “Está consumado”.</p></div><img src="/tetelestai-oficial/camiseta-marrom-frente-costas.webp" alt="Camiseta Tetelestai marrom, frente e costas" /></article>
+      <article><div><span>Cor oficial 02</span><h2>Branca</h2><p>Coroa dourada, Tetelestai em marrom e acabamento posterior “Está consumado”.</p></div><img src="/tetelestai-oficial/camiseta-branca-frente-costas.webp" alt="Camiseta Tetelestai branca, frente e costas" /></article>
+    </section>
     <section className="shirts-intro">
       <span>Guia de tamanhos</span>
       <h2>Escolha pelo modelo<br />e pelas medidas.</h2>

@@ -1,0 +1,22 @@
+{
+  "evento": "7º Congresso de Jovens e Adolescentes",
+  "tema": "Tetelestai",
+  "versiculo": "João 19:30",
+  "textoVersiculo": "Tendo-o provado, Jesus disse: — Está consumado! Com isso, curvou a cabeça e entregou o espírito.",
+  "cores": {
+    "marromEscuro": "#372A20",
+    "dourado": "#E5C57C",
+    "douradoEnvelhecido": "#B79862",
+    "offWhite": "#EFEBE4"
+  },
+  "fontes": {
+    "logo": "Blackville",
+    "caligrafica": "Calle Austin",
+    "textos": "Avenza Grotesk"
+  },
+  "camisetas": ["marrom", "branca"],
+  "estampa": "única, com adaptação de cores conforme a camiseta",
+  "logoPrincipal": "/tetelestai-oficial/logo-oficial-clara.png",
+  "logoParaFundoClaro": "/tetelestai-oficial/logo-oficial-escura.png",
+  "elementosDesconsideradosNoSite": ["logo conjunta UMADJU e Geração Eleita", "mockup vermelho"]
+}

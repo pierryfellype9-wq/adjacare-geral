@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import "./Tetelestai.css"
 import ComingSoon from "./ComingSoon"
 import { supabaseRest } from "./site/loja/supabase-rest"
@@ -11,8 +11,48 @@ import Localizacao from "./site/localizacao/page"
 import Camisetas from "./site/camisetas/page"
 import Loja from "./site/loja/page"
 
+function ScrollCrown() {
+  const crownRef = useRef(null)
+
+  useEffect(() => {
+    const crown = crownRef.current
+    if (!crown) return
+
+    let frame = 0
+    const updateCrown = () => {
+      frame = 0
+      const rotation = window.scrollY * 0.035
+      const drift = Math.sin(window.scrollY / 520) * 14
+      crown.style.setProperty("--crown-rotation", `${rotation}deg`)
+      crown.style.setProperty("--crown-drift", `${drift}px`)
+    }
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateCrown)
+    }
+
+    updateCrown()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      if (frame) window.cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  return (
+    <div ref={crownRef} className="scroll-crown" aria-hidden="true">
+      <div className="scroll-crown-mask">
+        <img src="/tetelestai-oficial/logo-oficial-clara.png" alt="" />
+      </div>
+    </div>
+  )
+}
+
 export default function TetelestaiApp() {
   const [publicacao, setPublicacao] = useState(null)
+  const preview = window.location.pathname.toLowerCase().startsWith("/site-preview")
+  let usuarioPreview = null
+  try { usuarioPreview = JSON.parse(localStorage.getItem("user") || "null") } catch { usuarioPreview = null }
+  const previewAutorizado = preview && ["Administrador", "Dirigente"].includes(usuarioPreview?.role)
 
   useEffect(() => {
     document.title = "Tetelestai 2026 | AD Jacaré"
@@ -27,10 +67,15 @@ export default function TetelestaiApp() {
   if (!publicacao) return <div className="tetelestai-root tetelestai-loading" />
 
   const lancamentoAtingido = publicacao.lancamento_em && new Date(publicacao.lancamento_em).getTime() <= Date.now()
-  if (!publicacao.site_publicado && !lancamentoAtingido) return <div className="tetelestai-root"><ComingSoon lancamento={publicacao.lancamento_em} /></div>
+  if (preview && !previewAutorizado) return <div className="tetelestai-root preview-negado"><div><h1>Pré-visualização restrita</h1><p>Entre no Sistema AD Jacaré como Administrador ou Dirigente antes de acessar este endereço.</p><a href="/">Voltar ao sistema</a></div></div>
+  if (!previewAutorizado && !publicacao.site_publicado && !lancamentoAtingido) return <div className="tetelestai-root"><ComingSoon lancamento={publicacao.lancamento_em} /></div>
+
+  const favicon = document.querySelector("link[rel='icon']")
+  if (favicon) favicon.href = "/tetelestai-oficial/logo-oficial-clara.png"
 
   let path = window.location.pathname.toLowerCase().replace(/\/+$/, "") || "/"
-  if (path.startsWith("/site")) path = path.slice(5) || "/"
+  if (path.startsWith("/site-preview")) path = path.slice(13) || "/"
+  else if (path.startsWith("/site")) path = path.slice(5) || "/"
 
   const paginas = {
     "/": SiteInicial,
@@ -45,5 +90,5 @@ export default function TetelestaiApp() {
     "/loja": Loja,
   }
   const Pagina = paginas[path] || SiteInicial
-  return <div className="tetelestai-root"><Pagina /></div>
+  return <div className="tetelestai-root"><ScrollCrown />{previewAutorizado && <div className="preview-ribbon">PRÉ-VISUALIZAÇÃO • O SITE PÚBLICO CONTINUA FECHADO</div>}<Pagina /></div>
 }

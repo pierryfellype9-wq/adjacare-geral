@@ -6,8 +6,8 @@ export function EventHeader() {
   return (
     <header className="event-nav event-nav-solid">
       <a href={siteUrl()} className="event-brand" aria-label="Tetelestai 2026">
-        <img src="/logo-tetelestai-provisoria.svg" alt="" />
-        <span>Tetelestai 2026</span>
+        <img src="/tetelestai-oficial/logo-oficial-clara.png" alt="" />
+        <span>7º Congresso • 2026</span>
       </a>
       <nav aria-label="Navegação principal">
         <a href={siteUrl("tema")}>Tema</a>
@@ -24,8 +24,8 @@ export function EventHeader() {
 export function EventFooter() {
   return (
     <footer className="event-footer">
-      <img src="/logo-tetelestai-provisoria.svg" alt="AD Jacaré" />
-      <p>Congresso Tetelestai 2026</p>
+      <img src="/tetelestai-oficial/logo-oficial-clara.png" alt="Tetelestai" />
+      <p>7º Congresso de Jovens e Adolescentes</p>
       <a href="https://instagram.com/adjacare" target="_blank" rel="noreferrer">@adjacare</a>
     </footer>
   );

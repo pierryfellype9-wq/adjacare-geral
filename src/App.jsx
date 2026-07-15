@@ -35,7 +35,7 @@ const TetelestaiApp = lazy(() => import("./tetelestai/TetelestaiApp"))
 function isTetelestaiRequest() {
   const host = window.location.hostname.toLowerCase()
   const path = window.location.pathname.toLowerCase()
-  return host === "tetelestai.adjacare.org" || host.startsWith("tetelestai.") || path === "/site" || path.startsWith("/site/")
+  return host === "tetelestai.adjacare.org" || host.startsWith("tetelestai.") || path === "/site" || path.startsWith("/site/") || path === "/site-preview" || path.startsWith("/site-preview/")
 }
 
 export default function App() {

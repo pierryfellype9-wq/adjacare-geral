@@ -705,7 +705,7 @@
 @media(max-width:760px){.official-shirts-showcase{grid-template-columns:1fr}.official-shirts-showcase article,.official-shirts-showcase img{min-height:480px}.preview-ribbon{max-width:calc(100% - 20px);overflow:hidden;text-overflow:ellipsis}.event-brand img{width:44px;height:40px}}
 
 /* Coroa oficial: marca-d'água que acompanha a rolagem */
-.scroll-crown{--crown-rotation:0deg;--crown-drift:0px;--crown-opacity:0;position:fixed;z-index:4;left:50%;top:50%;width:clamp(430px,56vw,940px);aspect-ratio:16/9;pointer-events:none;opacity:var(--crown-opacity);transform:translate3d(-50%,calc(-50% + var(--crown-drift)),0) rotate(var(--crown-rotation));transform-origin:50% 52%;will-change:transform,opacity;filter:sepia(.12) saturate(.9)}
+.scroll-crown{--crown-rotation:0deg;--crown-drift:0px;--crown-opacity:0;position:fixed;z-index:4;left:50%;top:50%;width:clamp(430px,56vw,940px);aspect-ratio:16/9;pointer-events:none;opacity:var(--crown-opacity);transform:translate3d(-39.2%,calc(-50% + var(--crown-drift)),0) rotate(var(--crown-rotation));transform-origin:39.2% 52%;will-change:transform,opacity;filter:sepia(.12) saturate(.9)}
 .scroll-crown-mask{position:absolute;inset:0;overflow:hidden}
 .scroll-crown-mask img{display:block;width:100%;height:auto;transform:translateY(-1.5%)}
 .event-nav,.preview-ribbon{z-index:20}
@@ -730,3 +730,17 @@
 @media(max-width:900px){.standalone-theme,.standalone-location{grid-template-columns:1fr}.location-map,.location-map iframe{min-height:360px;height:360px}}
 @media(max-width:560px){.standalone-theme{padding:16px}.standalone-theme blockquote{border-radius:20px}.standalone-theme blockquote p{font-size:clamp(1.75rem,8vw,2.55rem)}.standalone-theme>div{padding:22px 6px 10px}.standalone-location{padding:18px}.location-details{padding:24px 8px 14px}.location-map,.location-map iframe{min-height:310px;height:310px;border-radius:20px}.event-hero .hero-copy>img{width:min(330px,76vw);transform:translateX(10.8%)}}
 @media(max-width:560px){.preview-ribbon{right:8px;bottom:8px;max-width:calc(100% - 16px);box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}}
+
+/* Mobile compacto: remove as alturas herdadas do desktop */
+@media(max-width:760px){
+  .inner-hero{min-height:clamp(300px,38svh,390px);padding:112px 24px 38px;border-radius:0 0 28px 28px;justify-content:flex-end}
+  .inner-hero>span{font-size:.55rem;letter-spacing:.22em}
+  .inner-hero h1{margin-top:12px;font-size:clamp(3.15rem,14vw,5.2rem);line-height:.9}
+  .inner-hero>div{right:-8vw;bottom:-2vw;font-size:clamp(7rem,29vw,11rem)}
+  .program-intro,.standalone-theme,.standalone-playlist,.standalone-location,.standalone-photos,.coming-page,.shirts-intro{margin-top:10px}
+  .store-hero{min-height:0;padding:125px 24px 52px;border-radius:0 0 28px 28px}
+  .store-hero h1{font-size:clamp(3.4rem,13vw,5.5rem);line-height:.94}
+  .store-hero>p{font-size:.95rem;line-height:1.6}
+  .preview-ribbon{right:9px;bottom:9px;left:auto;width:auto;max-width:none;padding:9px 11px;font-size:0;letter-spacing:.12em}
+  .preview-ribbon::after{content:"PRÉVIA";font-size:.48rem;font-weight:900}
+}

@@ -670,18 +670,18 @@
 .official-shirts-showcase h2{margin:9px 0 6px;font-family:Copperplate,"Palatino Linotype",Georgia,serif;font-size:clamp(2.3rem,4vw,4.5rem)}
 .official-shirts-showcase p{max-width:410px;margin:0;line-height:1.6;opacity:.74}
 .official-shirts-showcase img{width:100%;height:100%;min-height:570px;object-fit:cover}
-.preview-ribbon{position:fixed;z-index:100;left:50%;bottom:12px;transform:translateX(-50%);padding:10px 16px;border:1px solid rgba(229,197,124,.35);border-radius:999px;color:#17120f;background:var(--gold);box-shadow:0 12px 35px rgba(0,0,0,.25);font-size:.55rem;font-weight:900;letter-spacing:.13em;white-space:nowrap}
+.preview-ribbon{position:fixed;z-index:100;right:16px;bottom:14px;padding:10px 16px;border:1px solid rgba(229,197,124,.35);border-radius:999px;color:#17120f;background:var(--gold);box-shadow:0 12px 35px rgba(0,0,0,.25);font-size:.55rem;font-weight:900;letter-spacing:.13em;white-space:nowrap}
 .preview-negado{display:grid;min-height:100vh;place-items:center;padding:24px;background:var(--brown)}
 .preview-negado>div{max-width:560px;padding:42px;border:1px solid rgba(229,197,124,.25);border-radius:28px;text-align:center;background:#17120f}
 .preview-negado a{display:inline-block;margin-top:15px;padding:12px 18px;border-radius:999px;color:var(--brown);background:var(--gold);text-decoration:none;font-weight:800}
 @media(max-width:760px){.official-shirts-showcase{grid-template-columns:1fr}.official-shirts-showcase article,.official-shirts-showcase img{min-height:480px}.preview-ribbon{max-width:calc(100% - 20px);overflow:hidden;text-overflow:ellipsis}.event-brand img{width:44px;height:40px}}
 
 /* Coroa oficial: marca-d'água que acompanha a rolagem */
-.scroll-crown{--crown-rotation:0deg;--crown-drift:0px;--crown-opacity:0;position:fixed;z-index:4;right:-13vw;top:50%;width:clamp(430px,56vw,940px);aspect-ratio:16/9;pointer-events:none;opacity:var(--crown-opacity);transform:translate3d(0,calc(-50% + var(--crown-drift)),0) rotate(var(--crown-rotation));transform-origin:50% 52%;will-change:transform,opacity;filter:sepia(.12) saturate(.9)}
+.scroll-crown{--crown-rotation:0deg;--crown-drift:0px;--crown-opacity:0;position:fixed;z-index:4;left:50%;top:50%;width:clamp(430px,56vw,940px);aspect-ratio:16/9;pointer-events:none;opacity:var(--crown-opacity);transform:translate3d(-50%,calc(-50% + var(--crown-drift)),0) rotate(var(--crown-rotation));transform-origin:50% 52%;will-change:transform,opacity;filter:sepia(.12) saturate(.9)}
 .scroll-crown-mask{position:absolute;inset:0;overflow:hidden}
 .scroll-crown-mask img{display:block;width:100%;height:auto;transform:translateY(-1.5%)}
 .event-nav,.preview-ribbon{z-index:20}
-@media(max-width:760px){.scroll-crown{right:-38vw;width:115vw;opacity:min(var(--crown-opacity),.03)}}
+@media(max-width:760px){.scroll-crown{left:50%;width:115vw;opacity:min(var(--crown-opacity),.03)}}
 @media(prefers-reduced-motion:reduce){.scroll-crown{--crown-rotation:0deg!important;--crown-drift:0px!important;will-change:auto}}
 
 /* Ajustes de proporção e leitura */
@@ -698,6 +698,7 @@
 .location-map iframe{display:block;width:100%;height:430px;border:0;filter:sepia(.18) saturate(.78) contrast(.95)}
 .event-hero .hero-copy{width:min(760px,calc(100vw - 40px));box-sizing:border-box}
 .event-hero .hero-copy>img{width:min(430px,70vw);max-height:46vh;transform:translateX(10.8%)}
-.event-hero .hero-word{opacity:.32}
+.event-hero .hero-word{display:none}
 @media(max-width:900px){.standalone-theme,.standalone-location{grid-template-columns:1fr}.location-map,.location-map iframe{min-height:360px;height:360px}}
 @media(max-width:560px){.standalone-theme{padding:16px}.standalone-theme blockquote{border-radius:20px}.standalone-theme blockquote p{font-size:clamp(1.75rem,8vw,2.55rem)}.standalone-theme>div{padding:22px 6px 10px}.standalone-location{padding:18px}.location-details{padding:24px 8px 14px}.location-map,.location-map iframe{min-height:310px;height:310px;border-radius:20px}.event-hero .hero-copy>img{width:min(330px,76vw);transform:translateX(10.8%)}}
+@media(max-width:560px){.preview-ribbon{right:8px;bottom:8px;max-width:calc(100% - 16px);box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}}

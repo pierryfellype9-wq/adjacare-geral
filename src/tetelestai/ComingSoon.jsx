@@ -12,23 +12,24 @@ function calcular(target) {
   }
 }
 
-export default function ComingSoon({ lancamento }) {
-  const inicial = useMemo(() => calcular(lancamento), [lancamento])
+const INICIO_CONGRESSO = "2026-09-04T19:30:00-03:00"
+
+export default function ComingSoon() {
+  const inicial = useMemo(() => calcular(INICIO_CONGRESSO), [])
   const [tempo, setTempo] = useState(inicial)
 
   useEffect(() => {
-    setTempo(calcular(lancamento))
-    if (!lancamento) return
-    const timer = window.setInterval(() => setTempo(calcular(lancamento)), 1000)
+    setTempo(calcular(INICIO_CONGRESSO))
+    const timer = window.setInterval(() => setTempo(calcular(INICIO_CONGRESSO)), 1000)
     return () => window.clearInterval(timer)
-  }, [lancamento])
+  }, [])
 
   return <main className="coming-soon">
     <div className="coming-orbit coming-orbit-one" aria-hidden="true" />
     <div className="coming-orbit coming-orbit-two" aria-hidden="true" />
     <section className="coming-content" aria-label="Congresso Tetelestai 2026">
-      <div className="coming-logo-frame"><img className="coming-logo" src="/logo-tetelestai-provisoria.svg" alt="Sistema AD Jacaré" /></div>
-      <p className="coming-eyebrow">Uma experiência está sendo preparada</p>
+      <div className="coming-logo-frame"><img className="coming-logo" src="/logo-adjacare-fechado.png" alt="AD Jacaré" /></div>
+      <p className="coming-eyebrow">Contagem regressiva para o congresso</p>
       <div className="coming-countdown-panel">
         {tempo ? <div className="coming-countdown" aria-label="Contagem regressiva para o lançamento">
           {[[tempo.days,"dias"],[tempo.hours,"horas"],[tempo.minutes,"minutos"],[tempo.seconds,"segundos"]].map(([valor,rotulo]) => <div className="coming-time-unit" key={rotulo}><strong>{String(valor).padStart(2,"0")}</strong><span>{rotulo}</span></div>)}

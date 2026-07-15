@@ -140,8 +140,8 @@
 .coming-orbit-one{left:-26vw;bottom:-48vw}
 .coming-orbit-two{right:-30vw;top:-42vw;width:min(820px,82vw)}
 .coming-content{width:min(850px,100%);min-height:min(720px,calc(100svh - 110px));justify-content:center}
-.coming-logo-frame{display:grid;width:clamp(138px,14vw,190px);aspect-ratio:1;place-items:center;margin-bottom:26px;border:1px solid rgba(229,197,124,.2);border-radius:50%;background:radial-gradient(circle at 38% 28%,rgba(229,197,124,.12),transparent 42%),#080706;box-shadow:0 24px 70px rgba(0,0,0,.42)}
-.coming-logo{width:82%;height:82%;max-height:none;object-fit:contain;filter:saturate(.15) sepia(.6) brightness(1.35) drop-shadow(0 10px 24px rgba(0,0,0,.3))}
+.coming-logo-frame{display:grid;width:clamp(145px,15vw,205px);aspect-ratio:1;place-items:center;overflow:hidden;margin-bottom:26px;border:1px solid rgba(229,197,124,.2);border-radius:30px;background:#080706;box-shadow:0 24px 70px rgba(0,0,0,.42)}
+.coming-logo{display:block;width:100%;height:100%;max-height:none;object-fit:cover;filter:none}
 .coming-eyebrow{margin:0 0 24px;color:var(--gold);font-size:clamp(.58rem,.8vw,.72rem);letter-spacing:.42em}
 .coming-countdown-panel{min-width:min(680px,100%);padding:24px clamp(14px,3vw,36px);border-top:1px solid rgba(229,197,124,.17);border-bottom:1px solid rgba(229,197,124,.17);background:rgba(255,255,255,.018)}
 .coming-countdown{grid-template-columns:repeat(4,minmax(105px,145px));gap:12px}

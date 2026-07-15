@@ -24,17 +24,19 @@ export default function ComingSoon({ lancamento }) {
   }, [lancamento])
 
   return <main className="coming-soon">
-    <section className="content" aria-label="Congresso Tetelestai 2026">
-      <img className="logo" src="/logo-tetelestai-provisoria.svg" alt="Congresso Tetelestai 2026" />
-      <p className="eyebrow">Uma experiência está sendo preparada</p>
-      <div className="countdown-panel">
-        <div className="countdown" aria-label="Contagem regressiva para o lançamento">
-          {[[tempo?.days,"dias"],[tempo?.hours,"horas"],[tempo?.minutes,"minutos"],[tempo?.seconds,"segundos"]].map(([valor,rotulo]) => <div className="time-unit" key={rotulo}><strong>{valor === undefined ? "--" : String(valor).padStart(2,"0")}</strong><span>{rotulo}</span></div>)}
-        </div>
-        <p className="verse"><q>Está consumado.</q><span>João 19:30</span></p>
+    <div className="coming-orbit coming-orbit-one" aria-hidden="true" />
+    <div className="coming-orbit coming-orbit-two" aria-hidden="true" />
+    <section className="coming-content" aria-label="Congresso Tetelestai 2026">
+      <div className="coming-logo-frame"><img className="coming-logo" src="/logo-tetelestai-provisoria.svg" alt="Sistema AD Jacaré" /></div>
+      <p className="coming-eyebrow">Uma experiência está sendo preparada</p>
+      <div className="coming-countdown-panel">
+        {tempo ? <div className="coming-countdown" aria-label="Contagem regressiva para o lançamento">
+          {[[tempo.days,"dias"],[tempo.hours,"horas"],[tempo.minutes,"minutos"],[tempo.seconds,"segundos"]].map(([valor,rotulo]) => <div className="coming-time-unit" key={rotulo}><strong>{String(valor).padStart(2,"0")}</strong><span>{rotulo}</span></div>)}
+        </div> : <div className="coming-date-pending"><span>Lançamento oficial</span><strong>Em breve</strong><p>A data e o horário serão anunciados.</p></div>}
+        <p className="coming-verse"><q>Está consumado.</q><span>João 19:30</span></p>
       </div>
-      <a className="instagram" href="https://instagram.com/adjacare" target="_blank" rel="noreferrer">@adjacare</a>
+      <a className="coming-instagram" href="https://instagram.com/adjacare" target="_blank" rel="noreferrer">@adjacare</a>
     </section>
-    <footer>30 de agosto • 4 a 6 de setembro</footer>
+    <footer><span>30 de agosto</span><i /> <span>4 a 6 de setembro</span></footer>
   </main>
 }

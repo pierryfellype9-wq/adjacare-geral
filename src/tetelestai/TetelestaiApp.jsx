@@ -23,8 +23,11 @@ function ScrollCrown() {
       frame = 0
       const rotation = window.scrollY * 0.035
       const drift = Math.sin(window.scrollY / 520) * 14
+      const revealStart = window.innerHeight * 0.58
+      const opacity = Math.max(0, Math.min(0.045, (window.scrollY - revealStart) / 420 * 0.045))
       crown.style.setProperty("--crown-rotation", `${rotation}deg`)
       crown.style.setProperty("--crown-drift", `${drift}px`)
+      crown.style.setProperty("--crown-opacity", String(opacity))
     }
     const onScroll = () => {
       if (!frame) frame = window.requestAnimationFrame(updateCrown)

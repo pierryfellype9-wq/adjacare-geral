@@ -28,7 +28,13 @@ import EBDSolicitacoesProfessores from "./pages/EBDSolicitacoesProfessores"
 import EBDSolicitacaoProfessor from "./pages/EBDSolicitacaoProfessor"
 
 import Sidebar from "./components/Sidebar"
-import { supabase } from "./lib/supabase"
+import {
+  isLocalSessionExpired,
+  restoreRollingSession,
+  signInRolling,
+  signOutRolling,
+} from "./lib/auth"
+
 const TetelestaiApp = lazy(() => import("./tetelestai/TetelestaiApp"))
 
 function isTetelestaiRequest() {
@@ -46,55 +52,49 @@ export default function App() {
   const [senha, setSenha] = useState("")
   const [user, setUser] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [loginLoading, setLoginLoading] = useState(false)
 
   async function login(e) {
     e.preventDefault()
+    if (loginLoading) return
 
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("email", email)
-      .single()
+    setLoginLoading(true)
 
-    if (error || !data) {
-      alert("Usuário não encontrado")
-      return
+    try {
+      const profile = await signInRolling(email, senha)
+      setUser(profile)
+      setSenha("")
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Não foi possível entrar.")
+    } finally {
+      setLoginLoading(false)
     }
-
-    if (data.senha !== senha) {
-      alert("Senha incorreta")
-      return
-    }
-
-    setUser(data)
-    localStorage.setItem("loginTime", Date.now())
-    localStorage.setItem("user", JSON.stringify(data))
   }
 
   useEffect(() => {
-    const userSalvo = localStorage.getItem("user")
+    let active = true
 
-    if (userSalvo) {
-      setUser(JSON.parse(userSalvo))
-    }
+    restoreRollingSession().then((profile) => {
+      if (active && profile) setUser(profile)
+    })
 
-    const interval = setInterval(() => {
-      const loginTime = localStorage.getItem("loginTime")
-      if (!loginTime) return
+    const interval = setInterval(async () => {
+      if (!isLocalSessionExpired()) return
 
-      const agora = Date.now()
-      const tempo = agora - loginTime
-      const oitoHoras = 8 * 60 * 60 * 1000
-
-      if (tempo > oitoHoras) {
-        setUser(null)
-        localStorage.removeItem("loginTime")
-        localStorage.removeItem("user")
-      }
+      await signOutRolling()
+      if (active) setUser(null)
     }, 10000)
 
-    return () => clearInterval(interval)
+    return () => {
+      active = false
+      clearInterval(interval)
+    }
   }, [])
+
+  async function logout() {
+    setUser(null)
+    await signOutRolling()
+  }
 
   const primeiroAcesso = user?.primeiro_acesso === true
 
@@ -152,9 +152,12 @@ export default function App() {
 
                 <form onSubmit={login}>
                   <input
+                    type="email"
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
                   />
 
                   <input
@@ -162,9 +165,13 @@ export default function App() {
                     placeholder="Senha"
                     value={senha}
                     onChange={(e) => setSenha(e.target.value)}
+                    autoComplete="current-password"
+                    required
                   />
 
-                  <button className="login-btn">Entrar</button>
+                  <button className="login-btn" disabled={loginLoading}>
+                    {loginLoading ? "Entrando..." : "Entrar"}
+                  </button>
                 </form>
               </div>
             </div>
@@ -205,11 +212,7 @@ export default function App() {
                   </div>
 
                   <button
-                    onClick={() => {
-                      setUser(null)
-                      localStorage.removeItem("loginTime")
-                      localStorage.removeItem("user")
-                    }}
+                    onClick={logout}
                     className="logout-btn"
                   >
                     Sair

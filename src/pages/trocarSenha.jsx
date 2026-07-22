@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { sanitizeUser } from "../lib/auth"
 import { supabase } from "../lib/supabase"
 
 export default function TrocarSenha({ user, setUser }) {
@@ -31,38 +32,50 @@ export default function TrocarSenha({ user, setUser }) {
 
     setCarregando(true)
 
-    const { error } = await supabase
-      .from("users")
-      .update({
-        senha,
+    try {
+      // Mantém o cadastro legado sincronizado enquanto todos os usuários são migrados.
+      const { error: legacyError } = await supabase
+        .from("users")
+        .update({
+          senha,
+          primeiro_acesso: false,
+        })
+        .eq("id", user.id)
+
+      if (legacyError) throw legacyError
+
+      const { data: authData } = await supabase.auth.getUser()
+      if (authData.user) {
+        const { error: authError } = await supabase.auth.updateUser({ password: senha })
+
+        // O login gradual consegue ressincronizar a senha no próximo acesso.
+        if (authError) console.error("Não foi possível sincronizar a senha no Auth:", authError)
+      }
+
+      const usuarioAtualizado = sanitizeUser({
+        ...user,
         primeiro_acesso: false,
       })
-      .eq("id", user.id)
 
-    setCarregando(false)
+      localStorage.setItem("user", JSON.stringify(usuarioAtualizado))
+      localStorage.setItem("loginTime", String(Date.now()))
+      setUser(usuarioAtualizado)
+      setSenha("")
+      setConfirmar("")
 
-    if (error) {
+      alert(
+        primeiroAcesso
+          ? "Senha criada com sucesso!"
+          : "Senha alterada com sucesso!"
+      )
+
+      navigate("/dashboard")
+    } catch (error) {
       console.error(error)
       alert("Erro ao alterar senha.")
-      return
+    } finally {
+      setCarregando(false)
     }
-
-    const usuarioAtualizado = {
-      ...user,
-      senha,
-      primeiro_acesso: false,
-    }
-
-    localStorage.setItem("user", JSON.stringify(usuarioAtualizado))
-    setUser(usuarioAtualizado)
-
-    alert(
-      primeiroAcesso
-        ? "Senha criada com sucesso!"
-        : "Senha alterada com sucesso!"
-    )
-
-    navigate("/dashboard")
   }
 
   return (
@@ -99,6 +112,8 @@ export default function TrocarSenha({ user, setUser }) {
               placeholder="Digite a nova senha"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
+              autoComplete="new-password"
+              required
             />
           </div>
 
@@ -109,6 +124,8 @@ export default function TrocarSenha({ user, setUser }) {
               placeholder="Digite novamente a senha"
               value={confirmar}
               onChange={(e) => setConfirmar(e.target.value)}
+              autoComplete="new-password"
+              required
             />
           </div>
 

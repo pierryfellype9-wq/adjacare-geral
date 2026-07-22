@@ -2,6 +2,20 @@ import { InnerPage } from "../EventShell";
 import { programacao } from "../data";
 
 export default function Programacao() {
+  const preview = window.location.pathname.toLowerCase().startsWith("/site-preview");
+
+  if (!preview) {
+    return <InnerPage eyebrow="30 de agosto • 4 a 6 de setembro" title="Programação">
+      <section className="coming-page program-locked">
+        <span>Em preparação</span>
+        <div className="program-locked-mark" aria-hidden="true">T</div>
+        <h2>Em breve,<br/>todos os detalhes.</h2>
+        <p>A programação completa e os convidados serão revelados junto às próximas artes oficiais do Congresso Tetelestai 2026.</p>
+        <a href="https://instagram.com/adjacare" target="_blank" rel="noreferrer">Acompanhar no Instagram ↗</a>
+      </section>
+    </InnerPage>;
+  }
+
   return <InnerPage eyebrow="30 de agosto • 4 a 6 de setembro" title="Programação">
     <section className="program-intro">
       <span>Louvor e palavra</span>

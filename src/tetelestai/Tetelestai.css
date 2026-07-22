@@ -383,6 +383,12 @@
 .coming-page { min-height: 55vh; color: white; background: #050505; }
 .coming-page > span { display: inline-block; margin-bottom: 28px; padding: 10px 15px; border: 1px solid #333; text-transform: uppercase; letter-spacing: .2em; font-size: .55rem; }
 .coming-page p { color: #8c8c8c; }
+.program-locked { position:relative; display:flex; min-height:520px; flex-direction:column; align-items:flex-start; justify-content:center; isolation:isolate; }
+.program-locked::before { content:""; position:absolute; z-index:-1; width:min(560px,70vw); aspect-ratio:1; right:-8%; top:50%; border:1px solid rgba(229,197,124,.11); border-radius:50%; transform:translateY(-50%); box-shadow:0 0 0 55px rgba(229,197,124,.025),0 0 0 110px rgba(229,197,124,.018); }
+.program-locked .program-locked-mark { position:absolute; z-index:-1; right:9%; top:50%; color:rgba(229,197,124,.055); font-family:Copperplate,"Palatino Linotype",Georgia,serif; font-size:clamp(14rem,31vw,31rem); line-height:.7; transform:translateY(-50%); }
+.program-locked h2 { max-width:780px; margin:0 0 24px; color:#f4efe7; font-size:clamp(3rem,7vw,7rem); }
+.program-locked p { max-width:610px; margin:0; color:rgba(244,239,230,.62); font-size:clamp(.9rem,1.3vw,1.08rem); line-height:1.8; }
+.program-locked a { display:inline-block; margin-top:30px; padding-bottom:7px; border-bottom:1px solid rgba(229,197,124,.55); color:var(--gold,#e5c57c); font-size:.6rem; font-weight:800; letter-spacing:.18em; text-decoration:none; text-transform:uppercase; }
 
 @media (max-width: 800px) {
   .standalone-theme, .standalone-playlist, .standalone-location, .standalone-photos { grid-template-columns: 1fr; }
@@ -623,6 +629,7 @@
 @media(max-width:900px){.event-nav{top:8px;height:60px}.event-explore{border-radius:30px}.standalone-content,.standalone-theme,.standalone-playlist,.standalone-location,.standalone-photos,.coming-page,.shirts-intro,.shirt-models,.measure-guide,.standalone-guests{border-radius:28px}.schedule-expanded{padding-left:28px}}
 @media(max-width:900px){.playlist-platforms{grid-template-columns:1fr}.playlist-platform{min-height:120px}}
 @media(max-width:560px){.event-nav{width:calc(100% - 16px);border-radius:17px}.event-brand span{font-size:.56rem}.event-hero{border-radius:0 0 30px 30px}.event-marquee{width:calc(100% - 16px);border-radius:13px}.event-explore{width:calc(100% - 16px);margin-bottom:45px;border-radius:25px;padding:65px 16px}.explore-card{border-radius:21px}.inner-hero{border-radius:0 0 30px 30px}.standalone-content,.standalone-theme,.standalone-playlist,.standalone-location,.standalone-photos,.coming-page,.shirts-intro,.shirt-models,.measure-guide,.standalone-guests{width:calc(100% - 16px);margin-bottom:45px;border-radius:24px}.standalone-theme,.standalone-playlist,.standalone-location,.standalone-photos,.coming-page,.shirts-intro,.measure-guide,.standalone-guests{padding:48px 20px}.shirt-model{border-radius:22px}.event-footer{width:calc(100% - 16px);border-radius:22px}}
+@media(max-width:560px){.program-locked{min-height:430px;padding:54px 24px}.program-locked::before{right:-45%;width:440px}.program-locked .program-locked-mark{right:-2%;font-size:16rem}.program-locked h2{font-size:clamp(2.7rem,13vw,4.2rem)}}
 @media(max-width:560px){.playlist-platform{grid-template-columns:44px 1fr auto;padding:18px;gap:13px;border-radius:19px}.playlist-platform>i{width:44px;height:44px;border-radius:13px}.playlist-platform p{display:none}.playlist-player{padding:8px;border-radius:20px}.playlist-player iframe{height:352px}}
 
 /* Programação + convidados em uma única experiência */

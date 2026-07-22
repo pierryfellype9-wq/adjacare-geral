@@ -366,10 +366,11 @@
 .playlist-platforms { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
 .playlist-platform { position: relative; display: grid!important; grid-template-columns: 52px 1fr auto; gap: 16px; align-items: center; min-height: 150px; box-sizing: border-box; padding: 24px; overflow: hidden; border: 1px solid rgba(255,255,255,.1); border-radius: 24px; color: white!important; background: rgba(255,255,255,.045); text-decoration: none; transition: transform .25s ease,border-color .25s ease,background .25s ease; }
 .playlist-platform:hover { transform: translateY(-6px); border-color: rgba(229,197,124,.5); background: rgba(255,255,255,.075); }
-.playlist-platform > i { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 16px; color: white; font-family: Arial,sans-serif; font-size: 1.15rem; font-style: normal; font-weight: 900; }
-.playlist-platform.spotify > i { color: #06170d; background: #1ed760; }
-.playlist-platform.deezer > i { background: linear-gradient(135deg,#a238ff,#ff426f 55%,#ffca28); }
-.playlist-platform.youtube > i { background: #ff0033; }
+.playlist-platform > i { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 16px; color: white; font-style: normal; }
+.playlist-platform > i svg { display:block; width:64%; height:64%; fill:currentColor; }
+.playlist-platform.spotify > i { color: #07170e; border-radius:50%; background: #1ed760; }
+.playlist-platform.deezer > i { background: #a238ff; }
+.playlist-platform.youtube > i { border-radius:50%; background: #ff0033; }
 .playlist-platform small { display: block; margin-bottom: 4px; color: rgba(255,255,255,.48); font-size: .52rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
 .playlist-platform strong { display: block; font-family: Copperplate,"Palatino Linotype",Georgia,serif; font-size: clamp(1.25rem,2vw,1.75rem); font-weight: 500; line-height: 1; }
 .playlist-platform p { margin: 10px 0 0; color: rgba(255,255,255,.5); font-size: .72rem; line-height: 1.45; }

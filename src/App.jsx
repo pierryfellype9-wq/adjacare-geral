@@ -20,8 +20,9 @@ import WhatsApp from "./pages/WhatsApp"
 
 import EBD from "./pages/EBD"
 import EBDAlunos from "./pages/EBDAlunos"
-import EBDChamada from "./pages/EBDChamada"
+import EBDChamadaComOferta from "./pages/EBDChamadaComOferta"
 import EBDRelatorios from "./pages/EBDRelatorios"
+import EBDRelatorioOfertas from "./pages/EBDRelatorioOfertas"
 import EBDTrimestres from "./pages/EBDTrimestres"
 import CadastroProfessorPublico from "./pages/CadastroProfessorPublico"
 import EBDSolicitacoesProfessores from "./pages/EBDSolicitacoesProfessores"
@@ -284,9 +285,10 @@ export default function App() {
 
                 <Route path="/ebd" element={<EBD user={user} />} />
                 <Route path="/ebd/alunos" element={<EBDAlunos user={user} />} />
-                <Route path="/ebd/chamada" element={<EBDChamada user={user} />} />
+                <Route path="/ebd/chamada" element={<EBDChamadaComOferta user={user} />} />
                 <Route path="/ebd/trimestres" element={<EBDTrimestres user={user} />} />
                 <Route path="/ebd/relatorios" element={<EBDRelatorios user={user} />} />
+                <Route path="/ebd/relatorio-ofertas" element={<EBDRelatorioOfertas user={user} />} />
                 <Route path="/ebd/dashboard" element={<EBDDashboard user={user} />} />
                 <Route path="/membros" element={<Membros user={user} />} />
               </Routes>

@@ -158,13 +158,19 @@ export default function EBD({ user }) {
         <div className="ebd-card" onClick={() => navigate("/ebd/chamada")}>
           <div className="icon">📝</div>
           <h3>Chamada</h3>
-          <p>Registrar presença dos alunos por lição.</p>
+          <p>Registrar presença dos alunos e a oferta da lição.</p>
         </div>
 
         <div className="ebd-card" onClick={() => navigate("/ebd/relatorios")}>
           <div className="icon">📈</div>
           <h3>Relatórios</h3>
           <p>Visualizar frequência, faltas e dados das turmas.</p>
+        </div>
+
+        <div className="ebd-card" onClick={() => navigate("/ebd/relatorio-ofertas")}>
+          <div className="icon">💵</div>
+          <h3>Relatório de Ofertas</h3>
+          <p>Consultar o total ofertado em cada trimestre e por lição.</p>
         </div>
 
         {podeVerTudo && (

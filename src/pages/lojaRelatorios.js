@@ -1,5 +1,5 @@
-import jsPDF from "jspdf"
-import autoTable from "jspdf-autotable"
+import { jsPDF } from "jspdf"
+import { autoTable } from "jspdf-autotable"
 
 const dinheiro = v => Number(v || 0).toLocaleString("pt-BR", { style:"currency", currency:"BRL" })
 const data = v => v ? new Date(v).toLocaleString("pt-BR") : "—"

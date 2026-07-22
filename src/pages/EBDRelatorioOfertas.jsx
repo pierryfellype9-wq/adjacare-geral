@@ -16,6 +16,21 @@ function dataPtBr(data) {
   return new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR")
 }
 
+const estiloResumo = {
+  width: "fit-content",
+  maxWidth: "100%",
+  minWidth: 0,
+  height: "auto",
+  minHeight: 54,
+  padding: "10px 18px",
+  borderRadius: 16,
+  justifyContent: "flex-start",
+  textAlign: "left",
+  whiteSpace: "nowrap",
+  fontSize: 24,
+  lineHeight: 1.2,
+}
+
 export default function EBDRelatorioOfertas({ user }) {
   const navigate = useNavigate()
   const usuario = user || JSON.parse(localStorage.getItem("user") || "{}")
@@ -237,19 +252,19 @@ export default function EBDRelatorioOfertas({ user }) {
           <div className="relatorio-grid" style={{ marginBottom: 20 }}>
             <div className="relatorio-card">
               <h3>Total do trimestre</h3>
-              <div className="frequencia" style={{ fontSize: 24 }}>
+              <div className="frequencia" style={estiloResumo}>
                 {moeda(total)}
               </div>
             </div>
             <div className="relatorio-card">
               <h3>Aulas com oferta</h3>
-              <div className="frequencia" style={{ fontSize: 24 }}>
+              <div className="frequencia" style={estiloResumo}>
                 {aulasComOferta} de {aulas.length}
               </div>
             </div>
             <div className="relatorio-card">
               <h3>Média por aula</h3>
-              <div className="frequencia" style={{ fontSize: 24 }}>
+              <div className="frequencia" style={estiloResumo}>
                 {moeda(media)}
               </div>
             </div>

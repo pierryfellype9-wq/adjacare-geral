@@ -167,15 +167,45 @@ function extensaoDaMidia(midia) {
 }
 
 async function obterDrive() {
-  if (!process.env.GOOGLE_SERVICE_KEY) {
-    throw new Error("GOOGLE_SERVICE_KEY não configurada.");
+  const clientId = process.env.GOOGLE_DRIVE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_DRIVE_CLIENT_SECRET;
+  const refreshToken = process.env.GOOGLE_DRIVE_REFRESH_TOKEN;
+
+  if (clientId && clientSecret && refreshToken) {
+    const auth = new google.auth.OAuth2(clientId, clientSecret);
+    auth.setCredentials({ refresh_token: refreshToken });
+    return google.drive({ version: "v3", auth });
   }
-  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_KEY);
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ["https://www.googleapis.com/auth/drive"],
-  });
-  return google.drive({ version: "v3", auth: await auth.getClient() });
+
+  if (process.env.GOOGLE_SERVICE_KEY) {
+    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_KEY);
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ["https://www.googleapis.com/auth/drive"],
+    });
+    return google.drive({ version: "v3", auth: await auth.getClient() });
+  }
+
+  throw new Error(
+    "Google Drive não configurado. Configure o OAuth da conta da igreja ou uma conta de serviço com acesso a um Drive Compartilhado."
+  );
+}
+
+function mensagemErroDrive(error) {
+  const mensagem = String(
+    error?.response?.data?.error?.message ||
+      error?.errors?.[0]?.message ||
+      error?.message ||
+      ""
+  );
+  const semCota =
+    /service accounts? do not have storage quota/i.test(mensagem) ||
+    /storageQuota/i.test(mensagem);
+
+  if (semCota && !process.env.GOOGLE_DRIVE_REFRESH_TOKEN) {
+    return "O Google Drive da igreja ainda precisa ser conectado ao sistema. A equipe responsável já pode configurar o acesso pela conta Google da igreja.";
+  }
+  return textoSeguro(mensagem, 300) || "O Google Drive não aceitou o arquivo.";
 }
 
 function escaparBuscaDrive(valor) {
@@ -192,6 +222,8 @@ async function encontrarPastaDrive(drive, parentId, chave, valor) {
     ].join(" and "),
     fields: "files(id,name,webViewLink)",
     pageSize: 1,
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
   });
   return resposta.data.files?.[0] || null;
 }
@@ -208,6 +240,7 @@ async function encontrarOuCriarPasta(drive, { parentId, nome, chave, valor }) {
       appProperties: { [chave]: valor },
     },
     fields: "id,name,webViewLink",
+    supportsAllDrives: true,
   });
   return criada.data;
 }
@@ -331,6 +364,7 @@ async function salvarHinoNoDrive({ telefone, midia, culto, departamento, nomeApr
     },
     media: { mimeType: download.mimeType, body: BufferToStream(download.buffer) },
     fields: "id,name,webViewLink",
+    supportsAllDrives: true,
   });
 
   const payload = {
@@ -609,7 +643,7 @@ export default async function handler(req, res) {
       } catch (error) {
         console.error("Erro ao processar hino:", error);
         await enviarBotoes(telefone, {
-          corpo: `Não consegui salvar esse arquivo.\n\nMotivo: ${textoSeguro(error.message, 300)}\n\nVocê pode tentar novamente ou falar com a equipe.`,
+          corpo: `Não consegui salvar esse arquivo.\n\nMotivo: ${mensagemErroDrive(error)}\n\nVocê pode tentar novamente ou falar com a equipe.`,
           botoes: [
             { id: "som_atendente", title: "Falar com a equipe" },
             { id: "som_cancelar", title: "Voltar ao menu" },

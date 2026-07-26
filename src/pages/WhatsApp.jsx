@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import "./WhatsApp.css";
 
@@ -15,6 +15,8 @@ export default function WhatsApp({ user }) {
   const [filtroStatus, setFiltroStatus] = useState("");
   const [salvandoCulto, setSalvandoCulto] = useState(false);
   const [cultoEditando, setCultoEditando] = useState(null);
+  const fimDasMensagensRef = useRef(null);
+  const deveRolarAutomaticamenteRef = useRef(true);
   const [formCulto, setFormCulto] = useState({
     titulo: "",
     data_culto: "",
@@ -211,6 +213,37 @@ export default function WhatsApp({ user }) {
   const mensagensDaConversa = mensagens.filter(
     (msg) => msg.telefone === telefoneSelecionado
   );
+  const ultimaMensagemId =
+    mensagensDaConversa[mensagensDaConversa.length - 1]?.id || null;
+
+  function rolarParaUltimaMensagem(comportamento = "smooth") {
+    requestAnimationFrame(() => {
+      fimDasMensagensRef.current?.scrollIntoView({
+        behavior: comportamento,
+        block: "end",
+      });
+    });
+  }
+
+  function acompanharPosicaoDaConversa(evento) {
+    const elemento = evento.currentTarget;
+    const distanciaDoFim =
+      elemento.scrollHeight - elemento.scrollTop - elemento.clientHeight;
+    deveRolarAutomaticamenteRef.current = distanciaDoFim < 120;
+  }
+
+  useEffect(() => {
+    if (!telefoneSelecionado) return;
+    deveRolarAutomaticamenteRef.current = true;
+    rolarParaUltimaMensagem("auto");
+  }, [telefoneSelecionado]);
+
+  useEffect(() => {
+    if (!telefoneSelecionado || !ultimaMensagemId) return;
+    if (deveRolarAutomaticamenteRef.current) {
+      rolarParaUltimaMensagem();
+    }
+  }, [ultimaMensagemId, telefoneSelecionado]);
 
   useEffect(() => {
     if (
@@ -268,6 +301,7 @@ export default function WhatsApp({ user }) {
   async function enviarResposta() {
     if (!telefoneSelecionado || !texto.trim()) return;
 
+    deveRolarAutomaticamenteRef.current = true;
     setEnviando(true);
 
     try {
@@ -492,7 +526,10 @@ export default function WhatsApp({ user }) {
                 </div>
               </div>
 
-              <div className="whatsapp-mensagens">
+              <div
+                className="whatsapp-mensagens"
+                onScroll={acompanharPosicaoDaConversa}
+              >
                 {mensagensDaConversa.map((msg) => (
                   <div
                     key={msg.id}
@@ -513,6 +550,11 @@ export default function WhatsApp({ user }) {
                     <small>{formatarData(msg.criado_em)}</small>
                   </div>
                 ))}
+                <div
+                  ref={fimDasMensagensRef}
+                  className="whatsapp-fim-mensagens"
+                  aria-hidden="true"
+                />
               </div>
 
               <div className="whatsapp-form">

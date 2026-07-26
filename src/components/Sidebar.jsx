@@ -24,11 +24,13 @@ export default function Sidebar({ open, setOpen, user }) {
 
   const podeVerWhatsApp =
     user?.role === "Administrador" ||
+    user?.role === "Dirigente" ||
     user?.role === "Mídia" ||
     user?.role === "Secretaria" ||
     user?.role === "Suporte" ||
     user?.role === "TI" ||
-    user?.role === "Sonoplastia"
+    user?.role === "Sonoplastia" ||
+    user?.role === "Projeção"
 
   const podeVerEBD = true
   return (

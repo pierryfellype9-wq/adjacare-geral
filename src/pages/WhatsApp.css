@@ -1,7 +1,8 @@
 .whatsapp-page {
   padding: 24px;
   height: calc(100vh - 70px);
-  overflow: hidden;
+  overflow-y: auto;
+  background: #f4f7fb;
 }
 
 .whatsapp-header h1 {
@@ -15,8 +16,8 @@
 }
 
 .whatsapp-container {
-  margin-top: 24px;
-  height: calc(100vh - 220px);
+  margin-top: 16px;
+  height: calc(100vh - 260px);
   display: grid;
   grid-template-columns: 320px 1fr;
   background: #fff;
@@ -238,4 +239,397 @@
   color: #0b5cab;
   font-size: 11px;
   font-weight: 700;
+}
+
+.whatsapp-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 5px;
+  width: fit-content;
+  border: 1px solid #dfe6ef;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.whatsapp-tabs button {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  background: transparent;
+  color: #526071;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.whatsapp-tabs button.ativo {
+  background: #10233f;
+  color: #fff;
+}
+
+.whatsapp-tabs span {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 5px;
+  place-items: center;
+  border-radius: 999px;
+  background: #e7eef8;
+  color: #10233f;
+  font-size: 11px;
+}
+
+.whatsapp-admin {
+  margin-top: 16px;
+  padding: 24px;
+  border: 1px solid #e1e7ef;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 12px 35px rgba(16, 35, 63, 0.07);
+}
+
+.whatsapp-admin h2,
+.whatsapp-admin h3,
+.whatsapp-admin p {
+  margin-top: 0;
+}
+
+.whatsapp-resumo {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.whatsapp-resumo article {
+  padding: 17px;
+  border: 1px solid #e3e9f1;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #fff, #f5f8fc);
+}
+
+.whatsapp-resumo span {
+  display: block;
+  margin-bottom: 7px;
+  color: #6e7a8b;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.whatsapp-resumo strong {
+  color: #10233f;
+  font-size: 28px;
+}
+
+.whatsapp-painel-topo {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+
+.whatsapp-painel-topo p,
+.whatsapp-culto-form p,
+.whatsapp-cultos-lista > div > p {
+  color: #6d7785;
+}
+
+.whatsapp-filtros {
+  display: flex;
+  gap: 10px;
+}
+
+.whatsapp-filtros input,
+.whatsapp-filtros select,
+.whatsapp-culto-form input,
+.whatsapp-culto-form select,
+.whatsapp-culto-form textarea,
+.whatsapp-hino-acoes select {
+  border: 1px solid #d5dde8;
+  border-radius: 11px;
+  padding: 11px 13px;
+  background: #fff;
+  color: #17263c;
+  font: inherit;
+}
+
+.whatsapp-filtros input {
+  width: min(340px, 48vw);
+}
+
+.whatsapp-hinos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.whatsapp-hino-card {
+  padding: 20px;
+  border: 1px solid #e0e6ee;
+  border-radius: 17px;
+  background: #fbfcfe;
+}
+
+.whatsapp-hino-card header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.whatsapp-hino-card header small {
+  display: block;
+  margin-bottom: 5px;
+  color: #0d766b;
+  font-weight: 900;
+  letter-spacing: .05em;
+}
+
+.whatsapp-hino-card h3 {
+  margin: 0;
+  color: #10233f;
+  font-size: 21px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #e8edf3;
+  color: #405067;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.status.recebido,
+.status.aberto {
+  background: #dcf8ed;
+  color: #08745e;
+}
+
+.status.em_preparacao {
+  background: #fff1c7;
+  color: #8a5a00;
+}
+
+.status.pronto {
+  background: #dceaff;
+  color: #185bb2;
+}
+
+.status.precisa_correcao,
+.status.cancelado {
+  background: #ffe1e1;
+  color: #a62b2b;
+}
+
+.status.fechado {
+  background: #e7eaf0;
+  color: #525c6c;
+}
+
+.whatsapp-hino-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin: 0;
+}
+
+.whatsapp-hino-card dt {
+  color: #778292;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.whatsapp-hino-card dd {
+  margin: 4px 0 0;
+  color: #26364d;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.whatsapp-hino-acoes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e7ee;
+}
+
+.whatsapp-hino-acoes a,
+.whatsapp-culto-acoes a {
+  border-radius: 10px;
+  padding: 11px 14px;
+  background: #0f766e;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.whatsapp-vazio-grande {
+  padding: 60px 20px;
+  border: 1px dashed #cfd8e5;
+  border-radius: 16px;
+  color: #6f7c8f;
+  text-align: center;
+}
+
+.whatsapp-vazio-grande strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #17263c;
+  font-size: 18px;
+}
+
+.whatsapp-cultos-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, .8fr) minmax(430px, 1.2fr);
+  gap: 24px;
+}
+
+.whatsapp-culto-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: fit-content;
+  padding: 22px;
+  border-radius: 17px;
+  background: #f6f8fb;
+}
+
+.whatsapp-culto-form > div > small,
+.whatsapp-cultos-lista > div > small {
+  color: #0f766e;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.whatsapp-culto-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #33445b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.whatsapp-culto-datas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.whatsapp-culto-form-acoes,
+.whatsapp-culto-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.whatsapp-culto-form-acoes button,
+.whatsapp-culto-acoes button {
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 14px;
+  background: #10233f;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.whatsapp-culto-form-acoes .secundario {
+  background: #dfe5ed;
+  color: #26364d;
+}
+
+.whatsapp-culto-acoes .fechar {
+  background: #a62b2b;
+}
+
+.whatsapp-cultos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.whatsapp-cultos-lista > article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #e0e6ee;
+  border-radius: 15px;
+}
+
+.whatsapp-culto-info h3 {
+  margin: 8px 0;
+  color: #10233f;
+}
+
+.whatsapp-culto-info p {
+  margin: 4px 0;
+  color: #657184;
+  font-size: 13px;
+}
+
+.whatsapp-culto-acoes {
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .whatsapp-container {
+    height: calc(100vh - 250px);
+  }
+
+  .whatsapp-tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .whatsapp-tabs button {
+    flex: 0 0 auto;
+  }
+
+  .whatsapp-admin {
+    padding: 16px;
+  }
+
+  .whatsapp-resumo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .whatsapp-painel-topo,
+  .whatsapp-filtros,
+  .whatsapp-hino-acoes,
+  .whatsapp-cultos-lista > article {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .whatsapp-filtros input,
+  .whatsapp-filtros select {
+    width: 100%;
+  }
+
+  .whatsapp-hinos-grid,
+  .whatsapp-cultos-layout,
+  .whatsapp-culto-datas,
+  .whatsapp-hino-card dl {
+    grid-template-columns: 1fr;
+  }
+
+  .whatsapp-culto-acoes {
+    justify-content: flex-start;
+  }
 }

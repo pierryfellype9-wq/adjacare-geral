@@ -1,50 +1,545 @@
-export default function Dashboard({user}){
+.home-dashboard {
+  --home-accent: #2563eb;
+  --home-accent-dark: #123b87;
+  --home-accent-soft: #eaf1ff;
+  width: min(1240px, calc(100% - 40px));
+  margin: 34px auto 70px;
+}
 
-  return(
+.home-dashboard--roxo {
+  --home-accent: #7c3aed;
+  --home-accent-dark: #48207e;
+  --home-accent-soft: #f1eafe;
+}
 
-    <main className="main">
+.home-dashboard--ciano {
+  --home-accent: #0784a5;
+  --home-accent-dark: #07536c;
+  --home-accent-soft: #e4f7fb;
+}
 
-      <h1 className="title">
-        Bem-vindo ao Sistema Geral
-      </h1>
+.home-dashboard--verde {
+  --home-accent: #15805d;
+  --home-accent-dark: #0b513c;
+  --home-accent-soft: #e7f6ef;
+}
 
-      <h2 className="subtitle">
-        da Assembleia de Deus – Bairro Jacaré
-      </h2>
+.home-hero {
+  position: relative;
+  min-height: 310px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 46px 54px;
+  border-radius: 28px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 88% 25%, rgba(255,255,255,.19), transparent 23%),
+    linear-gradient(125deg, var(--home-accent-dark), var(--home-accent));
+  box-shadow: 0 20px 50px color-mix(in srgb, var(--home-accent) 24%, transparent);
+}
 
-      <hr className="divider"/>
+.home-hero::after {
+  content: "";
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  right: -70px;
+  bottom: -150px;
+  border: 42px solid rgba(255,255,255,.07);
+  border-radius: 50%;
+}
 
-      <p className="description">
-        Para iniciar, abra o <span className="menu-highlight">Menu</span> localizado no canto superior esquerdo e escolha a opção desejada.
-      </p>
+.home-hero__conteudo {
+  position: relative;
+  z-index: 2;
+  max-width: 710px;
+}
 
-      <hr className="divider"/>
+.home-eyebrow, .home-kicker {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 850;
+  letter-spacing: .14em;
+}
 
-      <h2 className="section-title">
-        Solicitações
-      </h2>
+.home-eyebrow {
+  color: rgba(255,255,255,.75);
+}
 
-      <div className="dashboard-cards">
+.home-saudacao {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 650;
+  color: rgba(255,255,255,.9);
+}
 
-        <div className="dashboard-card">
-          <h3>Pedidos de Arte</h3>
-          <p>Visualizar e gerenciar pedidos enviados.</p>
-        </div>
+.home-hero h1 {
+  max-width: 680px;
+  margin: 0;
+  font-size: clamp(32px, 4.2vw, 54px);
+  line-height: 1.04;
+  letter-spacing: -.045em;
+}
 
-        <div className="dashboard-card">
-          <h3>Agenda da Igreja</h3>
-          <p>Eventos e atividades programadas.</p>
-        </div>
+.home-hero__texto {
+  max-width: 650px;
+  margin: 18px 0 26px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgba(255,255,255,.82);
+}
 
-        <div className="dashboard-card">
-          <h3>Avisos Internos</h3>
-          <p>Comunicados importantes para os ministérios.</p>
-        </div>
+.home-hero button, .home-faixa button {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 12px;
+  padding: 13px 18px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
 
-      </div>
+.home-hero button {
+  color: var(--home-accent-dark);
+  background: #fff;
+}
 
-    </main>
+.home-hero button span, .home-faixa button span {
+  font-size: 21px;
+  line-height: 1;
+}
 
-  )
+.home-hero__marca {
+  position: relative;
+  z-index: 1;
+  min-width: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  opacity: .18;
+  transform: rotate(-5deg);
+}
 
+.home-hero__marca img {
+  width: 115px;
+  height: 115px;
+  object-fit: contain;
+  filter: grayscale(1) brightness(0) invert(1);
+}
+
+.home-hero__marca span {
+  font-size: 46px;
+  line-height: .86;
+  font-weight: 900;
+  letter-spacing: -.07em;
+}
+
+.home-metricas {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: -30px 24px 26px;
+}
+
+.home-metrica {
+  min-width: 0;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid #e7edf5;
+  border-radius: 18px;
+  background: rgba(255,255,255,.97);
+  box-shadow: 0 12px 30px rgba(15,23,42,.08);
+}
+
+.home-metrica__icone, .home-atalho__icone {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--home-accent);
+  background: var(--home-accent-soft);
+}
+
+.home-metrica__icone {
+  width: 44px;
+  height: 44px;
+}
+
+.home-metrica svg, .home-atalho__icone svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.home-metrica > div:last-child {
+  min-width: 0;
+  display: grid;
+}
+
+.home-metrica span {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-metrica strong {
+  min-height: 30px;
+  margin: 1px 0;
+  font-size: 25px;
+  line-height: 1.15;
+  color: #12233f;
+}
+
+.home-metrica small {
+  overflow: hidden;
+  color: #8a98aa;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-skeleton {
+  width: 48px;
+  height: 22px;
+  margin: 4px 0 !important;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #edf1f6, #f8fafc, #edf1f6);
+  background-size: 200% 100%;
+  animation: home-loading 1.2s linear infinite;
+}
+
+@keyframes home-loading {
+  to { background-position: -200% 0; }
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(340px, .85fr);
+  gap: 22px;
+}
+
+.home-bloco {
+  border: 1px solid #e5ebf3;
+  border-radius: 22px;
+  padding: 26px;
+  background: #fff;
+  box-shadow: 0 8px 25px rgba(15,23,42,.045);
+}
+
+.home-bloco__cabecalho {
+  min-height: 47px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.home-kicker {
+  margin-bottom: 5px;
+  color: var(--home-accent);
+}
+
+.home-bloco h2, .home-faixa h2 {
+  margin: 0;
+  color: #14223a;
+  font-size: 21px;
+  letter-spacing: -.025em;
+}
+
+.home-bloco__cabecalho > button {
+  border: 0;
+  padding: 5px 0;
+  color: var(--home-accent);
+  background: transparent;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.home-atalhos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.home-atalhos > button {
+  min-height: 93px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 15px;
+  text-align: left;
+  border: 1px solid #e5eaf1;
+  border-radius: 16px;
+  color: inherit;
+  background: #fbfcfe;
+  cursor: pointer;
+  transition: .18s ease;
+}
+
+.home-atalhos > button:hover {
+  border-color: color-mix(in srgb, var(--home-accent) 40%, #e5eaf1);
+  background: var(--home-accent-soft);
+  transform: translateY(-2px);
+}
+
+.home-atalho__icone {
+  width: 45px;
+  height: 45px;
+}
+
+.home-atalho__texto {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.home-atalho__texto strong {
+  color: #17243a;
+  font-size: 14px;
+}
+
+.home-atalho__texto small {
+  color: #748197;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.home-atalho__seta {
+  margin-left: auto;
+  color: #9aa6b6;
+  font-size: 19px;
+}
+
+.home-avisos__lista {
+  display: grid;
+  gap: 2px;
+}
+
+.home-avisos__lista article {
+  display: grid;
+  grid-template-columns: 9px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.home-avisos__lista article:last-child {
+  border-bottom: 0;
+}
+
+.home-aviso__ponto {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--home-accent);
+}
+
+.home-avisos__lista article.urgente .home-aviso__ponto {
+  background: #dc2626;
+  box-shadow: 0 0 0 4px #fee2e2;
+}
+
+.home-aviso__meta {
+  display: flex;
+  gap: 6px;
+}
+
+.home-aviso__meta b {
+  margin-bottom: 3px;
+  color: #c2410c;
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+
+.home-avisos__lista article strong {
+  display: block;
+  color: #26344a;
+  font-size: 13px;
+}
+
+.home-avisos__lista article p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 4px 0 0;
+  color: #7a8799;
+  font-size: 12px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.home-vazio {
+  display: grid;
+  place-items: center;
+  min-height: 185px;
+  padding: 15px;
+  text-align: center;
+}
+
+.home-vazio span {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  color: #15805d;
+  background: #e7f6ef;
+  font-weight: 900;
+}
+
+.home-vazio strong {
+  color: #28364b;
+}
+
+.home-vazio p {
+  max-width: 280px;
+  margin: 6px 0;
+  color: #8793a4;
+  font-size: 12px;
+}
+
+.home-faixa {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-top: 22px;
+  padding: 25px 28px;
+  border-radius: 20px;
+  color: #fff;
+  background: #17243a;
+}
+
+.home-faixa .home-kicker {
+  color: #8fb4ff;
+}
+
+.home-faixa h2 {
+  color: #fff;
+}
+
+.home-faixa p {
+  margin: 6px 0 0;
+  color: #aebbd0;
+  font-size: 13px;
+}
+
+.home-faixa button {
+  flex: 0 0 auto;
+  color: #fff;
+  background: var(--home-accent);
+}
+
+@media (max-width: 950px) {
+  .home-metricas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero__marca {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .home-dashboard {
+    width: min(100% - 22px, 1240px);
+    margin-top: 16px;
+  }
+
+  .home-hero {
+    min-height: 0;
+    padding: 30px 23px 62px;
+    border-radius: 22px;
+  }
+
+  .home-saudacao {
+    font-size: 15px;
+  }
+
+  .home-hero h1 {
+    font-size: 33px;
+  }
+
+  .home-hero__texto {
+    margin: 14px 0 22px;
+    font-size: 14px;
+  }
+
+  .home-metricas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin: -35px 10px 18px;
+  }
+
+  .home-metrica {
+    align-items: flex-start;
+    gap: 9px;
+    padding: 13px 11px;
+    border-radius: 15px;
+  }
+
+  .home-metrica__icone {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .home-metrica svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .home-metrica span, .home-metrica small {
+    white-space: normal;
+  }
+
+  .home-metrica strong {
+    min-height: 25px;
+    font-size: 21px;
+  }
+
+  .home-bloco {
+    padding: 20px 16px;
+    border-radius: 19px;
+  }
+
+  .home-atalhos {
+    grid-template-columns: 1fr;
+  }
+
+  .home-atalhos > button {
+    min-height: 82px;
+  }
+
+  .home-faixa {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 23px 20px;
+  }
+
+  .home-faixa button {
+    width: 100%;
+    justify-content: center;
+  }
 }

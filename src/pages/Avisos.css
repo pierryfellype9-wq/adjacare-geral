@@ -75,6 +75,40 @@
   line-height: 1;
 }
 
+.avisos-hero__consulta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 14px;
+  background: rgba(255,255,255,.09);
+  backdrop-filter: blur(8px);
+}
+
+.avisos-hero__consulta > b {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 11px;
+  color: #16457e;
+  background: #edca80;
+}
+
+.avisos-hero__consulta > span {
+  display: grid;
+  gap: 2px;
+  color: #cbdcef;
+  font-size: 13px;
+}
+
+.avisos-hero__consulta strong {
+  color: #fff;
+  font-size: 14px;
+}
+
 .avisos-hero__sino {
   position: absolute;
   z-index: 2;

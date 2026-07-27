@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
+import "./EBDInternas.css"
 
 export default function EBDSolicitacoesProfessores() {
   const navigate = useNavigate()
@@ -75,7 +76,7 @@ export default function EBDSolicitacoesProfessores() {
   }
 
   return (
-    <div className="main">
+    <div className="main ebd-subpage ebd-subpage--solicitacoes">
       <div className="card">
         <div
           style={{

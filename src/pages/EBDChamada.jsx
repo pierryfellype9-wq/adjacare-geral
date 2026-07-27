@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
+import "./EBDInternas.css"
 
 export default function EBDChamada({ user }) {
   const navigate = useNavigate()
@@ -480,7 +481,7 @@ export default function EBDChamada({ user }) {
 
   if (!temAcessoEBD) {
     return (
-      <div className="page">
+      <div className="page ebd-subpage">
         <button className="btn-voltar" onClick={() => navigate("/ebd")}>
           ← Voltar
         </button>
@@ -494,7 +495,7 @@ export default function EBDChamada({ user }) {
   }
 
   return (
-    <div className="page">
+    <div className="page ebd-subpage ebd-subpage--chamada">
       <button className="btn-voltar" onClick={() => navigate("/ebd")}>
         ← Voltar
       </button>

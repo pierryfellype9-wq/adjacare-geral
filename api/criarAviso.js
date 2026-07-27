@@ -10,12 +10,47 @@ const supabase = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+function normalizarPerfil(valor = "") {
+  return valor
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+}
+
 export default async function handler(req, res) {
   if (req.query?.acao === "push-register") {
     return registrarPush(req, res)
   }
 
   try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ erro: "Método não permitido" })
+    }
+
+    const token = req.headers.authorization?.replace(/^Bearer\s+/i, "")
+    if (!token) {
+      return res.status(401).json({ erro: "Sessão não informada" })
+    }
+
+    const { data: authData, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !authData.user) {
+      return res.status(401).json({ erro: "Sessão inválida" })
+    }
+
+    const { data: perfil, error: perfilError } = await supabase
+      .from("users")
+      .select("role")
+      .eq("auth_user_id", authData.user.id)
+      .maybeSingle()
+
+    const perfisPermitidos = ["administrador", "dirigente", "secretaria", "secretario"]
+    if (perfilError || !perfisPermitidos.includes(normalizarPerfil(perfil?.role))) {
+      return res
+        .status(403)
+        .json({ erro: "Você não tem permissão para publicar avisos" })
+    }
+
     const {
       titulo,
       mensagem,

@@ -458,20 +458,29 @@ async function enviarMenuPrincipal(telefone) {
     corpo: "Olá! Escolha como podemos ajudar.",
     botao: "Abrir opções",
     secoes: [{ titulo: "Atendimento", rows: [
-      { id:"menu_midia", title:"Pedido para Mídia", description:"Solicitar arte, divulgação ou mídia" },
       { id:"menu_ebd", title:"Senha da EBD", description:"Consultar acesso do aluno" },
       { id:"menu_atendente", title:"Falar com atendente", description:"Atendimento humano" },
-      { id:"menu_som", title:"Som e Projeção", description:"Enviar hino, áudio ou vídeo" },
-      { id:"menu_outros", title:"Outras opções", description:"Mídia, Secretaria ou Suporte" },
+      { id:"menu_som", title:"Enviar hino/áudio/vídeo", description:"Som e Projeção" },
+      { id:"menu_restrito", title:"Líderes e professores", description:"Dirigentes • cadastro obrigatório" },
       { id:"menu_encerrar", title:"Encerrar atendimento", description:"Finalizar e parar o bot" },
     ] }],
   });
 }
 
-async function enviarMenuOutrasOpcoes(telefone) {
-  await enviarLista(telefone, { cabecalho:"Outras opções", corpo:"Escolha o setor desejado.", botao:"Escolher setor", secoes:[{titulo:"Setores",rows:[
-    {id:"outros_midia",title:"Mídia"},{id:"outros_secretaria",title:"Secretaria"},{id:"outros_suporte",title:"Suporte"},{id:"outros_menu",title:"Menu principal"},
-  ]}] });
+async function enviarMenuAreaRestrita(telefone) {
+  await enviarLista(telefone, {
+    cabecalho: "Área restrita",
+    corpo: "Acesso para líderes, dirigentes e professores cadastrados.",
+    botao: "Abrir serviços",
+    secoes: [{ titulo: "Serviços internos", rows: [
+      { id:"area_pedido", title:"Pedido para Mídia", description:"Solicitar arte, divulgação ou mídia" },
+      { id:"area_status", title:"Consultar pedidos", description:"Acompanhar solicitações enviadas" },
+      { id:"area_suporte", title:"Suporte para líderes", description:"Dúvidas de líderes e professores" },
+      { id:"area_midia", title:"Falar com a Mídia", description:"Atendimento humano" },
+      { id:"area_secretaria", title:"Falar com Secretaria", description:"Atendimento humano" },
+      { id:"area_menu", title:"Menu principal", description:"Voltar às opções públicas" },
+    ] }],
+  });
 }
 
 function menuPrincipal() {
@@ -480,21 +489,11 @@ Você está no atendimento da AD Jacaré.
 
 Digite uma opção:
 
-1️⃣ Fazer pedido
-2️⃣ Consultar senha da EBD
-3️⃣ Falar com um atendente
-4️⃣ Enviar hino, áudio ou vídeo para Som/Projeção
-5️⃣ Outras opções
-6️⃣ Encerrar atendimento`;
-}
-
-function menuOutrasOpcoes() {
-  return `Outras opções:
-
-1️⃣ Falar com a Mídia
-2️⃣ Falar com a Secretaria
-3️⃣ Falar com o Suporte
-4️⃣ Voltar ao menu principal`;
+1️⃣ Consultar senha da EBD
+2️⃣ Falar com um atendente
+3️⃣ Enviar hino, áudio ou vídeo para Som/Projeção
+4️⃣ Área para líderes, dirigentes e professores cadastrados
+5️⃣ Encerrar atendimento`;
 }
 
 function ehSaudacao(texto = "") {
@@ -556,8 +555,7 @@ export default async function handler(req, res) {
     const telefone = mensagem.from;
     const interacaoId = mensagem.interactive?.list_reply?.id || mensagem.interactive?.button_reply?.id;
     const aliases = {
-      menu_midia:"1", menu_ebd:"2", menu_atendente:"3", menu_som:"4", menu_outros:"5", menu_encerrar:"6",
-      outros_midia:"1", outros_secretaria:"2", outros_suporte:"3", outros_menu:"4",
+      menu_ebd:"1", menu_atendente:"2", menu_som:"3", menu_restrito:"4", menu_encerrar:"5",
       som_confirmar:"1", som_corrigir:"2", som_cancelar:"3",
       som_outro_hino:"1", som_finalizar:"2", som_atendente:"som_atendente",
     };
@@ -728,49 +726,23 @@ export default async function handler(req, res) {
       if (texto === "1") {
         await supabase
           .from("whatsapp_sessoes")
-          .update({
-            etapa: "aguardando_email_pedido",
-            autenticado: false,
-            usuario_id: null,
-            usuario_nome: null,
-            usuario_email: null,
-            dados: { destino: "Mídia" },
-          })
+          .update({ etapa: "aguardando_nome_ebd", dados: {} })
           .eq("telefone", telefone);
-
-        await enviarMensagem(
-          telefone,
-          "Para continuar, informe seu e-mail cadastrado no sistema:"
-        );
-
-        return res.status(200).send("ok");
-      }
-
-      if (texto === "2") {
-        await supabase
-          .from("whatsapp_sessoes")
-          .update({
-            etapa: "aguardando_nome_ebd",
-            dados: {},
-          })
-          .eq("telefone", telefone);
-
         await enviarMensagem(
           telefone,
           `🔐 Consulta de senha da EBD
 
 Informe o nome completo do aluno:`
         );
-
         return res.status(200).send("ok");
       }
 
-      if (texto === "3") {
+      if (texto === "2") {
         await ativarAtendimentoHumano(telefone, "Atendimento");
         return res.status(200).send("ok");
       }
 
-      if (texto === "4") {
+      if (texto === "3") {
         try {
           const temCultos = await enviarListaCultos(telefone);
           await supabase
@@ -784,11 +756,29 @@ Informe o nome completo do aluno:`
           console.error("Erro ao listar cultos:", error);
           await ativarAtendimentoHumano(telefone, "Som/Projeção");
         }
-
         return res.status(200).send("ok");
       }
 
-      if (texto === "6") {
+      if (texto === "4") {
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "aguardando_email_area_restrita",
+            autenticado: false,
+            usuario_id: null,
+            usuario_nome: null,
+            usuario_email: null,
+            dados: {},
+          })
+          .eq("telefone", telefone);
+        await enviarMensagem(
+          telefone,
+          "🔒 Esta área é exclusiva para líderes, dirigentes e professores cadastrados.\n\nInforme seu e-mail cadastrado no sistema:"
+        );
+        return res.status(200).send("ok");
+      }
+
+      if (texto === "5") {
         await supabase
           .from("whatsapp_sessoes")
           .update({
@@ -808,55 +798,86 @@ Informe o nome completo do aluno:`
         return res.status(200).send("ok");
       }
 
-      if (texto === "5") {
-        await supabase
-          .from("whatsapp_sessoes")
-          .update({
-            etapa: "menu_outras_opcoes",
-            dados: {},
-          })
-          .eq("telefone", telefone);
-
-        await enviarMenuOutrasOpcoes(telefone);
-        return res.status(200).send("ok");
-      }
-
       await enviarMensagem(telefone, "Não consegui identificar essa opção.");
       await enviarMenuPrincipal(telefone);
       return res.status(200).send("ok");
     }
 
-    if (sessao.etapa === "menu_outras_opcoes") {
-      if (texto === "1") {
+    if (sessao.etapa === "menu_area_restrita") {
+      if (!sessao.autenticado) {
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({ etapa: "aguardando_email_area_restrita", dados: {} })
+          .eq("telefone", telefone);
+        await enviarMensagem(telefone, "Informe seu e-mail cadastrado no sistema:");
+        return res.status(200).send("ok");
+      }
+
+      if (interacaoId === "area_pedido") {
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "aguardando_titulo_pedido",
+            dados: { ...sessao.dados, destino: "Mídia" },
+          })
+          .eq("telefone", telefone);
+        await enviarMensagem(telefone, "Digite o título do pedido:");
+        return res.status(200).send("ok");
+      }
+
+      if (interacaoId === "area_status") {
+        await consultarStatus(telefone, sessao.usuario_nome);
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "encerrado",
+            autenticado: false,
+            usuario_id: null,
+            usuario_nome: null,
+            usuario_email: null,
+            dados: {},
+          })
+          .eq("telefone", telefone);
+        return res.status(200).send("ok");
+      }
+
+      if (interacaoId === "area_suporte") {
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({ etapa: "suporte_lider" })
+          .eq("telefone", telefone);
+        await enviarMensagem(telefone, "Explique sua dúvida como líder ou professor:");
+        return res.status(200).send("ok");
+      }
+
+      if (interacaoId === "area_midia") {
         await ativarAtendimentoHumano(telefone, "Mídia");
         return res.status(200).send("ok");
       }
 
-      if (texto === "2") {
+      if (interacaoId === "area_secretaria") {
         await ativarAtendimentoHumano(telefone, "Secretaria");
         return res.status(200).send("ok");
       }
 
-      if (texto === "3") {
-        await ativarAtendimentoHumano(telefone, "Suporte");
-        return res.status(200).send("ok");
-      }
-
-      if (texto === "4") {
+      if (interacaoId === "area_menu") {
         await supabase
           .from("whatsapp_sessoes")
           .update({
             etapa: "menu",
+            autenticado: false,
+            usuario_id: null,
+            usuario_nome: null,
+            usuario_email: null,
             dados: {},
           })
           .eq("telefone", telefone);
-
         await enviarMenuPrincipal(telefone);
         return res.status(200).send("ok");
       }
 
-      await enviarMensagem(telefone, "Não consegui identificar essa opção.");
-      await enviarMenuOutrasOpcoes(telefone);
+      await enviarMensagem(telefone, "Selecione uma das opções da área restrita.");
+      await enviarMenuAreaRestrita(telefone);
       return res.status(200).send("ok");
     }
 
@@ -1199,7 +1220,8 @@ Digite:
     if (
       sessao.etapa === "aguardando_email_pedido" ||
       sessao.etapa === "aguardando_email_status" ||
-      sessao.etapa === "aguardando_email_suporte_lider"
+      sessao.etapa === "aguardando_email_suporte_lider" ||
+      sessao.etapa === "aguardando_email_area_restrita"
     ) {
       const email = texto.trim().toLowerCase();
 
@@ -1242,6 +1264,10 @@ Digite:
 
       if (sessao.etapa === "aguardando_email_suporte_lider") {
         proximaEtapa = "suporte_lider";
+      }
+
+      if (sessao.etapa === "aguardando_email_area_restrita") {
+        proximaEtapa = "menu_area_restrita";
       }
 
       await supabase
@@ -1293,6 +1319,11 @@ Acesso confirmado.
 
 Explique sua dúvida como líder/professor:`
         );
+      }
+
+      if (proximaEtapa === "menu_area_restrita") {
+        await enviarMensagem(telefone, `Olá, ${nomeUsuario}! ✅ Acesso confirmado.`);
+        await enviarMenuAreaRestrita(telefone);
       }
 
       return res.status(200).send("ok");

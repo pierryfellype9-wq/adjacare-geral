@@ -1,0 +1,2 @@
+alter table public.whatsapp_hinos_projecao
+drop constraint if exists whatsapp_hinos_projecao_tipo_midia_check;

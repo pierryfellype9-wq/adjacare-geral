@@ -620,7 +620,29 @@ export default function EBDChamada({ user }) {
 
         {alunos.map((aluno) => (
           <div className="chamada-item chamada-nova" key={aluno.id}>
-            <strong>{aluno.nome}</strong>
+            <div className="chamada-aluno-identidade">
+              <span className="chamada-avatar">
+                {aluno.nome
+                  .trim()
+                  .split(/\s+/)
+                  .slice(0, 2)
+                  .map((parte) => parte[0])
+                  .join("")
+                  .toUpperCase()}
+              </span>
+              <div>
+                <strong>{aluno.nome}</strong>
+                <small>
+                  {presencas[aluno.id] === "presente"
+                    ? "Presença confirmada"
+                    : presencas[aluno.id] === "atrasado"
+                      ? "Chegou atrasado"
+                      : presencas[aluno.id] === "falta"
+                        ? "Falta registrada"
+                        : "Aguardando marcação"}
+                </small>
+              </div>
+            </div>
 
             <div className="status-buttons">
               <button

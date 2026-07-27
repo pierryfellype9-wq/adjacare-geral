@@ -367,7 +367,7 @@ export default function App() {
                 <Route path="/pedidos" element={<Pedidos user={user} />} />
                 <Route path="/kanban" element={<KanbanPedidos user={user} />} />
                 <Route path="/solicitacoes" element={<Solicitacoes />} />
-                <Route path="/agenda" element={<Agenda />} />
+                <Route path="/agenda" element={<Agenda user={user} />} />
                 <Route path="/avisos" element={<Avisos />} />
                 <Route path="/usuarios" element={<Usuarios user={user} />} />
                 <Route path="/ebd/financeiro" element={<EBDFinanceiro user={user} />} />

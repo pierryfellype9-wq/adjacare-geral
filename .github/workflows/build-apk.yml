@@ -2,6 +2,20 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: Versão do aplicativo (exemplo: 1.1.0)
+        required: true
+        default: 1.1.0
+        type: string
+      notas:
+        description: Resumo da atualização
+        required: false
+        default: Melhorias e correções do Sistema ADJACARÉ.
+        type: string
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -37,6 +51,15 @@ jobs:
       - name: Sincronizar Capacitor
         run: npx cap sync android
 
+      - name: Definir versão do aplicativo
+        env:
+          APP_VERSION: ${{ inputs.version }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          APP_VERSION_CODE=$((1000 + BUILD_NUMBER))
+          sed -i "s/versionCode [0-9]\\+/versionCode ${APP_VERSION_CODE}/" android/app/build.gradle
+          sed -i "s/versionName \"[^\"]*\"/versionName \"${APP_VERSION}\"/" android/app/build.gradle
+
       - name: Forçar Java 21 no Gradle
         run: echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
 
@@ -51,5 +74,20 @@ jobs:
       - name: Salvar APK Release
         uses: actions/upload-artifact@v4
         with:
-          name: ADJACARE-APK-RELEASE
+          name: Sistema-ADJACARE-${{ inputs.version }}
           path: android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Preparar APK para atualização
+        env:
+          APP_VERSION: ${{ inputs.version }}
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk \
+            "Sistema-ADJACARE-${APP_VERSION}.apk"
+
+      - name: Publicar atualização
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: Sistema ADJACARÉ v${{ inputs.version }}
+          body: ${{ inputs.notas }}
+          files: Sistema-ADJACARE-${{ inputs.version }}.apk

@@ -9,16 +9,15 @@ const supabase = createClient(
 );
 const WHATSAPP_API_VERSION = process.env.WHATSAPP_API_VERSION || "v25.0";
 const DRIVE_FOLDER_MIME = "application/vnd.google-apps.folder";
-const DEPARTAMENTOS_HINOS = [
-  ["circulo_oracao", "Círculo de Oração"],
-  ["jovens", "Jovens"],
-  ["adolescentes", "Adolescentes"],
-  ["criancas", "Crianças"],
-  ["varoes", "Varões"],
-  ["louvor", "Louvor"],
-  ["individual", "Individual"],
-  ["outro", "Outro"],
-];
+const DEPARTAMENTOS_HINOS_BLOQUEADOS = new Set([
+  "admin",
+  "administrador",
+  "dirig",
+  "dirigente",
+  "superintendente",
+  "sonoplastia",
+]);
+const DEPARTAMENTOS_POR_PAGINA = 8;
 
 async function salvarMensagem(telefone, direcao, mensagem) {
   await supabase.from("whatsapp_mensagens").insert({
@@ -437,17 +436,69 @@ async function enviarListaCultos(telefone) {
   return true;
 }
 
-async function enviarListaDepartamentos(telefone) {
+async function listarDepartamentosHinos() {
+  const { data, error } = await supabase
+    .from("users")
+    .select("role")
+    .not("role", "is", null);
+
+  if (error) throw error;
+
+  const departamentos = [...new Set(
+    (data || [])
+      .map((usuario) => textoSeguro(usuario.role, 80))
+      .filter(Boolean)
+      .filter((nome) => !DEPARTAMENTOS_HINOS_BLOQUEADOS.has(slugSeguro(nome)))
+  )].sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+  return [...departamentos, "Individual", "Outro"];
+}
+
+function montarPaginaDepartamentos(departamentos, pagina = 0) {
+  const inicio = pagina * DEPARTAMENTOS_POR_PAGINA;
+  const itens = departamentos
+    .slice(inicio, inicio + DEPARTAMENTOS_POR_PAGINA)
+    .map((nome) => ({
+      id: `som_dep_${slugSeguro(nome)}`,
+      title: nome.slice(0, 24),
+      tipo: "departamento",
+      departamento: nome,
+    }));
+
+  if (inicio + DEPARTAMENTOS_POR_PAGINA < departamentos.length) {
+    itens.push({
+      id: `som_dep_pagina_${pagina + 1}`,
+      title: "Mais opções",
+      description: "Ver outros departamentos",
+      tipo: "pagina",
+      pagina: pagina + 1,
+    });
+  }
+
+  if (pagina > 0) {
+    itens.push({
+      id: `som_dep_pagina_${pagina - 1}`,
+      title: "Página anterior",
+      description: "Voltar aos departamentos",
+      tipo: "pagina",
+      pagina: pagina - 1,
+    });
+  }
+
+  return itens;
+}
+
+async function enviarListaDepartamentos(telefone, pagina = 0) {
+  const departamentos = await listarDepartamentosHinos();
+  const opcoes = montarPaginaDepartamentos(departamentos, pagina);
+
   await enviarLista(telefone, {
     cabecalho: "Quem irá cantar?",
     corpo: "Selecione o departamento. Para cantor, dupla ou convidado, escolha Individual.",
     botao: "Selecionar",
     secoes: [{
-      titulo: "Departamento",
-      rows: DEPARTAMENTOS_HINOS.map(([id, nome]) => ({
-        id: `som_dep_${id}`,
-        title: nome,
-      })),
+      titulo: pagina === 0 ? "Departamentos" : "Mais opções",
+      rows: opcoes.map(({ id, title, description }) => ({ id, title, description })),
     }],
   });
 }
@@ -1093,6 +1144,7 @@ Digite:
             culto_id: culto.id,
             culto_titulo: culto.titulo,
             culto_data: culto.data_culto,
+            departamento_pagina: 0,
           },
         })
         .eq("telefone", telefone);
@@ -1101,11 +1153,36 @@ Digite:
     }
 
     if (sessao.etapa === "som_selecionando_departamento") {
-      const departamentoId = String(interacaoId || texto).replace(/^som_dep_/, "");
-      const departamento = DEPARTAMENTOS_HINOS.find(([id]) => id === departamentoId)?.[1];
+      const departamentos = await listarDepartamentosHinos();
+      const paginaAtual = Number(sessao.dados?.departamento_pagina || 0);
+      const opcoesPagina = montarPaginaDepartamentos(departamentos, paginaAtual);
+      const selecao = String(interacaoId || texto || "");
+      let opcaoSelecionada = null;
+
+      if (interacaoId) {
+        opcaoSelecionada = opcoesPagina.find((opcao) => opcao.id === interacaoId) || null;
+      } else if (/^\d+$/.test(selecao)) {
+        opcaoSelecionada = opcoesPagina[Number(selecao) - 1] || null;
+      }
+
+      if (opcaoSelecionada?.tipo === "pagina" || selecao.startsWith("som_dep_pagina_")) {
+        const pagina = opcaoSelecionada?.pagina ?? Number(selecao.replace("som_dep_pagina_", ""));
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({ dados: { ...sessao.dados, departamento_pagina: pagina } })
+          .eq("telefone", telefone);
+        await enviarListaDepartamentos(telefone, pagina);
+        return res.status(200).send("ok");
+      }
+
+      const departamentoId = selecao.replace(/^som_dep_/, "");
+      const departamento =
+        opcaoSelecionada?.departamento ||
+        departamentos.find((nome) => slugSeguro(nome) === departamentoId);
+
       if (!departamento) {
         await enviarMensagem(telefone, "Selecione uma das opções da lista.");
-        await enviarListaDepartamentos(telefone);
+        await enviarListaDepartamentos(telefone, paginaAtual);
         return res.status(200).send("ok");
       }
 

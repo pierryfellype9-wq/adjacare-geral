@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { Readable } from "node:stream";
 import { google } from "googleapis";
-import { enviarPush } from "./_push.js";
+import { enviarPush } from "../server/pushNotifications.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,

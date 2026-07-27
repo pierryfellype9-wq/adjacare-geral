@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js"
 import { Resend } from "resend"
-import { enviarPush } from "./_push.js"
+import { enviarPush } from "../server/pushNotifications.js"
+import { registrarPush } from "../server/pushRegister.js"
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -10,6 +11,10 @@ const supabase = createClient(
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export default async function handler(req, res) {
+  if (req.query?.acao === "push-register") {
+    return registrarPush(req, res)
+  }
+
   try {
     const {
       titulo,

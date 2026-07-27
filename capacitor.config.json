@@ -1,5 +1,10 @@
 {
   "appId": "br.org.adjacare.sistema",
   "appName": "Sistema Geral ADJACARÉ",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
+  }
 }

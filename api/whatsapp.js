@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { Readable } from "node:stream";
 import { google } from "googleapis";
+import { enviarPush } from "./_push.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -403,6 +404,22 @@ async function salvarHinoNoDrive({ telefone, midia, culto, departamento, nomeApr
     .select("protocolo,nome_drive,arquivo_drive_link")
     .single();
   if (error) throw error;
+
+  await enviarPush({
+    titulo: "🎵 Novo hino recebido",
+    mensagem: `${nomeApresentacao} • ${culto.titulo} • ${departamento}`,
+    roles: ["Administrador", "Mídia", "Sonoplastia"],
+    preferencia: "notificar_hinos",
+    dados: {
+      tipo: "hino",
+      protocolo: registro.protocolo,
+      culto_id: culto.id,
+      path: "/whatsapp?aba=hinos",
+    },
+  }).catch((erroPush) =>
+    console.error("Hino salvo, mas a notificação push falhou:", erroPush)
+  );
+
   return { duplicado: false, registro };
 }
 

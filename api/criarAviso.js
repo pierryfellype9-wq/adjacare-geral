@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import { Resend } from "resend"
+import { enviarPush } from "./_push.js"
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -19,7 +20,7 @@ export default async function handler(req, res) {
       expira_em
     } = req.body
 
-    await supabase
+    const { data: aviso, error: erroAviso } = await supabase
       .from("avisos")
       .insert({
         titulo,
@@ -29,6 +30,10 @@ export default async function handler(req, res) {
         urgente: !!urgente,
         expira_em: expira_em || null
       })
+      .select("id,titulo,mensagem,destino,fixado,urgente")
+      .single()
+
+    if (erroAviso) throw erroAviso
 
     const { data: usuarios } = await supabase
       .from("users")
@@ -60,6 +65,18 @@ export default async function handler(req, res) {
         `
       })
     }
+
+    await enviarPush({
+      titulo: urgente ? `🚨 Aviso urgente: ${titulo}` : `📢 Novo aviso: ${titulo}`,
+      mensagem,
+      destino,
+      preferencia: "notificar_avisos",
+      dados: {
+        tipo: "aviso",
+        aviso_id: aviso.id,
+        path: "/avisos",
+      },
+    }).catch((error) => console.error("Aviso salvo, mas o push falhou:", error))
 
     return res.status(200).json({ ok: true })
 

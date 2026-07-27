@@ -35,6 +35,10 @@ import {
   signInRolling,
   signOutRolling,
 } from "./lib/auth"
+import {
+  ativarPushNotifications,
+  desativarPushDesteUsuario,
+} from "./lib/pushNotifications"
 
 const TetelestaiApp = lazy(() => import("./tetelestai/TetelestaiApp"))
 
@@ -92,7 +96,27 @@ export default function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!user || user?.primeiro_acesso === true) return undefined
+
+    let limpar = () => {}
+    let ativo = true
+
+    ativarPushNotifications()
+      .then((cleanup) => {
+        if (ativo) limpar = cleanup
+        else cleanup()
+      })
+      .catch((error) => console.error("Notificações indisponíveis:", error))
+
+    return () => {
+      ativo = false
+      limpar()
+    }
+  }, [user?.id, user?.primeiro_acesso])
+
   async function logout() {
+    await desativarPushDesteUsuario()
     setUser(null)
     await signOutRolling()
   }

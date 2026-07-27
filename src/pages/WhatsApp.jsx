@@ -8,7 +8,12 @@ export default function WhatsApp({ user }) {
   const [telefoneSelecionado, setTelefoneSelecionado] = useState(null);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
-  const [aba, setAba] = useState("conversas");
+  const [aba, setAba] = useState(() => {
+    const solicitada = new URLSearchParams(window.location.search).get("aba");
+    return ["conversas", "hinos", "cultos"].includes(solicitada)
+      ? solicitada
+      : "conversas";
+  });
   const [cultos, setCultos] = useState([]);
   const [hinos, setHinos] = useState([]);
   const [buscaHinos, setBuscaHinos] = useState("");

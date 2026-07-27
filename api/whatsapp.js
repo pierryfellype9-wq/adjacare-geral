@@ -509,19 +509,19 @@ async function enviarMenuPrincipal(telefone) {
     corpo: "Olá! Escolha como podemos ajudar.",
     botao: "Abrir opções",
     secoes: [{ titulo: "Atendimento", rows: [
-      { id:"menu_ebd", title:"Senha da EBD", description:"Consultar acesso do aluno" },
-      { id:"menu_atendente", title:"Falar com atendente", description:"Atendimento humano" },
       { id:"menu_som", title:"Enviar hino/áudio/vídeo", description:"Som e Projeção" },
-      { id:"menu_restrito", title:"Líderes e professores", description:"Dirigentes • cadastro obrigatório" },
+      { id:"menu_ebd", title:"Senha da EBD", description:"Consultar acesso do aluno" },
+      { id:"menu_restrito", title:"Área de Liderança", description:"Líderes, dirigentes e professores" },
       { id:"menu_encerrar", title:"Encerrar atendimento", description:"Finalizar e parar o bot" },
+      { id:"menu_atendente", title:"Falar com atendente", description:"Atendimento humano" },
     ] }],
   });
 }
 
 async function enviarMenuAreaRestrita(telefone) {
   await enviarLista(telefone, {
-    cabecalho: "Área restrita",
-    corpo: "Acesso para líderes, dirigentes e professores cadastrados.",
+    cabecalho: "Área de Liderança",
+    corpo: "Acesso interno para líderes, dirigentes e professores cadastrados.",
     botao: "Abrir serviços",
     secoes: [{ titulo: "Serviços internos", rows: [
       { id:"area_pedido", title:"Pedido para Mídia", description:"Solicitar arte, divulgação ou mídia" },
@@ -540,11 +540,11 @@ Você está no atendimento da AD Jacaré.
 
 Digite uma opção:
 
-1️⃣ Consultar senha da EBD
-2️⃣ Falar com um atendente
-3️⃣ Enviar hino, áudio ou vídeo para Som/Projeção
-4️⃣ Área para líderes, dirigentes e professores cadastrados
-5️⃣ Encerrar atendimento`;
+1️⃣ Enviar hino, áudio ou vídeo para Som/Projeção
+2️⃣ Consultar senha da EBD
+3️⃣ Área de Liderança
+4️⃣ Encerrar atendimento
+5️⃣ Falar com um atendente`;
 }
 
 function ehSaudacao(texto = "") {
@@ -606,7 +606,7 @@ export default async function handler(req, res) {
     const telefone = mensagem.from;
     const interacaoId = mensagem.interactive?.list_reply?.id || mensagem.interactive?.button_reply?.id;
     const aliases = {
-      menu_ebd:"1", menu_atendente:"2", menu_som:"3", menu_restrito:"4", menu_encerrar:"5",
+      menu_som:"1", menu_ebd:"2", menu_restrito:"3", menu_encerrar:"4", menu_atendente:"5",
       som_confirmar:"1", som_corrigir:"2", som_cancelar:"3",
       som_outro_hino:"1", som_finalizar:"2", som_atendente:"som_atendente",
     };
@@ -774,7 +774,7 @@ export default async function handler(req, res) {
     }
 
     if (sessao.etapa === "menu") {
-      if (texto === "1") {
+      if (texto === "2") {
         await supabase
           .from("whatsapp_sessoes")
           .update({ etapa: "aguardando_nome_ebd", dados: {} })
@@ -788,12 +788,12 @@ Informe o nome completo do aluno:`
         return res.status(200).send("ok");
       }
 
-      if (texto === "2") {
+      if (texto === "5") {
         await ativarAtendimentoHumano(telefone, "Atendimento");
         return res.status(200).send("ok");
       }
 
-      if (texto === "3") {
+      if (texto === "1") {
         try {
           const temCultos = await enviarListaCultos(telefone);
           await supabase
@@ -810,7 +810,7 @@ Informe o nome completo do aluno:`
         return res.status(200).send("ok");
       }
 
-      if (texto === "4") {
+      if (texto === "3") {
         await supabase
           .from("whatsapp_sessoes")
           .update({
@@ -829,7 +829,7 @@ Informe o nome completo do aluno:`
         return res.status(200).send("ok");
       }
 
-      if (texto === "5") {
+      if (texto === "4") {
         await supabase
           .from("whatsapp_sessoes")
           .update({

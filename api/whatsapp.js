@@ -451,39 +451,71 @@ async function listarDepartamentosHinos() {
       .filter((nome) => !DEPARTAMENTOS_HINOS_BLOQUEADOS.has(slugSeguro(nome)))
   )].sort((a, b) => a.localeCompare(b, "pt-BR"));
 
-  return [...departamentos, "Individual", "Outro"];
+  return departamentos;
+}
+
+function encontrarDepartamento(departamentos, slug, nomePadrao) {
+  return departamentos.find((nome) => slugSeguro(nome) === slug) || nomePadrao;
+}
+
+function opcaoDepartamento(nome, title = nome, description) {
+  return {
+    id: `som_dep_${slugSeguro(nome)}`,
+    title: title.slice(0, 24),
+    description,
+    tipo: "departamento",
+    departamento: nome,
+  };
 }
 
 function montarPaginaDepartamentos(departamentos, pagina = 0) {
-  const inicio = pagina * DEPARTAMENTOS_POR_PAGINA;
-  const itens = departamentos
-    .slice(inicio, inicio + DEPARTAMENTOS_POR_PAGINA)
-    .map((nome) => ({
-      id: `som_dep_${slugSeguro(nome)}`,
-      title: nome.slice(0, 24),
-      tipo: "departamento",
-      departamento: nome,
-    }));
+  if (pagina === 0) {
+    const cofemp = encontrarDepartamento(departamentos, "cofemp", "Cofemp");
+    const infantil = encontrarDepartamento(departamentos, "infantil", "Infantil");
+    const midia = encontrarDepartamento(departamentos, "midia", "Mídia");
 
-  if (inicio + DEPARTAMENTOS_POR_PAGINA < departamentos.length) {
+    return [
+      opcaoDepartamento("Adolescentes e Jovens", "Adolesc. e Jovens"),
+      opcaoDepartamento(cofemp),
+      opcaoDepartamento(infantil),
+      opcaoDepartamento("Individual", "Individual (solo)"),
+      opcaoDepartamento(midia),
+      {
+        id: "som_dep_pagina_1",
+        title: "Outros departamentos",
+        description: "Ver os departamentos restantes",
+        tipo: "pagina",
+        pagina: 1,
+      },
+    ];
+  }
+
+  const principais = new Set(["adolescentes", "jovens", "cofemp", "infantil", "midia"]);
+  const restantes = departamentos
+    .filter((nome) => !principais.has(slugSeguro(nome)))
+    .concat("Outro");
+  const inicio = (pagina - 1) * DEPARTAMENTOS_POR_PAGINA;
+  const itens = restantes
+    .slice(inicio, inicio + DEPARTAMENTOS_POR_PAGINA)
+    .map((nome) => opcaoDepartamento(nome));
+
+  if (inicio + DEPARTAMENTOS_POR_PAGINA < restantes.length) {
     itens.push({
       id: `som_dep_pagina_${pagina + 1}`,
-      title: "Mais opções",
-      description: "Ver outros departamentos",
+      title: "Mais departamentos",
+      description: "Ver as próximas opções",
       tipo: "pagina",
       pagina: pagina + 1,
     });
   }
 
-  if (pagina > 0) {
-    itens.push({
-      id: `som_dep_pagina_${pagina - 1}`,
-      title: "Página anterior",
-      description: "Voltar aos departamentos",
-      tipo: "pagina",
-      pagina: pagina - 1,
-    });
-  }
+  itens.push({
+    id: `som_dep_pagina_${pagina > 1 ? pagina - 1 : 0}`,
+    title: pagina > 1 ? "Página anterior" : "Voltar aos principais",
+    description: "Voltar à lista anterior",
+    tipo: "pagina",
+    pagina: pagina > 1 ? pagina - 1 : 0,
+  });
 
   return itens;
 }
@@ -497,7 +529,7 @@ async function enviarListaDepartamentos(telefone, pagina = 0) {
     corpo: "Selecione o departamento. Para cantor, dupla ou convidado, escolha Individual.",
     botao: "Selecionar",
     secoes: [{
-      titulo: pagina === 0 ? "Departamentos" : "Mais opções",
+      titulo: pagina === 0 ? "Quem irá cantar?" : "Outros departamentos",
       rows: opcoes.map(({ id, title, description }) => ({ id, title, description })),
     }],
   });

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
+import "./EBDInternas.css"
 
 export default function EBDFinanceiro({ user }) {
   const navigate = useNavigate()
@@ -243,7 +244,7 @@ export default function EBDFinanceiro({ user }) {
 
   if (!temAcessoEBD) {
     return (
-      <div className="page">
+      <div className="page ebd-subpage">
         <button className="btn-voltar" onClick={() => navigate("/ebd")}>
           ← Voltar
         </button>
@@ -257,7 +258,7 @@ export default function EBDFinanceiro({ user }) {
   }
 
   return (
-    <div className="page">
+    <div className="page ebd-subpage ebd-subpage--financeiro">
       <button className="btn-voltar" onClick={() => navigate("/ebd")}>
         ← Voltar
       </button>

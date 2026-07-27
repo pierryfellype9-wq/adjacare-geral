@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { supabase } from "../lib/supabase"
+import "./Usuarios.css"
 
 export default function Usuarios({ user }) {
   const [usuarios, setUsuarios] = useState([])
@@ -16,6 +17,7 @@ export default function Usuarios({ user }) {
 
   const [editando, setEditando] = useState(false)
   const [usuarioId, setUsuarioId] = useState(null)
+  const [busca, setBusca] = useState("")
 
   function normalizarTexto(valor) {
     return (valor || "")
@@ -466,10 +468,19 @@ turmas_ebd: turmasEbdSelecionadas,
     return { background: "#f3f4f6", color: "#374151" }
   }
 
+  const usuariosFiltrados = usuarios.filter((usuario) => {
+    const termo = normalizarTexto(busca)
+    if (!termo) return true
+
+    return [usuario.nome, usuario.email, usuario.role]
+      .some((valor) => normalizarTexto(valor).includes(termo))
+  })
+
   return (
-    <div className="main">
-      <div className="card">
+    <main className="usuarios-page">
+      <div className="usuarios-conteudo">
         <div
+          className="usuarios-hero"
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -480,11 +491,12 @@ turmas_ebd: turmasEbdSelecionadas,
           }}
         >
           <div>
+            <span className="usuarios-kicker">PESSOAS E ACESSOS</span>
             <h2
               className="subtitle"
               style={{ margin: 0, fontSize: "28px", marginBottom: "6px" }}
             >
-              Usuários
+              Usuários do sistema
             </h2>
 
             <p style={{ margin: 0, color: "#6b7280", fontSize: "14px" }}>
@@ -495,6 +507,7 @@ turmas_ebd: turmasEbdSelecionadas,
           </div>
 
           <div
+            className={`usuarios-acesso ${isAdmin ? "admin" : ""}`}
             style={{
               background: isAdmin ? "#dcfce7" : "#f3f4f6",
               color: isAdmin ? "#166534" : "#374151",
@@ -510,6 +523,7 @@ turmas_ebd: turmasEbdSelecionadas,
 
         {isAdmin && (
           <div
+            className={`usuarios-formulario ${editando ? "editando" : ""}`}
             style={{
               background: editando ? "#eff6ff" : "#f8fafc",
               border: editando ? "1px solid #bfdbfe" : "1px solid #e5e7eb",
@@ -519,6 +533,8 @@ turmas_ebd: turmasEbdSelecionadas,
               boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
             }}
           >
+            <div className="usuarios-formulario__titulo">
+              <span>{editando ? "EDIÇÃO DE ACESSO" : "NOVO ACESSO"}</span>
             <h3
               style={{
                 marginTop: 0,
@@ -529,9 +545,12 @@ turmas_ebd: turmasEbdSelecionadas,
             >
               {editando ? "Editar usuário" : "Novo usuário"}
             </h3>
+              <p>Defina os dados, o departamento e as permissões desta pessoa.</p>
+            </div>
 
-            <form onSubmit={editando ? salvarEdicao : criarUsuario}>
+            <form className="usuarios-form" onSubmit={editando ? salvarEdicao : criarUsuario}>
               <div
+                className="usuarios-form__campos"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -602,6 +621,7 @@ turmas_ebd: turmasEbdSelecionadas,
 
               {role && (
                 <div
+                  className="usuarios-ebd"
                   style={{
                     marginTop: "18px",
                     background: "#ffffff",
@@ -611,6 +631,7 @@ turmas_ebd: turmasEbdSelecionadas,
                   }}
                 >
                   <div
+                    className="usuarios-ebd__cabecalho"
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
@@ -644,6 +665,7 @@ turmas_ebd: turmasEbdSelecionadas,
                     </div>
 
                     <div
+                      className="usuarios-ebd__acoes"
                       style={{
                         display: "flex",
                         gap: "8px",
@@ -685,6 +707,7 @@ turmas_ebd: turmasEbdSelecionadas,
                   </div>
 
                   <div
+                    className="usuarios-ebd__turmas"
                     style={{
                       display: "grid",
                       gridTemplateColumns:
@@ -699,6 +722,7 @@ turmas_ebd: turmasEbdSelecionadas,
 
                       return (
                         <label
+                          className={`usuarios-turma ${selecionada ? "selecionada" : ""}`}
                           key={turma.id}
                           style={{
                             display: "flex",
@@ -749,6 +773,7 @@ turmas_ebd: turmasEbdSelecionadas,
               )}
 
               <div
+                className="usuarios-form__acoes"
                 style={{
                   display: "flex",
                   gap: "10px",
@@ -788,6 +813,7 @@ turmas_ebd: turmasEbdSelecionadas,
         )}
 
         <div
+          className="usuarios-listagem"
           style={{
             background: "#ffffff",
             border: "1px solid #e5e7eb",
@@ -797,6 +823,7 @@ turmas_ebd: turmasEbdSelecionadas,
           }}
         >
           <div
+            className="usuarios-listagem__cabecalho"
             style={{
               padding: "18px 20px",
               borderBottom: "1px solid #e5e7eb",
@@ -807,26 +834,31 @@ turmas_ebd: turmasEbdSelecionadas,
               gap: "10px",
             }}
           >
-            <h3 style={{ margin: 0, fontSize: "18px", color: "#111827" }}>
-              Usuários cadastrados
-            </h3>
+            <div>
+              <span className="usuarios-kicker">DIRETÓRIO</span>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "#111827" }}>
+                Usuários cadastrados
+              </h3>
+            </div>
 
-            <span
-              style={{
-                background: "#eff6ff",
-                color: "#1d4ed8",
-                padding: "6px 10px",
-                borderRadius: "999px",
-                fontSize: "12px",
-                fontWeight: "700",
-              }}
-            >
-              {usuarios.length} usuário{usuarios.length !== 1 ? "s" : ""}
-            </span>
+            <div className="usuarios-listagem__filtros">
+              <label>
+                <span>⌕</span>
+                <input
+                  value={busca}
+                  onChange={(evento) => setBusca(evento.target.value)}
+                  placeholder="Buscar nome, e-mail ou departamento"
+                />
+              </label>
+              <b>
+                {usuariosFiltrados.length} usuário{usuariosFiltrados.length !== 1 ? "s" : ""}
+              </b>
+            </div>
           </div>
 
-          <div style={{ overflowX: "auto" }}>
+          <div className="usuarios-tabela-wrap" style={{ overflowX: "auto" }}>
             <table
+              className="usuarios-tabela"
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
@@ -849,7 +881,7 @@ turmas_ebd: turmasEbdSelecionadas,
               </thead>
 
               <tbody>
-                {usuarios.length === 0 && (
+                {usuariosFiltrados.length === 0 && (
                   <tr>
                     <td
                       colSpan={isAdmin ? 5 : 4}
@@ -859,26 +891,27 @@ turmas_ebd: turmasEbdSelecionadas,
                         color: "#6b7280",
                       }}
                     >
-                      Nenhum usuário cadastrado.
+                      {busca ? "Nenhum usuário encontrado." : "Nenhum usuário cadastrado."}
                     </td>
                   </tr>
                 )}
 
-                {usuarios.map((u, index) => {
+                {usuariosFiltrados.map((u, index) => {
                   const badge = corBadge(u.role)
                   const turmasUsuario = obterTurmasDoUsuario(u)
 
                   return (
                     <tr
+                      className="usuario-linha"
                       key={u.id}
                       style={{
                         background: index % 2 === 0 ? "#ffffff" : "#fafafa",
                       }}
                     >
-                      <td style={tdNomeStyle}>{u.nome}</td>
-                      <td style={tdStyle}>{u.email}</td>
+                      <td data-label="Nome" style={tdNomeStyle}>{u.nome}</td>
+                      <td data-label="E-mail" style={tdStyle}>{u.email}</td>
 
-                      <td style={tdStyle}>
+                      <td data-label="Departamento" style={tdStyle}>
                         <span
                           style={{
                             background: badge.background,
@@ -894,7 +927,7 @@ turmas_ebd: turmasEbdSelecionadas,
                         </span>
                       </td>
 
-                      <td style={tdStyle}>
+                      <td data-label="Turmas EBD" style={tdStyle}>
                         {turmasUsuario.length === 0 ? (
                           <span style={{ color: "#9ca3af" }}>
                             Não permitido
@@ -927,7 +960,7 @@ turmas_ebd: turmasEbdSelecionadas,
                       </td>
 
                       {isAdmin && (
-                        <td style={tdStyle}>
+                        <td data-label="Ações" style={tdStyle}>
                           <div style={{ display: "flex", gap: "8px" }}>
                             <button
                               onClick={() => iniciarEdicao(u)}
@@ -953,7 +986,7 @@ turmas_ebd: turmasEbdSelecionadas,
           </div>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
 

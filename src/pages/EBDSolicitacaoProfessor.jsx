@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { supabase } from "../lib/supabase"
+import "./EBDInternas.css"
 
 export default function EBDSolicitacaoProfessor({ user }) {
   const navigate = useNavigate()
@@ -289,7 +290,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
 
   if (carregando) {
     return (
-      <div className="main">
+      <div className="main ebd-subpage ebd-subpage--solicitacao">
         <div className="card">
           <p>Carregando solicitação...</p>
         </div>
@@ -298,7 +299,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
   }
 
   return (
-    <div className="main">
+    <div className="main ebd-subpage ebd-subpage--solicitacao">
       <div className="card">
         <button
           onClick={() => navigate("/ebd/solicitacoes-professores")}

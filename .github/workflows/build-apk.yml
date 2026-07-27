@@ -1,6 +1,11 @@
 name: Build Android APK
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/build-apk.yml
   workflow_dispatch:
     inputs:
       version:
@@ -16,6 +21,10 @@ on:
 
 permissions:
   contents: write
+
+env:
+  APP_VERSION: ${{ inputs.version || '1.1.0' }}
+  RELEASE_NOTES: ${{ inputs.notas || 'Notificações de novos hinos e avisos principais, além do novo atualizador do aplicativo.' }}
 
 jobs:
   build:
@@ -53,7 +62,6 @@ jobs:
 
       - name: Definir versão do aplicativo
         env:
-          APP_VERSION: ${{ inputs.version }}
           BUILD_NUMBER: ${{ github.run_number }}
         run: |
           APP_VERSION_CODE=$((1000 + BUILD_NUMBER))
@@ -74,12 +82,10 @@ jobs:
       - name: Salvar APK Release
         uses: actions/upload-artifact@v4
         with:
-          name: Sistema-ADJACARE-${{ inputs.version }}
+          name: Sistema-ADJACARE-${{ env.APP_VERSION }}
           path: android/app/build/outputs/apk/release/app-release.apk
 
       - name: Preparar APK para atualização
-        env:
-          APP_VERSION: ${{ inputs.version }}
         run: |
           cp android/app/build/outputs/apk/release/app-release.apk \
             "Sistema-ADJACARE-${APP_VERSION}.apk"
@@ -87,7 +93,7 @@ jobs:
       - name: Publicar atualização
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ inputs.version }}
-          name: Sistema ADJACARÉ v${{ inputs.version }}
-          body: ${{ inputs.notas }}
-          files: Sistema-ADJACARE-${{ inputs.version }}.apk
+          tag_name: v${{ env.APP_VERSION }}
+          name: Sistema ADJACARÉ v${{ env.APP_VERSION }}
+          body: ${{ env.RELEASE_NOTES }}
+          files: Sistema-ADJACARE-${{ env.APP_VERSION }}.apk

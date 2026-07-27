@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { jsPDF } from "jspdf"
 import { autoTable } from "jspdf-autotable"
 import { supabase } from "../lib/supabase"
+import "./EBDInternas.css"
 
 function moeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -188,7 +189,7 @@ export default function EBDRelatorioOfertas({ user }) {
 
   if (!temAcesso) {
     return (
-      <div className="page">
+      <div className="page ebd-subpage">
         <button className="btn-voltar" onClick={() => navigate("/ebd")}>
           ← Voltar
         </button>
@@ -201,7 +202,7 @@ export default function EBDRelatorioOfertas({ user }) {
   }
 
   return (
-    <div className="page">
+    <div className="page ebd-subpage ebd-subpage--relatorio-ofertas">
       <button className="btn-voltar" onClick={() => navigate("/ebd")}>
         ← Voltar
       </button>

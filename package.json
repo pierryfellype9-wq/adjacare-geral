@@ -20,6 +20,7 @@
     "@capacitor/push-notifications": "^8.0.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@supabase/supabase-js": "^2.99.0",
+    "@vercel/functions": "^3.7.6",
     "googleapis": "^140.0.0",
     "jspdf": "4.2.0",
     "jspdf-autotable": "^5.0.8",

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
 import EBDChamada from "./EBDChamada"
+import "./EBDInternas.css"
 
 function formatarMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -185,7 +186,7 @@ export default function EBDChamadaComOferta({ user }) {
 
   return (
     <>
-      <div className="page" style={{ paddingBottom: 0 }}>
+      <div className="page ebd-subpage ebd-subpage--oferta" style={{ paddingBottom: 0 }}>
         <div className="form-card" style={{ borderLeft: "5px solid #16a34a" }}>
           <h2 style={{ marginTop: 0 }}>💰 Oferta do dia</h2>
           <p style={{ color: "#64748b", marginTop: 0 }}>

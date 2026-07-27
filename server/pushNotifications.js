@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { getVercelOidcToken } from "@vercel/functions/oidc";
 import { google } from "googleapis";
 
 const supabase = createClient(
@@ -46,8 +47,16 @@ async function tokenAcessoFirebase(credentials) {
   return typeof token === "string" ? token : token?.token;
 }
 
-async function tokenAcessoFirebaseVercel() {
-  const oidcToken = process.env.VERCEL_OIDC_TOKEN;
+async function obterTokenOidcVercel() {
+  try {
+    return await getVercelOidcToken();
+  } catch (error) {
+    console.warn("Não foi possível obter o token OIDC da Vercel:", error);
+    return process.env.VERCEL_OIDC_TOKEN || null;
+  }
+}
+
+async function tokenAcessoFirebaseVercel(oidcToken) {
   if (!oidcToken) return null;
 
   const audience =
@@ -174,7 +183,8 @@ export async function enviarPush({
   preferencia,
 }) {
   const credentials = credenciaisFirebase();
-  const usaOidcVercel = Boolean(process.env.VERCEL_OIDC_TOKEN);
+  const oidcToken = await obterTokenOidcVercel();
+  const usaOidcVercel = Boolean(oidcToken);
   if (!usaOidcVercel && !credentials?.project_id) {
     console.warn(
       "Push não enviado: VERCEL_OIDC_TOKEN e FIREBASE_SERVICE_ACCOUNT não configurados."
@@ -200,7 +210,7 @@ export async function enviarPush({
   if (!tokens.length) return { enviados: 0, configurado: true };
 
   const accessToken = usaOidcVercel
-    ? await tokenAcessoFirebaseVercel()
+    ? await tokenAcessoFirebaseVercel(oidcToken)
     : await tokenAcessoFirebase(credentials);
   if (!accessToken) throw new Error("Não foi possível autenticar no Firebase.");
   const projectId = credentials?.project_id || FIREBASE_PROJECT_ID;

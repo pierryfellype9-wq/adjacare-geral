@@ -5,6 +5,408 @@ body {
   color: #0f172a;
 }
 
+/* =========================================================
+   EBD — CORREÇÃO FINAL DE HIERARQUIA E MOBILE
+   Mantida no fim do arquivo para superar os ajustes globais antigos.
+========================================================= */
+
+.page.ebd-subpage {
+  width: min(1240px, calc(100% - 40px)) !important;
+  max-width: 1240px !important;
+  margin: 30px auto 70px !important;
+  padding: 0 !important;
+}
+
+.page.ebd-subpage > h1,
+.page.ebd-subpage > .ebd-header h1 {
+  color: #ffffff !important;
+}
+
+.page.ebd-subpage > h1 {
+  margin: 0 0 20px !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(28px, 4vw, 39px) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.7px !important;
+}
+
+.page.ebd-subpage .form-card,
+.page.ebd-subpage .list-card {
+  border-radius: 19px !important;
+  padding: 23px !important;
+}
+
+.page.ebd-subpage h2 {
+  font-size: 19px !important;
+}
+
+.page.ebd-subpage button {
+  min-height: 0;
+}
+
+.page.ebd-subpage .btn-status {
+  min-height: 38px;
+  opacity: 1 !important;
+}
+
+.page.ebd-subpage .btn-status.presente {
+  color: #11704e !important;
+  background: #ddf5e9 !important;
+}
+
+.page.ebd-subpage .btn-status.atrasado {
+  color: #936000 !important;
+  background: #fff0cf !important;
+}
+
+.page.ebd-subpage .btn-status.falta {
+  color: #a92e36 !important;
+  background: #fbe2e4 !important;
+}
+
+.page.ebd-subpage .btn-status.presente.ativo {
+  color: #fff !important;
+  background: #14945f !important;
+}
+
+.page.ebd-subpage .btn-status.atrasado.ativo {
+  color: #fff !important;
+  background: #d68a00 !important;
+}
+
+.page.ebd-subpage .btn-status.falta.ativo {
+  color: #fff !important;
+  background: #d9363e !important;
+}
+
+.page.ebd-subpage .marcar-todos.presente {
+  color: #fff !important;
+  background: #147658 !important;
+}
+
+.page.ebd-subpage .marcar-todos.falta {
+  color: #fff !important;
+  background: #b83b44 !important;
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    min-height: 56px;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    gap: 7px !important;
+    padding: 8px 10px !important;
+  }
+
+  .topbar .menu-btn,
+  .topbar .logout-btn {
+    min-height: 38px !important;
+    border-radius: 11px !important;
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+  }
+
+  .topbar > div {
+    min-width: 0;
+    gap: 7px !important;
+  }
+
+  .topbar .user-box {
+    min-width: 0;
+    max-width: none;
+    overflow: hidden;
+    border-radius: 11px !important;
+    padding: 10px !important;
+    font-size: 10px !important;
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .page.ebd-subpage {
+    width: min(100% - 18px, 1240px) !important;
+    margin: 14px auto 45px !important;
+    padding: 0 !important;
+  }
+
+  .page.ebd-subpage > .btn-voltar {
+    min-height: 36px !important;
+    margin-bottom: 10px;
+    padding: 7px 11px !important;
+    border-radius: 9px !important;
+    font-size: 10px !important;
+  }
+
+  .page.ebd-subpage > h1,
+  .page.ebd-subpage > .ebd-header {
+    margin-bottom: 12px !important;
+    border-radius: 16px !important;
+    padding: 21px 18px !important;
+  }
+
+  .page.ebd-subpage > h1,
+  .page.ebd-subpage > .ebd-header h1 {
+    color: #fff !important;
+    font-size: 27px !important;
+    line-height: 1.08 !important;
+    letter-spacing: -0.5px !important;
+  }
+
+  .page.ebd-subpage > h1::before,
+  .page.ebd-subpage > .ebd-header::before {
+    margin-bottom: 6px;
+    font-size: 7px;
+  }
+
+  .page.ebd-subpage > .ebd-header p {
+    margin-top: 5px;
+    font-size: 10px !important;
+  }
+
+  .page.ebd-subpage .form-card,
+  .page.ebd-subpage .list-card {
+    margin: 10px 0 0 !important;
+    border-radius: 15px !important;
+    padding: 15px 13px !important;
+    box-shadow: 0 7px 20px rgba(15, 23, 42, 0.055) !important;
+  }
+
+  .page.ebd-subpage h2,
+  .page.ebd-subpage .form-title-row h2,
+  .page.ebd-subpage .list-header h2 {
+    font-size: 16px !important;
+    line-height: 1.2;
+  }
+
+  .page.ebd-subpage p,
+  .page.ebd-subpage label,
+  .page.ebd-subpage input,
+  .page.ebd-subpage select,
+  .page.ebd-subpage textarea,
+  .page.ebd-subpage button {
+    font-size: 11px !important;
+  }
+
+  .page.ebd-subpage input,
+  .page.ebd-subpage select,
+  .page.ebd-subpage textarea {
+    min-height: 40px !important;
+    border-radius: 9px !important;
+    padding: 9px 10px !important;
+  }
+
+  .page.ebd-subpage .form-grid-ebd input,
+  .page.ebd-subpage .form-grid-ebd select,
+  .page.ebd-subpage .form-grid-ebd textarea {
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+
+  .page.ebd-subpage .form-grid-ebd {
+    gap: 10px !important;
+  }
+
+  .page.ebd-subpage .form-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 7px !important;
+  }
+
+  .page.ebd-subpage .form-actions > input {
+    flex: 1 0 100%;
+    margin-bottom: 2px !important;
+  }
+
+  .page.ebd-subpage .form-actions button {
+    width: auto !important;
+    min-height: 38px !important;
+    flex: 1;
+    padding: 8px 10px !important;
+  }
+
+  /* Chamada compacta e legível */
+  .page.ebd-subpage .chamada-card {
+    padding: 12px 11px !important;
+  }
+
+  .page.ebd-subpage .chamada-topo {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 7px !important;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 10px;
+  }
+
+  .page.ebd-subpage .marcar-todos {
+    width: 100%;
+    min-height: 36px !important;
+    padding: 7px 8px !important;
+    border-radius: 9px !important;
+    font-size: 9px !important;
+    line-height: 1.2;
+  }
+
+  .page.ebd-subpage .chamada-item,
+  .page.ebd-subpage .chamada-nova {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    padding: 12px 2px !important;
+  }
+
+  .page.ebd-subpage .chamada-item > strong,
+  .page.ebd-subpage .chamada-nova > strong {
+    font-size: 11px !important;
+  }
+
+  .page.ebd-subpage .status-buttons {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .page.ebd-subpage .status-buttons .btn-status {
+    min-width: 0 !important;
+    min-height: 36px !important;
+    border-radius: 9px !important;
+    padding: 7px 4px !important;
+    font-size: 9px !important;
+    box-shadow: none;
+  }
+
+  .page.ebd-subpage .status-buttons .btn-status.ativo {
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.14);
+  }
+
+  /* Cartões de alunos menores */
+  .page.ebd-subpage .alunos-grid {
+    gap: 9px !important;
+  }
+
+  .page.ebd-subpage .aluno-card {
+    gap: 9px;
+    border-radius: 13px;
+    padding: 13px 12px;
+  }
+
+  .page.ebd-subpage .aluno-card h3 {
+    margin-bottom: 5px;
+    font-size: 13px !important;
+  }
+
+  .page.ebd-subpage .idade-circle {
+    width: 44px;
+    height: 44px;
+    font-size: 12px;
+  }
+
+  .page.ebd-subpage .aluno-info {
+    display: grid;
+    gap: 4px;
+    border-radius: 9px;
+    padding: 9px 10px;
+  }
+
+  .page.ebd-subpage .aluno-info p {
+    overflow-wrap: anywhere;
+    margin: 0 !important;
+    font-size: 9px !important;
+    line-height: 1.35;
+  }
+
+  .page.ebd-subpage--alunos .aluno-info p:nth-child(4),
+  .page.ebd-subpage--alunos .aluno-info p:nth-child(5) {
+    display: none;
+  }
+
+  .page.ebd-subpage .aluno-acoes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .page.ebd-subpage .aluno-acoes button {
+    width: 100%;
+    min-width: 0;
+    min-height: 36px !important;
+    padding: 7px 5px !important;
+    border-radius: 9px !important;
+    font-size: 8px !important;
+    line-height: 1.2;
+  }
+
+  /* Relatórios e ofertas com densidade correta */
+  .page.ebd-subpage .relatorio-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    margin-top: 12px;
+  }
+
+  .page.ebd-subpage .relatorio-card {
+    gap: 7px;
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .page.ebd-subpage .relatorio-card h3 {
+    margin-bottom: 5px;
+    font-size: 13px !important;
+  }
+
+  .page.ebd-subpage .relatorio-card p {
+    margin: 3px 0;
+    font-size: 9px !important;
+    line-height: 1.35;
+  }
+
+  .page.ebd-subpage .relatorio-card-top .frequencia {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    border-width: 4px;
+    padding: 0 !important;
+    font-size: 10px !important;
+  }
+
+  .page.ebd-subpage--relatorio-ofertas
+    > .relatorio-grid
+    > .relatorio-card
+    > .frequencia {
+    width: fit-content !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 38px !important;
+    border: 0;
+    border-radius: 9px !important;
+    padding: 8px 11px !important;
+    color: #173a70;
+    background: #eaf0f9;
+    font-size: 16px !important;
+  }
+
+  .page.ebd-subpage--relatorio-ofertas .list-card > h2 {
+    font-size: 15px !important;
+  }
+
+  /* Trimestres e lições */
+  .page.ebd-subpage--trimestres .list-card {
+    overflow: hidden;
+  }
+
+  .page.ebd-subpage--trimestres .list-card h2 {
+    font-size: 15px !important;
+  }
+
+  .page.ebd-subpage--trimestres .list-card h3 {
+    font-size: 12px !important;
+  }
+}
+
 /* LOGIN */
 
 .login-page {

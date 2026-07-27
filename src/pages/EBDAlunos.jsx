@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
 import jsPDF from "jspdf"
 import QRCode from "qrcode"
+import "./EBDInternas.css"
 
 export default function EBDAlunos({ user }) {
   const navigate = useNavigate()
@@ -477,7 +478,7 @@ export default function EBDAlunos({ user }) {
 
   if (!temAcessoEBD) {
     return (
-      <div className="page">
+      <div className="page ebd-subpage">
         <button className="btn-voltar" onClick={() => navigate("/ebd")}>
           ← Voltar
         </button>
@@ -491,7 +492,7 @@ export default function EBDAlunos({ user }) {
   }
 
   return (
-    <div className="page">
+    <div className="page ebd-subpage ebd-subpage--alunos">
       <button className="btn-voltar" onClick={() => navigate("/ebd")}>
         ← Voltar
       </button>

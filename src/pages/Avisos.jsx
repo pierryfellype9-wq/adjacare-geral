@@ -14,7 +14,15 @@ function formatarData(valor) {
   }).format(new Date(valor))
 }
 
-export default function Avisos() {
+function normalizarPerfil(valor = "") {
+  return valor
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+}
+
+export default function Avisos({ user }) {
   const [titulo, setTitulo] = useState("")
   const [mensagem, setMensagem] = useState("")
   const [destino, setDestino] = useState("Todos")
@@ -26,11 +34,14 @@ export default function Avisos() {
   const [avisoAberto, setAvisoAberto] = useState(null)
   const [formularioAberto, setFormularioAberto] = useState(false)
   const [salvando, setSalvando] = useState(false)
+  const podeEditar = ["administrador", "dirigente", "secretaria", "secretario"].includes(
+    normalizarPerfil(user?.role)
+  )
 
   useEffect(() => {
     carregarAvisos()
-    carregarMinisterios()
-  }, [])
+    if (podeEditar) carregarMinisterios()
+  }, [podeEditar])
 
   const resumo = useMemo(() => ({
     ativos: avisos.length,
@@ -72,7 +83,7 @@ export default function Avisos() {
 
   async function criarAviso(evento) {
     evento.preventDefault()
-    if (salvando) return
+    if (salvando || !podeEditar) return
 
     if (!titulo.trim() || !mensagem.trim()) {
       alert("Preencha título e mensagem")
@@ -82,9 +93,16 @@ export default function Avisos() {
     setSalvando(true)
 
     try {
+      const { data: sessao } = await supabase.auth.getSession()
+      const token = sessao.session?.access_token
+      if (!token) throw new Error("Sessão inválida")
+
       const resposta = await fetch("/api/criarAviso", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           titulo: titulo.trim(),
           mensagem: mensagem.trim(),
@@ -124,9 +142,19 @@ export default function Avisos() {
             Compartilhe orientações, lembretes e informações importantes com
             toda a igreja ou com um departamento específico.
           </p>
-          <button type="button" onClick={() => setFormularioAberto(true)}>
-            <span>＋</span> Publicar novo aviso
-          </button>
+          {podeEditar ? (
+            <button type="button" onClick={() => setFormularioAberto(true)}>
+              <span>＋</span> Publicar novo aviso
+            </button>
+          ) : (
+            <div className="avisos-hero__consulta">
+              <b>✓</b>
+              <span>
+                <strong>Mural para consulta</strong>
+                Acompanhe os comunicados destinados à sua equipe.
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="avisos-hero__sino" aria-hidden="true">
@@ -152,7 +180,7 @@ export default function Avisos() {
         </article>
       </section>
 
-      {formularioAberto && (
+      {podeEditar && formularioAberto && (
         <section className="avisos-formulario">
           <header>
             <div>

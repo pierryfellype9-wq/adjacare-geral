@@ -21,7 +21,7 @@ export default function WhatsApp({ user }) {
     titulo: "",
     data_culto: "",
     prazo_envio: "",
-    status: "aberto",
+    status: "aguardando",
     observacoes: "",
   });
 
@@ -51,8 +51,9 @@ export default function WhatsApp({ user }) {
       pronto: "Pronto",
       precisa_correcao: "Precisa de correção",
       cancelado: "Cancelado",
+      aguardando: "Aguardando liberação",
       aberto: "Aberto",
-      fechado: "Fechado",
+      fechado: "Recebimento encerrado",
     };
     return rotulos[status] || status || "—";
   }
@@ -339,7 +340,7 @@ export default function WhatsApp({ user }) {
       titulo: "",
       data_culto: "",
       prazo_envio: "",
-      status: "aberto",
+      status: "aguardando",
       observacoes: "",
     });
   }
@@ -350,7 +351,7 @@ export default function WhatsApp({ user }) {
       titulo: culto.titulo || "",
       data_culto: paraInputData(culto.data_culto),
       prazo_envio: paraInputData(culto.prazo_envio),
-      status: culto.status || "aberto",
+      status: culto.status || "aguardando",
       observacoes: culto.observacoes || "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -662,7 +663,7 @@ export default function WhatsApp({ user }) {
             <div>
               <small>CONFIGURAÇÃO DO BOT</small>
               <h2>{cultoEditando ? "Editar culto" : "Novo culto"}</h2>
-              <p>Somente cultos abertos e futuros aparecem na lista do WhatsApp.</p>
+              <p>Cultos aguardando liberação não aparecem no WhatsApp. Libere o recebimento no início da semana.</p>
             </div>
             <label>
               Nome do culto
@@ -698,8 +699,9 @@ export default function WhatsApp({ user }) {
                 value={formCulto.status}
                 onChange={(e) => setFormCulto({ ...formCulto, status: e.target.value })}
               >
+                <option value="aguardando">Aguardando liberação</option>
                 <option value="aberto">Aberto para receber hinos</option>
-                <option value="fechado">Fechado</option>
+                <option value="fechado">Recebimento encerrado</option>
                 <option value="cancelado">Cancelado</option>
               </select>
             </label>
@@ -737,10 +739,17 @@ export default function WhatsApp({ user }) {
                 </div>
                 <div className="whatsapp-culto-acoes">
                   <button onClick={() => editarCulto(culto)}>Editar</button>
-                  {culto.status === "aberto" ? (
-                    <button className="fechar" onClick={() => alterarStatusCulto(culto, "fechado")}>Fechar recebimento</button>
-                  ) : (
-                    <button onClick={() => alterarStatusCulto(culto, "aberto")}>Reabrir</button>
+                  {culto.status === "aguardando" && (
+                    <button onClick={() => alterarStatusCulto(culto, "aberto")}>Liberar recebimento</button>
+                  )}
+                  {culto.status === "aberto" && (
+                    <button className="fechar" onClick={() => alterarStatusCulto(culto, "fechado")}>Encerrar recebimento</button>
+                  )}
+                  {culto.status === "fechado" && (
+                    <button onClick={() => alterarStatusCulto(culto, "aberto")}>Reabrir recebimento</button>
+                  )}
+                  {culto.status === "cancelado" && (
+                    <button onClick={() => alterarStatusCulto(culto, "aguardando")}>Restaurar como aguardando</button>
                   )}
                   {culto.pasta_drive_link && (
                     <a href={culto.pasta_drive_link} target="_blank" rel="noreferrer">Abrir pasta no Drive</a>

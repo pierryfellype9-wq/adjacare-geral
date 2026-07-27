@@ -1,366 +1,314 @@
-import { useState, useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
+import "./Avisos.css"
+
+function formatarData(valor) {
+  if (!valor) return "Publicado recentemente"
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(valor))
+}
 
 export default function Avisos() {
-
-const [titulo,setTitulo] = useState("")
-const [mensagem,setMensagem] = useState("")
-const [destino,setDestino] = useState("Todos")
-
-const [fixado,setFixado] = useState(false)
-const [urgente,setUrgente] = useState(false)
-const [expira,setExpira] = useState("")
-
-const [avisos,setAvisos] = useState([])
-const [ministerios,setMinisterios] = useState([])
-const [avisoAberto,setAvisoAberto] = useState(null)
-
-useEffect(() => {
-carregarAvisos()
-carregarMinisterios()
-}, [])
-
-async function carregarAvisos(){
-
-const { data, error } = await supabase
-.from("avisos")
-.select("*")
-.order("fixado",{ascending:false})
-.order("data",{ascending:false})
-
-if(error){
-console.log("Erro avisos:", error)
-return
-}
-
-const agora = new Date()
-
-const filtrados = (data || []).filter(a=>{
-if(!a.expira_em) return true
-return new Date(a.expira_em) > agora
-})
-
-setAvisos(filtrados)
-
-}
-
-async function carregarMinisterios(){
-
-const { data, error } = await supabase
-.from("users")
-.select("role")
-
-if(error){
-console.log("Erro ministérios:", error)
-return
-}
-
-const lista = [...new Set(
-(data || []).map(u => u.role).filter(Boolean)
-)]
-
-setMinisterios(lista)
-
-}
-
-async function criarAviso(e){
-
-e.preventDefault()
-
-if(!titulo.trim() || !mensagem.trim()){
-alert("Preencha título e mensagem")
-return
-}
-
-await fetch("/api/criarAviso",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-titulo,
-mensagem,
-destino,
-fixado,
-urgente,
-expira_em: expira || null
-})
-})
-
-setTitulo("")
-setMensagem("")
-setDestino("Todos")
-setFixado(false)
-setUrgente(false)
-setExpira("")
-
-await carregarAvisos()
-
-alert("Aviso enviado")
-
-}
-
-return(
-
-<main className="main">
-
-<h1 style={{marginBottom:"10px"}}>
-Avisos da Igreja
-</h1>
-
-<p style={{marginBottom:"25px",color:"#6b7280"}}>
-Aqui você pode publicar comunicados importantes para os ministérios da igreja.
-</p>
-
-<div className="card" style={{marginBottom:"35px"}}>
-
-<h2 style={{marginBottom:"15px"}}>
-Novo Aviso
-</h2>
-
-<form onSubmit={criarAviso} style={{display:"grid",gap:"12px"}}>
-
-<input
-placeholder="Título do aviso"
-value={titulo}
-onChange={e=>setTitulo(e.target.value)}
-/>
-
-<textarea
-placeholder="Mensagem do aviso"
-value={mensagem}
-onChange={e=>setMensagem(e.target.value)}
-style={{minHeight:"100px"}}
-/>
-
-<select
-value={destino}
-onChange={e=>setDestino(e.target.value)}
->
-
-<option value="Todos">Todos os ministérios</option>
-
-{ministerios.map(m => (
-<option key={m} value={m}>
-{m}
-</option>
-))}
-
-</select>
-
-<div style={{
-background:"#f9fafb",
-padding:"15px",
-borderRadius:"10px",
-border:"1px solid #e5e7eb"
-}}>
-
-<strong style={{display:"block",marginBottom:"10px"}}>
-Opções do aviso
-</strong>
-
-<label style={{display:"block",marginBottom:"6px"}}>
-<input
-type="checkbox"
-checked={fixado}
-onChange={e=>setFixado(e.target.checked)}
-/>
- Fixar aviso no topo
-</label>
-
-<label style={{display:"block"}}>
-<input
-type="checkbox"
-checked={urgente}
-onChange={e=>setUrgente(e.target.checked)}
-/>
- Marcar como aviso urgente
-</label>
-
-</div>
-
-<div>
-
-<label style={{fontWeight:"600"}}>
-Data de expiração do aviso
-</label>
-
-<p style={{
-fontSize:"13px",
-color:"#6b7280",
-marginBottom:"6px"
-}}>
-Defina uma data para que o aviso seja removido automaticamente após esse período.
-</p>
-
-<input
-type="datetime-local"
-value={expira}
-onChange={e=>setExpira(e.target.value)}
-/>
-
-</div>
-
-<button className="login-btn" style={{marginTop:"10px"}}>
-Publicar aviso
-</button>
-
-</form>
-
-</div>
-
-<h2 style={{marginBottom:"15px"}}>
-Avisos publicados
-</h2>
-
-<div style={{display:"grid",gap:"16px"}}>
-
-{avisos.length === 0 && (
-<div className="card">
-Nenhum aviso publicado no momento.
-</div>
-)}
-
-{avisos.map(a => (
-
-<div
-key={a.id}
-className="card"
-onClick={()=>setAvisoAberto(a)}
-style={{cursor:"pointer"}}
->
-
-<div style={{display:"flex",gap:"8px",marginBottom:"8px"}}>
-
-{a.fixado && (
-<span style={{
-background:"#2563eb",
-color:"white",
-padding:"4px 8px",
-borderRadius:"6px",
-fontSize:"12px"
-}}>
-📌 Fixado
-</span>
-)}
-
-{a.urgente && (
-<span style={{
-background:"#ef4444",
-color:"white",
-padding:"4px 8px",
-borderRadius:"6px",
-fontSize:"12px"
-}}>
-🔴 Urgente
-</span>
-)}
-
-</div>
-
-<h3 style={{marginBottom:"5px"}}>
-{a.titulo}
-</h3>
-
-<p style={{marginBottom:"8px",whiteSpace:"pre-line"}}>
-{a.mensagem}
-</p>
-
-<small style={{color:"#6b7280"}}>
-Destino: {a.destino}
-</small>
-
-</div>
-
-))}
-
-</div>
-
-{avisoAberto && (
-
-<div
-style={{
-position:"fixed",
-top:0,
-left:0,
-width:"100%",
-height:"100%",
-background:"rgba(0,0,0,0.5)",
-display:"flex",
-justifyContent:"center",
-alignItems:"center",
-zIndex:2000
-}}
-onClick={()=>setAvisoAberto(null)}
->
-
-<div
-style={{
-background:"white",
-padding:"30px",
-borderRadius:"12px",
-width:"600px",
-maxWidth:"90%"
-}}
-onClick={(e)=>e.stopPropagation()}
->
-
-<div style={{display:"flex",gap:"8px",marginBottom:"10px"}}>
-
-{avisoAberto.fixado && (
-<span style={{
-background:"#2563eb",
-color:"white",
-padding:"4px 10px",
-borderRadius:"6px",
-fontSize:"12px"
-}}>
-📌 Fixado
-</span>
-)}
-
-{avisoAberto.urgente && (
-<span style={{
-background:"#ef4444",
-color:"white",
-padding:"4px 10px",
-borderRadius:"6px",
-fontSize:"12px"
-}}>
-🔴 Urgente
-</span>
-)}
-
-</div>
-
-<h2 style={{marginBottom:"10px"}}>
-{avisoAberto.titulo}
-</h2>
-
-<p style={{marginBottom:"15px",whiteSpace:"pre-line"}}>
-{avisoAberto.mensagem}
-</p>
-
-<p style={{color:"#6b7280"}}>
-Destino: {avisoAberto.destino}
-</p>
-
-<button
-className="login-btn"
-style={{marginTop:"20px",width:"auto"}}
-onClick={()=>setAvisoAberto(null)}
->
-Fechar
-</button>
-
-</div>
-
-</div>
-
-)}
-
-</main>
-
-)
-
+  const [titulo, setTitulo] = useState("")
+  const [mensagem, setMensagem] = useState("")
+  const [destino, setDestino] = useState("Todos")
+  const [fixado, setFixado] = useState(false)
+  const [urgente, setUrgente] = useState(false)
+  const [expira, setExpira] = useState("")
+  const [avisos, setAvisos] = useState([])
+  const [ministerios, setMinisterios] = useState([])
+  const [avisoAberto, setAvisoAberto] = useState(null)
+  const [formularioAberto, setFormularioAberto] = useState(false)
+  const [salvando, setSalvando] = useState(false)
+
+  useEffect(() => {
+    carregarAvisos()
+    carregarMinisterios()
+  }, [])
+
+  const resumo = useMemo(() => ({
+    ativos: avisos.length,
+    urgentes: avisos.filter((aviso) => aviso.urgente).length,
+    fixados: avisos.filter((aviso) => aviso.fixado).length,
+  }), [avisos])
+
+  async function carregarAvisos() {
+    const { data, error } = await supabase
+      .from("avisos")
+      .select("*")
+      .order("fixado", { ascending: false })
+      .order("data", { ascending: false })
+
+    if (error) {
+      console.error("Erro avisos:", error)
+      return
+    }
+
+    const agora = new Date()
+    const filtrados = (data || []).filter((aviso) => (
+      !aviso.expira_em || new Date(aviso.expira_em) > agora
+    ))
+    setAvisos(filtrados)
+  }
+
+  async function carregarMinisterios() {
+    const { data, error } = await supabase.from("users").select("role")
+
+    if (error) {
+      console.error("Erro ministérios:", error)
+      return
+    }
+
+    const lista = [...new Set((data || []).map((usuario) => usuario.role).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    setMinisterios(lista)
+  }
+
+  async function criarAviso(evento) {
+    evento.preventDefault()
+    if (salvando) return
+
+    if (!titulo.trim() || !mensagem.trim()) {
+      alert("Preencha título e mensagem")
+      return
+    }
+
+    setSalvando(true)
+
+    try {
+      const resposta = await fetch("/api/criarAviso", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          titulo: titulo.trim(),
+          mensagem: mensagem.trim(),
+          destino,
+          fixado,
+          urgente,
+          expira_em: expira || null,
+        }),
+      })
+
+      if (!resposta.ok) throw new Error("Erro ao publicar aviso")
+
+      setTitulo("")
+      setMensagem("")
+      setDestino("Todos")
+      setFixado(false)
+      setUrgente(false)
+      setExpira("")
+      setFormularioAberto(false)
+      await carregarAvisos()
+      alert("Aviso enviado")
+    } catch (error) {
+      console.error(error)
+      alert("Não foi possível publicar o aviso.")
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  return (
+    <main className="avisos-page">
+      <section className="avisos-hero">
+        <div className="avisos-hero__conteudo">
+          <span className="avisos-kicker">MURAL DA IGREJA</span>
+          <h1>Avisos e comunicados</h1>
+          <p>
+            Compartilhe orientações, lembretes e informações importantes com
+            toda a igreja ou com um departamento específico.
+          </p>
+          <button type="button" onClick={() => setFormularioAberto(true)}>
+            <span>＋</span> Publicar novo aviso
+          </button>
+        </div>
+
+        <div className="avisos-hero__sino" aria-hidden="true">
+          <span>●</span>
+          <b>♢</b>
+        </div>
+        <i className="avisos-hero__circulo um" />
+        <i className="avisos-hero__circulo dois" />
+      </section>
+
+      <section className="avisos-resumo">
+        <article>
+          <span className="azul">▤</span>
+          <div><small>Comunicados ativos</small><strong>{resumo.ativos}</strong></div>
+        </article>
+        <article>
+          <span className="vermelho">!</span>
+          <div><small>Precisam de atenção</small><strong>{resumo.urgentes}</strong></div>
+        </article>
+        <article>
+          <span className="dourado">◆</span>
+          <div><small>Fixados no mural</small><strong>{resumo.fixados}</strong></div>
+        </article>
+      </section>
+
+      {formularioAberto && (
+        <section className="avisos-formulario">
+          <header>
+            <div>
+              <span>NOVO COMUNICADO</span>
+              <h2>O que todos precisam saber?</h2>
+              <p>Escreva de forma clara e escolha quem deve receber este aviso.</p>
+            </div>
+            <button type="button" aria-label="Fechar" onClick={() => setFormularioAberto(false)}>
+              ×
+            </button>
+          </header>
+
+          <form onSubmit={criarAviso}>
+            <label className="avisos-campo avisos-campo--largo">
+              <span>Título do aviso</span>
+              <input
+                placeholder="Ex.: Reunião com todos os líderes"
+                value={titulo}
+                onChange={(evento) => setTitulo(evento.target.value)}
+                required
+              />
+            </label>
+
+            <label className="avisos-campo avisos-campo--largo">
+              <span>Mensagem</span>
+              <textarea
+                placeholder="Digite aqui todas as informações do comunicado..."
+                value={mensagem}
+                onChange={(evento) => setMensagem(evento.target.value)}
+                required
+              />
+            </label>
+
+            <label className="avisos-campo">
+              <span>Quem deve receber?</span>
+              <select value={destino} onChange={(evento) => setDestino(evento.target.value)}>
+                <option value="Todos">Todos os departamentos</option>
+                {ministerios.map((ministerio) => (
+                  <option key={ministerio} value={ministerio}>{ministerio}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="avisos-campo">
+              <span>Expiração do aviso</span>
+              <input
+                type="datetime-local"
+                value={expira}
+                onChange={(evento) => setExpira(evento.target.value)}
+              />
+              <small>Deixe vazio para manter o aviso ativo.</small>
+            </label>
+
+            <div className="avisos-opcoes avisos-campo--largo">
+              <button
+                type="button"
+                className={fixado ? "ativo fixado" : ""}
+                onClick={() => setFixado(!fixado)}
+              >
+                <span>◆</span>
+                <div><strong>Fixar no topo</strong><small>Deixa o aviso em destaque</small></div>
+                <i>{fixado ? "✓" : ""}</i>
+              </button>
+              <button
+                type="button"
+                className={urgente ? "ativo urgente" : ""}
+                onClick={() => setUrgente(!urgente)}
+              >
+                <span>!</span>
+                <div><strong>Marcar como urgente</strong><small>Indica atenção imediata</small></div>
+                <i>{urgente ? "✓" : ""}</i>
+              </button>
+            </div>
+
+            <footer className="avisos-campo--largo">
+              <button type="button" className="secundario" onClick={() => setFormularioAberto(false)}>
+                Cancelar
+              </button>
+              <button type="submit" disabled={salvando}>
+                {salvando ? "Publicando..." : "Publicar comunicado"} <span>→</span>
+              </button>
+            </footer>
+          </form>
+        </section>
+      )}
+
+      <section className="avisos-mural">
+        <header>
+          <div>
+            <span>COMUNICADOS ATIVOS</span>
+            <h2>O que está acontecendo</h2>
+            <p>Clique em um aviso para abrir e ler todos os detalhes.</p>
+          </div>
+          <b>{avisos.length} {avisos.length === 1 ? "aviso" : "avisos"}</b>
+        </header>
+
+        <div className="avisos-lista">
+          {avisos.length === 0 && (
+            <div className="avisos-vazio">
+              <span>✓</span>
+              <h3>Nenhum aviso ativo</h3>
+              <p>Quando um novo comunicado for publicado, ele aparecerá aqui.</p>
+            </div>
+          )}
+
+          {avisos.map((aviso) => (
+            <article
+              key={aviso.id}
+              className={[
+                aviso.urgente ? "urgente" : "",
+                aviso.fixado ? "fixado" : "",
+              ].join(" ")}
+              onClick={() => setAvisoAberto(aviso)}
+            >
+              <div className="aviso-card__faixa" />
+              <div className="aviso-card__topo">
+                <div className="aviso-card__etiquetas">
+                  {aviso.urgente && <span className="urgente">! URGENTE</span>}
+                  {aviso.fixado && <span className="fixado">◆ FIXADO</span>}
+                  {!aviso.urgente && !aviso.fixado && <span className="comunicado">COMUNICADO</span>}
+                </div>
+                <span className="aviso-card__seta">↗</span>
+              </div>
+              <h3>{aviso.titulo}</h3>
+              <p>{aviso.mensagem}</p>
+              <footer>
+                <span><b>◎</b> {aviso.destino || "Todos"}</span>
+                <time>{formatarData(aviso.data)}</time>
+              </footer>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {avisoAberto && (
+        <div className="aviso-modal" onClick={() => setAvisoAberto(null)}>
+          <article onClick={(evento) => evento.stopPropagation()}>
+            <button type="button" aria-label="Fechar aviso" onClick={() => setAvisoAberto(null)}>
+              ×
+            </button>
+            <div className={`aviso-modal__icone ${avisoAberto.urgente ? "urgente" : ""}`}>
+              {avisoAberto.urgente ? "!" : "◆"}
+            </div>
+            <div className="aviso-card__etiquetas">
+              {avisoAberto.urgente && <span className="urgente">! URGENTE</span>}
+              {avisoAberto.fixado && <span className="fixado">◆ FIXADO</span>}
+            </div>
+            <h2>{avisoAberto.titulo}</h2>
+            <p>{avisoAberto.mensagem}</p>
+            <footer>
+              <span>Destinado a <strong>{avisoAberto.destino || "Todos"}</strong></span>
+              <time>{formatarData(avisoAberto.data)}</time>
+            </footer>
+          </article>
+        </div>
+      )}
+    </main>
+  )
 }

@@ -420,6 +420,7 @@
   color: #08745e;
 }
 
+.status.aguardando,
 .status.em_preparacao {
   background: #fff1c7;
   color: #8a5a00;

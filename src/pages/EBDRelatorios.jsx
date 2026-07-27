@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
 import { jsPDF } from "jspdf"
 import { autoTable } from "jspdf-autotable"
+import "./EBDInternas.css"
 
 export default function EBDRelatorios({ user }) {
   const navigate = useNavigate()
@@ -223,7 +224,7 @@ export default function EBDRelatorios({ user }) {
 
   if (!temAcessoEBD) {
     return (
-      <div className="page">
+      <div className="page ebd-subpage">
         <button className="btn-voltar" onClick={() => navigate("/ebd")}>
           ← Voltar
         </button>
@@ -237,7 +238,7 @@ export default function EBDRelatorios({ user }) {
   }
 
   return (
-    <div className="page">
+    <div className="page ebd-subpage ebd-subpage--relatorios">
       <button className="btn-voltar" onClick={() => navigate("/ebd")}>
         ← Voltar
       </button>

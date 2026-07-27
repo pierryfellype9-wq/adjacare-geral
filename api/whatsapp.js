@@ -463,6 +463,7 @@ async function enviarMenuPrincipal(telefone) {
       { id:"menu_atendente", title:"Falar com atendente", description:"Atendimento humano" },
       { id:"menu_som", title:"Som e Projeção", description:"Enviar hino, áudio ou vídeo" },
       { id:"menu_outros", title:"Outras opções", description:"Mídia, Secretaria ou Suporte" },
+      { id:"menu_encerrar", title:"Encerrar atendimento", description:"Finalizar e parar o bot" },
     ] }],
   });
 }
@@ -483,7 +484,8 @@ Digite uma opção:
 2️⃣ Consultar senha da EBD
 3️⃣ Falar com um atendente
 4️⃣ Enviar hino, áudio ou vídeo para Som/Projeção
-5️⃣ Outras opções`;
+5️⃣ Outras opções
+6️⃣ Encerrar atendimento`;
 }
 
 function menuOutrasOpcoes() {
@@ -554,7 +556,7 @@ export default async function handler(req, res) {
     const telefone = mensagem.from;
     const interacaoId = mensagem.interactive?.list_reply?.id || mensagem.interactive?.button_reply?.id;
     const aliases = {
-      menu_midia:"1", menu_ebd:"2", menu_atendente:"3", menu_som:"4", menu_outros:"5",
+      menu_midia:"1", menu_ebd:"2", menu_atendente:"3", menu_som:"4", menu_outros:"5", menu_encerrar:"6",
       outros_midia:"1", outros_secretaria:"2", outros_suporte:"3", outros_menu:"4",
       som_confirmar:"1", som_corrigir:"2", som_cancelar:"3",
       som_outro_hino:"1", som_finalizar:"2", som_atendente:"som_atendente",
@@ -607,6 +609,25 @@ export default async function handler(req, res) {
       return res.status(200).send("Atendimento humano ativo");
     }
 
+    if (sessao.etapa === "encerrado") {
+      if (texto && (texto.toLowerCase() === "menu" || ehSaudacao(texto))) {
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "menu",
+            autenticado: false,
+            usuario_id: null,
+            usuario_nome: null,
+            usuario_email: null,
+            atendimento_humano: false,
+            dados: {},
+          })
+          .eq("telefone", telefone);
+        await enviarMenuPrincipal(telefone);
+      }
+      return res.status(200).send("Atendimento encerrado");
+    }
+
     if (midiaRecebida && sessao.etapa === "som_aguardando_arquivo") {
       try {
         const dados = sessao.dados || {};
@@ -616,6 +637,11 @@ export default async function handler(req, res) {
           .eq("id", dados.culto_id)
           .single();
         if (erroCulto || !culto) throw new Error("O culto selecionado não foi encontrado.");
+
+        await enviarMensagem(
+          telefone,
+          "⏳ Recebi o arquivo. Agora estou ajustando o nome e salvando na pasta correta do Google Drive. Aguarde um momento..."
+        );
 
         const resultado = await salvarHinoNoDrive({
           telefone,
@@ -759,6 +785,26 @@ Informe o nome completo do aluno:`
           await ativarAtendimentoHumano(telefone, "Som/Projeção");
         }
 
+        return res.status(200).send("ok");
+      }
+
+      if (texto === "6") {
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "encerrado",
+            autenticado: false,
+            usuario_id: null,
+            usuario_nome: null,
+            usuario_email: null,
+            atendimento_humano: false,
+            dados: {},
+          })
+          .eq("telefone", telefone);
+        await enviarMensagem(
+          telefone,
+          "✅ Atendimento encerrado. O bot permanecerá parado. Para iniciar uma nova conversa, envie *oi* ou *menu*."
+        );
         return res.status(200).send("ok");
       }
 
@@ -1127,9 +1173,26 @@ Digite:
         await enviarMensagem(telefone, "Pode enviar o próximo arquivo para o mesmo culto e participante.");
         return res.status(200).send("ok");
       }
-      await supabase.from("whatsapp_sessoes").update({ etapa: "menu", dados: {} }).eq("telefone", telefone);
-      await enviarMensagem(telefone, "✅ Envio finalizado. Obrigado por encaminhar o material com antecedência.");
-      await enviarMenuPrincipal(telefone);
+      if (texto === "2") {
+        await supabase
+          .from("whatsapp_sessoes")
+          .update({
+            etapa: "encerrado",
+            autenticado: false,
+            usuario_id: null,
+            usuario_nome: null,
+            usuario_email: null,
+            atendimento_humano: false,
+            dados: {},
+          })
+          .eq("telefone", telefone);
+        await enviarMensagem(
+          telefone,
+          "✅ Envio finalizado. Obrigado por encaminhar o material com antecedência. O atendimento foi encerrado."
+        );
+        return res.status(200).send("ok");
+      }
+      await enviarMensagem(telefone, "Escolha *Enviar outro hino* ou *Finalizar*.");
       return res.status(200).send("ok");
     }
 

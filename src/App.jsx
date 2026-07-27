@@ -39,6 +39,10 @@ import {
   ativarPushNotifications,
   desativarPushDesteUsuario,
 } from "./lib/pushNotifications"
+import {
+  baixarAtualizacaoDoApp,
+  verificarAtualizacaoDoApp,
+} from "./lib/appUpdater"
 
 const TetelestaiApp = lazy(() => import("./tetelestai/TetelestaiApp"))
 
@@ -58,6 +62,8 @@ export default function App() {
   const [user, setUser] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [loginLoading, setLoginLoading] = useState(false)
+  const [atualizacao, setAtualizacao] = useState(null)
+  const [baixandoAtualizacao, setBaixandoAtualizacao] = useState(false)
 
   async function login(e) {
     e.preventDefault()
@@ -97,6 +103,14 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    verificarAtualizacaoDoApp()
+      .then(setAtualizacao)
+      .catch((error) =>
+        console.error("Não foi possível verificar atualizações:", error)
+      )
+  }, [])
+
+  useEffect(() => {
     if (!user || user?.primeiro_acesso === true) return undefined
 
     let limpar = () => {}
@@ -121,6 +135,23 @@ export default function App() {
     await signOutRolling()
   }
 
+  async function atualizarAplicativo() {
+    if (!atualizacao?.url || baixandoAtualizacao) return
+
+    setBaixandoAtualizacao(true)
+    try {
+      await baixarAtualizacaoDoApp(atualizacao.url)
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível abrir a atualização."
+      )
+    } finally {
+      setBaixandoAtualizacao(false)
+    }
+  }
+
   const primeiroAcesso = user?.primeiro_acesso === true
 
   const podeVerEscala =
@@ -138,7 +169,90 @@ export default function App() {
     user?.role === "Dirigente"
 
   return (
-    <Routes>
+    <>
+      {atualizacao && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Atualização disponível"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 10000,
+            display: "grid",
+            placeItems: "center",
+            padding: "20px",
+            background: "rgba(0, 0, 0, 0.72)",
+          }}
+        >
+          <div
+            style={{
+              width: "min(440px, 100%)",
+              borderRadius: "18px",
+              padding: "24px",
+              color: "#0d2445",
+              background: "#fff",
+              boxShadow: "0 24px 70px rgba(0, 0, 0, 0.35)",
+            }}
+          >
+            <div style={{ fontSize: "36px", marginBottom: "8px" }}>⬆️</div>
+            <h2 style={{ margin: "0 0 8px" }}>Nova atualização disponível</h2>
+            <p style={{ margin: "0 0 8px", lineHeight: 1.5 }}>
+              Versão {atualizacao.versaoNova} disponível. Você está usando a
+              versão {atualizacao.versaoAtual}.
+            </p>
+            {atualizacao.descricao && (
+              <p
+                style={{
+                  maxHeight: "120px",
+                  margin: "12px 0",
+                  overflow: "auto",
+                  whiteSpace: "pre-line",
+                  color: "#52647d",
+                  lineHeight: 1.45,
+                }}
+              >
+                {atualizacao.descricao}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={atualizarAplicativo}
+              disabled={baixandoAtualizacao}
+              style={{
+                width: "100%",
+                marginTop: "12px",
+                padding: "13px 18px",
+                border: 0,
+                borderRadius: "12px",
+                color: "#fff",
+                background: "#0d2445",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              {baixandoAtualizacao ? "Abrindo atualização..." : "Atualizar agora"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setAtualizacao(null)}
+              style={{
+                width: "100%",
+                marginTop: "8px",
+                padding: "10px",
+                border: 0,
+                color: "#52647d",
+                background: "transparent",
+                cursor: "pointer",
+              }}
+            >
+              Lembrar depois
+            </button>
+          </div>
+        </div>
+      )}
+
+      <Routes>
       <Route path="/portal-aluno/*" element={<PortalAluno />} />
       <Route path="/cadastro-professor" element={<CadastroProfessorPublico />} />
 
@@ -320,6 +434,7 @@ export default function App() {
           }
         />
       )}
-    </Routes>
+      </Routes>
+    </>
   )
 }

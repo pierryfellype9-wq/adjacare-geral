@@ -139,7 +139,7 @@ function dataPasta(valor) {
 }
 
 function extrairMidia(mensagem) {
-  for (const tipo of ["audio", "video", "document"]) {
+  for (const tipo of ["audio", "video", "image", "document", "sticker"]) {
     if (mensagem?.[tipo]?.id) return { tipo, ...mensagem[tipo] };
   }
   return null;
@@ -152,11 +152,26 @@ function extensaoPorMime(mime = "", tipo = "document") {
     "audio/ogg": "ogg",
     "audio/aac": "aac",
     "audio/wav": "wav",
+    "audio/amr": "amr",
+    "audio/opus": "opus",
     "video/mp4": "mp4",
     "video/3gpp": "3gp",
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
     "application/pdf": "pdf",
   };
-  return mapa[mime.toLowerCase()] || (tipo === "audio" ? "mp3" : tipo === "video" ? "mp4" : "bin");
+  return mapa[mime.toLowerCase()] ||
+    (tipo === "audio"
+      ? "mp3"
+      : tipo === "video"
+        ? "mp4"
+        : tipo === "image"
+          ? "jpg"
+          : tipo === "sticker"
+            ? "webp"
+            : "bin");
 }
 
 function extensaoDaMidia(midia) {
@@ -1265,7 +1280,7 @@ Digite:
           .eq("telefone", telefone);
         await enviarMensagem(
           telefone,
-          `Agora envie o arquivo do hino.\n\nFormatos aceitos: *áudio, vídeo ou documento*.\nO arquivo será renomeado e organizado automaticamente no Drive.`
+          `Agora envie o material do hino.\n\nVocê pode enviar *imagem, áudio, vídeo, documento ou figurinha*.\nO material será renomeado e organizado automaticamente no Drive.`
         );
         return res.status(200).send("ok");
       }
@@ -1289,7 +1304,7 @@ Digite:
     if (sessao.etapa === "som_aguardando_arquivo") {
       await enviarMensagem(
         telefone,
-        "Envie o hino como arquivo de áudio, vídeo ou documento. Para cancelar, envie *menu*."
+        "Envie o material como imagem, áudio, vídeo, documento ou figurinha. Para cancelar, envie *menu*."
       );
       return res.status(200).send("ok");
     }

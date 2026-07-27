@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "399762898590",
+    "project_id": "sistema-adjacare",
+    "storage_bucket": "sistema-adjacare.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:399762898590:android:84a8c5266b200dc4db858f",
+        "android_client_info": {
+          "package_name": "br.org.adjacare.sistema"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqHW1vmukSDPhb6nXbapFibhdGR4Kb3U4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

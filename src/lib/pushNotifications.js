@@ -13,7 +13,7 @@ async function registrarTokenNoServidor(token) {
   const accessToken = await accessTokenAtual();
   if (!accessToken) return;
 
-  const resposta = await fetch("/api/push-register", {
+  const resposta = await fetch("/api/criarAviso?acao=push-register", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -86,7 +86,7 @@ export async function desativarPushDesteUsuario() {
   const accessToken = await accessTokenAtual();
   if (!token || !accessToken) return;
 
-  await fetch("/api/push-register", {
+  await fetch("/api/criarAviso?acao=push-register", {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${accessToken}`,

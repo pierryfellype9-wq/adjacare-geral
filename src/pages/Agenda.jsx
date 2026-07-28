@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
+import { apiFetch } from "../lib/api"
+import { podePublicarComunicacao } from "../lib/permissions"
 import "./Agenda.css"
 
 function informacoesHoje() {
@@ -19,14 +21,6 @@ function informacoesHoje() {
   }
 }
 
-function normalizarPerfil(valor = "") {
-  return valor
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase()
-}
-
 export default function Agenda({ user }) {
   const [titulo, setTitulo] = useState("")
   const [descricao, setDescricao] = useState("")
@@ -40,9 +34,7 @@ export default function Agenda({ user }) {
   const [salvando, setSalvando] = useState(false)
 
   const hoje = informacoesHoje()
-  const podeEditar = ["administrador", "dirigente", "secretaria", "secretario"].includes(
-    normalizarPerfil(user?.role)
-  )
+  const podeEditar = podePublicarComunicacao(user)
 
   useEffect(() => {
     if (podeEditar) carregarMinisterios()
@@ -63,16 +55,8 @@ export default function Agenda({ user }) {
     setSalvando(true)
 
     try {
-      const { data: sessao } = await supabase.auth.getSession()
-      const token = sessao.session?.access_token
-      if (!token) throw new Error("Sessão inválida")
-
-      const resposta = await fetch("/api/criarEventoAgenda", {
+      const resposta = await apiFetch("/api/criarEventoAgenda", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           titulo: titulo.trim(),
           descricao: descricao.trim(),

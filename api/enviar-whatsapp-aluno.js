@@ -1,9 +1,18 @@
+import { authorizeRequest, rejectUnauthorized } from "../server/authorize.js"
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" })
   }
 
   try {
+    const authorization = await authorizeRequest(req, [
+      "Administrador",
+      "Dirigente",
+      "EBD",
+    ])
+    if (authorization.error) return rejectUnauthorized(res, authorization)
+
     const { nome, contato, login, senha, turma } = req.body
 
     if (!contato) {

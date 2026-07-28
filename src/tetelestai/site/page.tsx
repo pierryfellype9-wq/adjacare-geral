@@ -50,7 +50,6 @@ export default function SiteInicial() {
           <span className="hero-kicker">7º Congresso de Jovens e Adolescentes</span>
           <img src="/tetelestai-oficial/logo-oficial-clara.png" alt="Tetelestai — João 19:30" />
           <h1 className="sr-only">Tetelestai</h1>
-          <span className="hero-verse">João 19:30</span>
           <div className="hero-details"><strong>30 AGO</strong><i /><strong>4, 5 e 6 SET</strong></div>
           <CongressoCountdown />
           <a className="event-button" href={siteUrl("programacao")}>Ver programação</a>

@@ -22,13 +22,12 @@ function CongressoCountdown() {
   }, []);
   return <div className="countdown-composition">
     <div className="hourglass" aria-hidden="true">
-      <span className="hourglass-cap hourglass-cap-top" />
-      <span className="hourglass-glass">
-        <i className="hourglass-sand hourglass-sand-top" />
-        <i className="hourglass-stream" />
-        <i className="hourglass-sand hourglass-sand-bottom" />
-      </span>
-      <span className="hourglass-cap hourglass-cap-bottom" />
+      <svg viewBox="0 0 48 64" role="presentation">
+        <path className="hourglass-frame" d="M8 4h32M8 60h32M12 7c0 12 4 17 12 25-8 8-12 13-12 25M36 7c0 12-4 17-12 25 8 8 12 13 12 25" />
+        <path className="hourglass-glass-line" d="M16 11h16c-.7 7.6-3.4 11.5-8 16-4.6-4.5-7.3-8.4-8-16ZM15.5 53c1.4-7.2 4.2-11.1 8.5-15.5 4.3 4.4 7.1 8.3 8.5 15.5h-17Z" />
+        <path className="hourglass-sand-fill" d="M18.5 13h11c-1 4.8-2.8 7.8-5.5 10.8-2.7-3-4.5-6-5.5-10.8ZM18 51c1.3-4.2 3.2-7 6-10.2 2.8 3.2 4.7 6 6 10.2H18Z" />
+        <path className="hourglass-sand-stream" d="M24 26v12" />
+      </svg>
     </div>
     <div className="countdown-content">
       <span className="hero-countdown-label">Faltam</span>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import "./Tetelestai.css"
 import ComingSoon from "./ComingSoon"
 import { supabaseRest } from "./site/loja/supabase-rest"
@@ -8,45 +8,6 @@ import Programacao from "./site/programacao/page"
 import Playlist from "./site/playlist/page"
 import Fotos from "./site/fotos/page"
 import Localizacao from "./site/localizacao/page"
-
-function ScrollCrown() {
-  const crownRef = useRef(null)
-
-  useEffect(() => {
-    const crown = crownRef.current
-    if (!crown) return
-
-    let frame = 0
-    const updateCrown = () => {
-      frame = 0
-      const rotation = window.scrollY * 0.035
-      const drift = Math.sin(window.scrollY / 520) * 14
-      const revealStart = window.innerHeight * 0.58
-      const opacity = Math.max(0.022, Math.min(0.045, 0.022 + Math.max(0, window.scrollY - revealStart) / 420 * 0.023))
-      crown.style.setProperty("--crown-rotation", `${rotation}deg`)
-      crown.style.setProperty("--crown-drift", `${drift}px`)
-      crown.style.setProperty("--crown-opacity", String(opacity))
-    }
-    const onScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(updateCrown)
-    }
-
-    updateCrown()
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => {
-      window.removeEventListener("scroll", onScroll)
-      if (frame) window.cancelAnimationFrame(frame)
-    }
-  }, [])
-
-  return (
-    <div ref={crownRef} className="scroll-crown" aria-hidden="true">
-      <div className="scroll-crown-mask">
-        <img src="/tetelestai-oficial/logo-oficial-clara.png" alt="" />
-      </div>
-    </div>
-  )
-}
 
 export default function TetelestaiApp() {
   const [publicacao, setPublicacao] = useState(null)
@@ -89,5 +50,5 @@ export default function TetelestaiApp() {
     "/localizacao": Localizacao,
   }
   const Pagina = paginas[path] || SiteInicial
-  return <div className="tetelestai-root"><ScrollCrown /><Pagina /></div>
+  return <div className="tetelestai-root"><Pagina /></div>
 }

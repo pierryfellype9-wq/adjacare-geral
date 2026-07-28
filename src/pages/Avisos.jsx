@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
+import { apiFetch } from "../lib/api"
+import { podePublicarComunicacao } from "../lib/permissions"
 import "./Avisos.css"
 
 function formatarData(valor) {
@@ -14,14 +16,6 @@ function formatarData(valor) {
   }).format(new Date(valor))
 }
 
-function normalizarPerfil(valor = "") {
-  return valor
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase()
-}
-
 export default function Avisos({ user }) {
   const [titulo, setTitulo] = useState("")
   const [mensagem, setMensagem] = useState("")
@@ -34,9 +28,7 @@ export default function Avisos({ user }) {
   const [avisoAberto, setAvisoAberto] = useState(null)
   const [formularioAberto, setFormularioAberto] = useState(false)
   const [salvando, setSalvando] = useState(false)
-  const podeEditar = ["administrador", "dirigente", "secretaria", "secretario"].includes(
-    normalizarPerfil(user?.role)
-  )
+  const podeEditar = podePublicarComunicacao(user)
 
   useEffect(() => {
     carregarAvisos()
@@ -93,16 +85,8 @@ export default function Avisos({ user }) {
     setSalvando(true)
 
     try {
-      const { data: sessao } = await supabase.auth.getSession()
-      const token = sessao.session?.access_token
-      if (!token) throw new Error("Sessão inválida")
-
-      const resposta = await fetch("/api/criarAviso", {
+      const resposta = await apiFetch("/api/criarAviso", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({
           titulo: titulo.trim(),
           mensagem: mensagem.trim(),

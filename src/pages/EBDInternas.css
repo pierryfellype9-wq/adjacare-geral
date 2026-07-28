@@ -634,3 +634,88 @@
     width: min(100% - 22px, 1100px);
   }
 }
+
+
+/* Legibilidade geral da EBD */
+.ebd-subpage {
+  font-size: 16px;
+}
+
+.ebd-subpage p,
+.ebd-subpage .form-title-row p,
+.ebd-subpage .list-header p,
+.ebd-subpage .info-box,
+.ebd-subpage .ebd-info-box {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ebd-subpage label {
+  font-size: 13px;
+}
+
+.ebd-subpage input,
+.ebd-subpage select,
+.ebd-subpage textarea {
+  font-size: 15px;
+}
+
+.ebd-subpage button,
+.ebd-subpage .btn-voltar {
+  font-size: 13px;
+}
+
+.ebd-subpage .badge-turma,
+.ebd-subpage .financeiro-status {
+  font-size: 11px;
+}
+
+.ebd-subpage .aluno-card h3,
+.ebd-subpage .relatorio-card h3,
+.ebd-subpage .ebd-ranking-item strong {
+  font-size: 16px;
+}
+
+.ebd-subpage .aluno-info p,
+.ebd-subpage .relatorio-card p,
+.ebd-subpage .chamada-item strong {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ebd-subpage .status-buttons button {
+  font-size: 12px;
+}
+
+.ebd-subpage .idade-circle,
+.ebd-subpage .frequencia {
+  font-size: 16px;
+}
+
+.ebd-subpage .idade-circle small {
+  font-size: 10px;
+}
+
+.ebd-subpage .ebd-dashboard-stat small,
+.ebd-subpage .ebd-dashboard-alertas p,
+.ebd-subpage .ebd-dashboard-ranking p {
+  font-size: 12px;
+}
+
+@media (max-width: 620px) {
+  .ebd-subpage {
+    font-size: 15px;
+  }
+
+  .ebd-subpage p,
+  .ebd-subpage .form-title-row p,
+  .ebd-subpage .list-header p {
+    font-size: 13px;
+  }
+
+  .ebd-subpage input,
+  .ebd-subpage select,
+  .ebd-subpage textarea {
+    font-size: 16px;
+  }
+}

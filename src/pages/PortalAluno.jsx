@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { supabase } from "../lib/supabase"
+import "./PortalAluno.css"
 
 export default function PortalAluno() {
   const [email, setEmail] = useState("")
@@ -184,6 +185,7 @@ export default function PortalAluno() {
     return (
       <div className="portal-page">
         <div className="portal-card portal-login-card">
+          <span className="portal-login-kicker">ESCOLA BÍBLICA DOMINICAL</span>
           <img
             src="/logo-adjacare.jpg"
             alt="Sistema ADJACARÉ"
@@ -332,7 +334,7 @@ export default function PortalAluno() {
             />
 
             <div>
-              <span>Portal do Aluno</span>
+              <span>PORTAL DO ALUNO • EBD</span>
               <h1>{aluno.nome}</h1>
               <p>{aluno.ebd_turmas?.nome || "Sem turma"}</p>
             </div>
@@ -388,8 +390,9 @@ export default function PortalAluno() {
         </div>
 
         {pagina === "inicio" && (
-          <div className="portal-section">
-            <h2>Resumo do aluno</h2>
+          <div className="portal-section portal-section--inicio">
+            <span className="portal-section-kicker">VISÃO GERAL</span>
+            <h2>Olá, {aluno.nome?.split(" ")[0]}!</h2>
 
             <p className="portal-texto">
               Bem-vindo ao portal. Aqui você acompanha sua frequência, lições,
@@ -462,6 +465,7 @@ export default function PortalAluno() {
 
         {pagina === "licoes" && (
           <div className="portal-section">
+            <span className="portal-section-kicker">CONTEÚDO DO TRIMESTRE</span>
             <h2>Minhas lições</h2>
 
             {!trimestreAtual && (
@@ -522,6 +526,7 @@ export default function PortalAluno() {
 
         {pagina === "frequencia" && (
           <div className="portal-section">
+            <span className="portal-section-kicker">ACOMPANHAMENTO</span>
             <h2>Frequência</h2>
 
             <div className="stats">
@@ -574,6 +579,7 @@ export default function PortalAluno() {
 
         {pagina === "financeiro" && (
           <div className="portal-section">
+            <span className="portal-section-kicker">REVISTAS E PAGAMENTOS</span>
             <h2>Financeiro</h2>
 
             {financeiro.length === 0 && (
@@ -600,6 +606,7 @@ export default function PortalAluno() {
 
         {pagina === "cadastro" && (
           <div className="portal-section">
+            <span className="portal-section-kicker">DADOS PESSOAIS</span>
             <h2>Meu cadastro</h2>
 
             <div className="financeiro-item">
@@ -633,6 +640,7 @@ export default function PortalAluno() {
 
         {pagina === "ajuda" && (
           <div className="portal-section">
+            <span className="portal-section-kicker">PRECISA DE AJUDA?</span>
             <h2>Ajuda e informações</h2>
 
             <div className="ajuda-grid">

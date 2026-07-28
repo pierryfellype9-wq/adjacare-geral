@@ -719,3 +719,60 @@
     font-size: 16px;
   }
 }
+
+
+/* Vínculo de professor com membro */
+.ebd-subpage .ebd-vinculo-membro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, .85fr);
+  align-items: center;
+  gap: 18px;
+  margin-top: 20px;
+  border: 1px solid #d7e4f2;
+  border-radius: 16px;
+  padding: 18px;
+  background: linear-gradient(135deg, #eff6fd, #fff);
+}
+
+.ebd-subpage .ebd-vinculo-membro span {
+  color: #a7792b;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.ebd-subpage .ebd-vinculo-membro h3 {
+  margin: 5px 0 4px;
+  color: #1b3557;
+  font-size: 16px;
+}
+
+.ebd-subpage .ebd-vinculo-membro p {
+  margin: 0;
+  color: #6d7c91;
+  font-size: 12px;
+}
+
+.ebd-subpage .ebd-vinculo-membro select {
+  width: 100%;
+  margin: 0;
+  background: #fff;
+}
+
+.ebd-subpage .ebd-vinculo-membro small {
+  grid-column: 2;
+  color: #16705a;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+@media (max-width: 700px) {
+  .ebd-subpage .ebd-vinculo-membro {
+    grid-template-columns: 1fr;
+    padding: 15px;
+  }
+
+  .ebd-subpage .ebd-vinculo-membro small {
+    grid-column: 1;
+  }
+}

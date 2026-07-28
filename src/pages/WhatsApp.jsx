@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { apiFetch } from "../lib/api";
 import "./WhatsApp.css";
 
 export default function WhatsApp({ user }) {
@@ -263,7 +264,7 @@ export default function WhatsApp({ user }) {
   async function iniciarConversa() {
     if (!telefoneSelecionado) return;
 
-    const resposta = await fetch("/api/whatsapp-atendimento", {
+    const resposta = await apiFetch("/api/whatsapp-atendimento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -285,7 +286,7 @@ export default function WhatsApp({ user }) {
   async function finalizarConversa() {
     if (!telefoneSelecionado) return;
 
-    const resposta = await fetch("/api/whatsapp-atendimento", {
+    const resposta = await apiFetch("/api/whatsapp-atendimento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -311,7 +312,7 @@ export default function WhatsApp({ user }) {
     setEnviando(true);
 
     try {
-      const resposta = await fetch("/api/whatsapp-send", {
+      const resposta = await apiFetch("/api/whatsapp-send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

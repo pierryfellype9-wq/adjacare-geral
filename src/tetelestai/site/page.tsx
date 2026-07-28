@@ -47,7 +47,10 @@ export default function SiteInicial() {
         <div className="hero-word" aria-hidden="true">TETELESTAI</div>
         <div className="hero-copy">
           <span className="hero-kicker">7º Congresso de Jovens e Adolescentes</span>
-          <img src="/tetelestai-oficial/logo-oficial-clara.png" alt="Tetelestai — João 19:30" />
+          <div className="hero-lockup" role="img" aria-label="Tetelestai — João 19:30">
+            <img className="hero-lockup-crown" src="/tetelestai-oficial/logo-oficial-clara.png" alt="" />
+            <img className="hero-lockup-wordmark" src="/tetelestai-oficial/logo-oficial-clara.png" alt="" />
+          </div>
           <h1 className="sr-only">Tetelestai</h1>
           <div className="hero-details"><strong>30 AGO</strong><i /><strong>4, 5 e 6 SET</strong></div>
           <CongressoCountdown />

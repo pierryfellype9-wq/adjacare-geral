@@ -1,5 +1,6 @@
 import { Resend } from "resend"
 import { createClient } from "@supabase/supabase-js"
+import { authorizeRequest, rejectUnauthorized } from "../server/authorize.js"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -14,6 +15,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    const authorization = await authorizeRequest(req, [
+      "Administrador",
+      "Dirigente",
+      "Mídia",
+      "Secretaria",
+      "EBD",
+    ])
+    if (authorization.error) return rejectUnauthorized(res, authorization)
+
     const { assunto, mensagem, para, departamento } = req.body
 
     let listaEmails = []

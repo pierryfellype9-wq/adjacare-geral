@@ -14,7 +14,7 @@ export default function TrocarSenha({ user, setUser }) {
   const [mostrarConfirmacao, setMostrarConfirmacao] = useState(false)
 
   const primeiroAcesso = user?.primeiro_acesso === true
-  const tamanhoValido = senha.length >= 4
+  const tamanhoValido = senha.length >= 8
   const senhasIguais = confirmar.length > 0 && senha === confirmar
 
   async function salvar(e) {
@@ -25,8 +25,8 @@ export default function TrocarSenha({ user, setUser }) {
       return
     }
 
-    if (senha.length < 4) {
-      alert("A senha deve ter pelo menos 4 caracteres.")
+    if (senha.length < 8) {
+      alert("A nova senha deve ter pelo menos 8 caracteres.")
       return
     }
 
@@ -38,7 +38,15 @@ export default function TrocarSenha({ user, setUser }) {
     setCarregando(true)
 
     try {
-      // Mantém o cadastro legado sincronizado enquanto todos os usuários são migrados.
+      const { data: authData, error: authUserError } = await supabase.auth.getUser()
+      if (authUserError || !authData.user) {
+        throw new Error("Sua sessão expirou. Entre novamente antes de alterar a senha.")
+      }
+
+      const { error: authError } = await supabase.auth.updateUser({ password: senha })
+      if (authError) throw authError
+
+      // Mantém o cadastro legado sincronizado apenas durante a migração gradual.
       const { error: legacyError } = await supabase
         .from("users")
         .update({
@@ -48,14 +56,6 @@ export default function TrocarSenha({ user, setUser }) {
         .eq("id", user.id)
 
       if (legacyError) throw legacyError
-
-      const { data: authData } = await supabase.auth.getUser()
-      if (authData.user) {
-        const { error: authError } = await supabase.auth.updateUser({ password: senha })
-
-        // O login gradual consegue ressincronizar a senha no próximo acesso.
-        if (authError) console.error("Não foi possível sincronizar a senha no Auth:", authError)
-      }
 
       const usuarioAtualizado = sanitizeUser({
         ...user,
@@ -77,7 +77,7 @@ export default function TrocarSenha({ user, setUser }) {
       navigate("/dashboard")
     } catch (error) {
       console.error(error)
-      alert("Erro ao alterar senha.")
+      alert(error?.message || "Erro ao alterar senha.")
     } finally {
       setCarregando(false)
     }
@@ -141,6 +141,8 @@ export default function TrocarSenha({ user, setUser }) {
                   value={senha}
                   onChange={(evento) => setSenha(evento.target.value)}
                   autoComplete="new-password"
+                  minLength={8}
+                  maxLength={128}
                   required
                 />
                 <button
@@ -162,6 +164,8 @@ export default function TrocarSenha({ user, setUser }) {
                   value={confirmar}
                   onChange={(evento) => setConfirmar(evento.target.value)}
                   autoComplete="new-password"
+                  minLength={8}
+                  maxLength={128}
                   required
                 />
                 <button
@@ -176,7 +180,7 @@ export default function TrocarSenha({ user, setUser }) {
 
             <div className="trocar-senha-requisitos">
               <span className={tamanhoValido ? "valido" : ""}>
-                <b>{tamanhoValido ? "✓" : "·"}</b> Pelo menos 4 caracteres
+                <b>{tamanhoValido ? "✓" : "·"}</b> Pelo menos 8 caracteres
               </span>
               <span className={senhasIguais ? "valido" : ""}>
                 <b>{senhasIguais ? "✓" : "·"}</b> As duas senhas são iguais

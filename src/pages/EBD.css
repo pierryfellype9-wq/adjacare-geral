@@ -675,3 +675,73 @@
     width: 100%;
   }
 }
+
+
+/* Legibilidade geral da EBD */
+.ebd-central {
+  font-size: 16px;
+}
+
+.ebd-central__hero-texto > span,
+.ebd-central__modulos > header span,
+.ebd-central__domingo > header > span,
+.ebd-central__rodape > div > div > span {
+  font-size: 11px;
+}
+
+.ebd-central__hero-descricao {
+  font-size: 16px;
+}
+
+.ebd-central__metricas small {
+  font-size: 13px;
+}
+
+.ebd-central__metricas p {
+  font-size: 11px;
+}
+
+.ebd-central__modulos > header p {
+  font-size: 13px;
+}
+
+.ebd-modulo__texto strong {
+  font-size: 15px;
+}
+
+.ebd-modulo__texto small {
+  font-size: 12px;
+}
+
+.ebd-domingo__data > span,
+.ebd-domingo__data > small,
+.ebd-domingo__licao > span {
+  font-size: 11px;
+}
+
+.ebd-domingo__licao p,
+.ebd-domingo__vazio p,
+.ebd-central__rodape p {
+  font-size: 12px;
+}
+
+.ebd-central__domingo > button,
+.ebd-domingo__vazio button,
+.ebd-central__rodape > button {
+  font-size: 13px;
+}
+
+@media (max-width: 650px) {
+  .ebd-central__hero-descricao {
+    font-size: 14px;
+  }
+
+  .ebd-modulo__texto strong {
+    font-size: 15px;
+  }
+
+  .ebd-modulo__texto small,
+  .ebd-central__metricas small {
+    font-size: 12px;
+  }
+}

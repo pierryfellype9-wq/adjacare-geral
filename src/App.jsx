@@ -29,6 +29,8 @@ import EBDSolicitacoesProfessores from "./pages/EBDSolicitacoesProfessores"
 import EBDSolicitacaoProfessor from "./pages/EBDSolicitacaoProfessor"
 
 import Sidebar from "./components/Sidebar"
+import { temPermissao } from "./lib/permissions"
+import "./AppShell.css"
 import {
   isLocalSessionExpired,
   restoreRollingSession,
@@ -154,19 +156,9 @@ export default function App() {
 
   const primeiroAcesso = user?.primeiro_acesso === true
 
-  const podeVerEscala =
-    user?.role === "Administrador" ||
-    user?.role === "Dirigente" ||
-    user?.role === "Mídia"
-
-  const podeVerSenhas =
-    user?.role === "Administrador" ||
-    user?.role === "Mídia"
-
-  const podeVerCustosFixos =
-    user?.role === "Administrador" ||
-    user?.role === "Mídia" ||
-    user?.role === "Dirigente"
+  const podeVerEscala = temPermissao(user, "escala")
+  const podeVerSenhas = temPermissao(user, "senhasAplicativos")
+  const podeVerCustosFixos = temPermissao(user, "custosFixos")
 
   return (
     <>
@@ -337,29 +329,37 @@ export default function App() {
           path="*"
           element={
             <div className="dashboard">
-              <header className="topbar">
+              <header className="app-topbar">
                 <button
-                  className="menu-btn"
+                  className="app-topbar__menu"
                   onClick={() => setMenuOpen(true)}
+                  aria-label="Abrir menu"
                 >
-                  ☰ Menu
+                  <span>☰</span>
+                  <b>Menu</b>
                 </button>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div className="user-box">
-                    {user.nome} • {user.role}
+                <div className="app-topbar__marca">
+                  <img src="/logo.png" alt="" />
+                  <div><strong>Sistema ADJACARÉ</strong><span>Portal interno da igreja</span></div>
+                </div>
+
+                <div className="app-topbar__acoes">
+                  <div className="app-topbar__usuario">
+                    <span>{(user.nome || "U").charAt(0).toUpperCase()}</span>
+                    <div><strong>{user.nome}</strong><small>{user.role}</small></div>
                   </div>
 
                   <button
                     onClick={logout}
-                    className="logout-btn"
+                    className="app-topbar__sair"
                   >
-                    Sair
+                    <span>↪</span><b>Sair</b>
                   </button>
                 </div>
               </header>
 
-              <Sidebar user={user} open={menuOpen} setOpen={setMenuOpen} />
+              <Sidebar user={user} open={menuOpen} setOpen={setMenuOpen} onLogout={logout} />
 
               <Routes>
                 <Route path="/" element={<Dashboard user={user} />} />

@@ -151,7 +151,7 @@ export default function EBDChamadaComOferta({ user }) {
     const registradoEm = new Date().toISOString()
     const registradoPor = usuario?.nome || usuario?.email || "Usuário"
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("ebd_aulas")
       .update({
         oferta_valor: numero,
@@ -159,12 +159,14 @@ export default function EBDChamadaComOferta({ user }) {
         oferta_registrada_em: registradoEm,
       })
       .eq("id", aulaId)
+      .select("id,oferta_valor,oferta_registrada_por,oferta_registrada_em")
+      .single()
 
     setSalvando(false)
 
-    if (error) {
+    if (error || !data) {
       console.error(error)
-      alert("Erro ao salvar o valor da oferta.")
+      alert("Não foi possível salvar a oferta. Atualize a página e tente novamente.")
       return
     }
 
@@ -173,9 +175,9 @@ export default function EBDChamadaComOferta({ user }) {
         String(aula.id) === String(aulaId)
           ? {
               ...aula,
-              oferta_valor: numero,
-              oferta_registrada_por: registradoPor,
-              oferta_registrada_em: registradoEm,
+              oferta_valor: data.oferta_valor,
+              oferta_registrada_por: data.oferta_registrada_por,
+              oferta_registrada_em: data.oferta_registrada_em,
             }
           : aula
       )

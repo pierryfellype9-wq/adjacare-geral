@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { supabase } from "../lib/supabase"
+import { apiFetch } from "../lib/api"
 import "./EBDInternas.css"
 
 export default function EBDSolicitacaoProfessor({ user }) {
@@ -158,7 +159,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
   }
 
   async function enviarEmailAprovacao(senhaProvisoria) {
-    const resposta = await fetch("/api/enviar-email", {
+    const resposta = await apiFetch("/api/enviar-email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

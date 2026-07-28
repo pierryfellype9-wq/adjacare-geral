@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
+import { apiFetch } from "../lib/api"
 import "./EscalaMidia.css"
 
 const FUNCOES = [
@@ -73,7 +74,7 @@ export default function EscalaMidia({ user }) {
 
   async function enviarEmailEscala() {
     try {
-      await fetch("/api/enviar-email", {
+      await apiFetch("/api/enviar-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

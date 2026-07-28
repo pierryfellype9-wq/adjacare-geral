@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd"
 import { supabase } from "../lib/supabase"
+import { apiFetch } from "../lib/api"
 import "./Pedidos.css"
 
 const COLUNAS = [
@@ -146,7 +147,7 @@ export default function Pedidos({ user }) {
     setEnviando(true)
 
     try {
-      const resposta = await fetch("/api/criarPedido", {
+      const resposta = await apiFetch("/api/criarPedido", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -164,7 +165,7 @@ export default function Pedidos({ user }) {
       const retorno = await resposta.json().catch(() => ({}))
       if (!resposta.ok) throw new Error(retorno?.error || "Erro ao criar pedido")
 
-      fetch("/api/enviar-email", {
+      apiFetch("/api/enviar-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -240,7 +241,7 @@ export default function Pedidos({ user }) {
     }
 
     if (novaColuna.status === "Concluído") {
-      fetch("/api/notificarConclusao", {
+      apiFetch("/api/notificarConclusao", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),

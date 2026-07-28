@@ -63,8 +63,14 @@ function isTetelestaiRequest() {
   return host === "tetelestai.adjacare.org" || host.startsWith("tetelestai.") || path === "/site" || path.startsWith("/site/") || path === "/site-preview" || path.startsWith("/site-preview/")
 }
 
+function isPortalAlunoRequest() {
+  const host = window.location.hostname.toLowerCase()
+  return host === "aluno.adjacare.org" || host.startsWith("aluno.")
+}
+
 export default function App() {
   if (isTetelestaiRequest()) return <Suspense fallback={<div style={{minHeight:"100vh",background:"#020306"}} />}><TetelestaiApp /></Suspense>
+  if (isPortalAlunoRequest()) return <Suspense fallback={<CarregandoPagina />}><PortalAluno /></Suspense>
 
   useEffect(() => { document.title = "Sistema AD Jacaré" }, [])
 

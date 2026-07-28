@@ -16,6 +16,7 @@ export default function EBDAlunos({ user }) {
 
   const [turmas, setTurmas] = useState([])
   const [alunos, setAlunos] = useState([])
+  const [membros, setMembros] = useState([])
   const [aba, setAba] = useState("ativos")
   const [busca, setBusca] = useState("")
 
@@ -74,6 +75,17 @@ export default function EBDAlunos({ user }) {
       .order("idade_min", { ascending: true })
 
     setTurmas(turmasData || [])
+
+    const { data: membrosData, error: membrosError } = await supabase
+      .from("membros")
+      .select("id,nome,telefone")
+      .eq("situacao_cadastral", "Ativo")
+      .order("nome", { ascending: true })
+
+    if (membrosError) {
+      console.error("Erro ao carregar membros:", membrosError)
+    }
+    setMembros(membrosData || [])
 
     let query = supabase
       .from("ebd_alunos")
@@ -229,6 +241,17 @@ export default function EBDAlunos({ user }) {
   const alunosFiltrados = alunosDaAba.filter((aluno) =>
     aluno.nome?.toLowerCase().includes(busca.toLowerCase())
   )
+
+  function selecionarResponsavel(valor, atualizarNome) {
+    atualizarNome(valor)
+
+    const nomeNormalizado = valor.trim().toLocaleLowerCase("pt-BR")
+    const membro = membros.find(
+      (item) => item.nome?.trim().toLocaleLowerCase("pt-BR") === nomeNormalizado
+    )
+
+    if (membro?.telefone) setContato(membro.telefone)
+  }
 
   function limparFormulario() {
     setNome("")
@@ -536,7 +559,7 @@ export default function EBDAlunos({ user }) {
             <h2>{editando ? "Editar aluno" : "Cadastrar aluno"}</h2>
             <p>
               Nome e data de nascimento são obrigatórios. Para menores de 18 anos,
-              também é obrigatório informar pai, mãe e contato.
+              informe pai, mãe e contato — você pode selecionar um membro ou escrever livremente.
             </p>
           </div>
         </div>
@@ -635,30 +658,43 @@ export default function EBDAlunos({ user }) {
           <div>
             <label>Nome do pai</label>
             <input
+              list="membros-responsaveis"
               value={nomePai}
-              onChange={(e) => setNomePai(e.target.value)}
-              placeholder="Nome do pai"
+              onChange={(e) => selecionarResponsavel(e.target.value, setNomePai)}
+              placeholder="Selecione um membro ou escreva"
             />
+            <small>Também aceita “Não tem”, “Indefinido” ou outro nome.</small>
           </div>
 
           <div>
             <label>Nome da mãe</label>
             <input
+              list="membros-responsaveis"
               value={nomeMae}
-              onChange={(e) => setNomeMae(e.target.value)}
-              placeholder="Nome da mãe"
+              onChange={(e) => selecionarResponsavel(e.target.value, setNomeMae)}
+              placeholder="Selecione um membro ou escreva"
             />
+            <small>Ao selecionar um membro, o telefone é preenchido abaixo.</small>
           </div>
 
           <div>
-            <label>Contato</label>
+            <label>Contato do responsável</label>
             <input
+              type="tel"
               value={contato}
               onChange={(e) => setContato(e.target.value)}
-              placeholder="Telefone"
+              placeholder="Telefone do pai ou da mãe"
             />
           </div>
         </div>
+
+        <datalist id="membros-responsaveis">
+          {membros.map((membro) => (
+            <option key={membro.id} value={membro.nome}>
+              {membro.telefone || "Sem telefone cadastrado"}
+            </option>
+          ))}
+        </datalist>
 
         <div>
           <label>Observação</label>

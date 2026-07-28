@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
+import { apiFetch } from "../lib/api"
 import { useNavigate } from "react-router-dom"
 import jsPDF from "jspdf"
 import QRCode from "qrcode"
@@ -355,7 +356,7 @@ export default function EBDAlunos({ user }) {
 
     if (!editando && contato?.trim()) {
       try {
-        await fetch("/api/enviar-whatsapp-aluno", {
+        await apiFetch("/api/enviar-whatsapp-aluno", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -381,7 +382,7 @@ export default function EBDAlunos({ user }) {
 
   async function enviarWhatsappAluno(aluno) {
     try {
-      const resposta = await fetch("/api/enviar-whatsapp-aluno", {
+      const resposta = await apiFetch("/api/enviar-whatsapp-aluno", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

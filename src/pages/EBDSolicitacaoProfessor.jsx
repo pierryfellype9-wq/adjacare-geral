@@ -9,6 +9,8 @@ export default function EBDSolicitacaoProfessor({ user }) {
   const { id } = useParams()
 
   const [turmas, setTurmas] = useState([])
+  const [membros, setMembros] = useState([])
+  const [membroId, setMembroId] = useState("")
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
 
@@ -36,6 +38,12 @@ export default function EBDSolicitacaoProfessor({ user }) {
       .neq("nome", "Não permitido")
       .order("nome", { ascending: true })
 
+    const { data: membrosData } = await supabase
+      .from("membros")
+      .select("id,nome,telefone")
+      .eq("situacao_cadastral", "Ativo")
+      .order("nome", { ascending: true })
+
     const { data: solicitacaoData, error } = await supabase
       .from("ebd_solicitacoes_professores")
       .select("*")
@@ -50,6 +58,26 @@ export default function EBDSolicitacaoProfessor({ user }) {
     }
 
     setTurmas(turmasData || [])
+    setMembros(membrosData || [])
+
+    if (solicitacaoData.status === "Aprovado") {
+      const { data: usuarioCriado } = await supabase
+        .from("users")
+        .select("membro_id")
+        .ilike("email", solicitacaoData.email || "")
+        .maybeSingle()
+
+      setMembroId(usuarioCriado?.membro_id || "")
+    } else {
+      const nomeSolicitante = (solicitacaoData.nome_completo || "")
+        .trim()
+        .toLocaleLowerCase("pt-BR")
+      const membroCorrespondente = (membrosData || []).find(
+        (membro) => membro.nome?.trim().toLocaleLowerCase("pt-BR") === nomeSolicitante
+      )
+      setMembroId(membroCorrespondente?.id || "")
+    }
+
     setForm({
       nome_completo: solicitacaoData.nome_completo || "",
       data_nascimento: solicitacaoData.data_nascimento || "",
@@ -204,7 +232,16 @@ export default function EBDSolicitacaoProfessor({ user }) {
   }
 
   async function aprovarSolicitacao() {
-    if (!confirm(`Aprovar cadastro de ${form.nome_completo}?`)) return
+    const membroSelecionado = membros.find(
+      (membro) => String(membro.id) === String(membroId)
+    )
+
+    if (!membroSelecionado) {
+      alert("Selecione o membro que receberá este acesso antes de aprovar.")
+      return
+    }
+
+    if (!confirm(`Aprovar cadastro de ${form.nome_completo} e vincular ao membro ${membroSelecionado.nome}?`)) return
 
     const salvou = await salvarSolicitacao(false)
     if (!salvou) return
@@ -213,7 +250,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
 
     const { error: erroUsuario } = await supabase.from("users").insert([
       {
-        membro_id: null,
+        membro_id: membroId,
         nome: form.nome_completo.trim(),
         email: form.email.trim(),
         senha: senhaProvisoria,
@@ -372,6 +409,35 @@ export default function EBDSolicitacaoProfessor({ user }) {
               style={inputStyle}
               disabled={form.status !== "Pendente"}
             />
+          </div>
+
+          <div className="ebd-vinculo-membro">
+            <div>
+              <span>VÍNCULO DO ACESSO</span>
+              <h3>Selecione o membro responsável por este usuário *</h3>
+              <p>
+                Ao aprovar, o acesso de professor ficará ligado diretamente ao cadastro
+                escolhido na aba Membros.
+              </p>
+            </div>
+
+            <select
+              value={membroId}
+              onChange={(e) => setMembroId(e.target.value)}
+              disabled={form.status !== "Pendente"}
+              required
+            >
+              <option value="">Selecione um membro</option>
+              {membros.map((membro) => (
+                <option key={membro.id} value={membro.id}>
+                  {membro.nome}{membro.telefone ? ` — ${membro.telefone}` : ""}
+                </option>
+              ))}
+            </select>
+
+            {membroId && (
+              <small>✓ Este membro será vinculado ao acesso quando você aprovar.</small>
+            )}
           </div>
 
           <div style={{ marginTop: "20px" }}>

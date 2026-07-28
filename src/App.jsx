@@ -2,6 +2,7 @@ import { lazy, Suspense, useState, useEffect } from "react"
 import { Routes, Route, Navigate } from "react-router-dom"
 
 import Sidebar from "./components/Sidebar"
+import AppFeedback from "./components/AppFeedback"
 import { temPermissao } from "./lib/permissions"
 import "./AppShell.css"
 import {
@@ -170,6 +171,7 @@ export default function App() {
 
   return (
     <>
+      <AppFeedback />
       {atualizacao && (
         <div
           role="dialog"

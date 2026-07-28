@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { supabase } from "../lib/supabase"
+import { apiFetch } from "../lib/api"
 import "./Usuarios.css"
 
 export default function Usuarios({ user }) {
@@ -247,7 +248,7 @@ export default function Usuarios({ user }) {
       return
     }
 
-    await fetch("/api/enviar-email", {
+    await apiFetch("/api/enviar-email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

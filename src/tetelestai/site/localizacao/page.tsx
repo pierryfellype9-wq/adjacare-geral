@@ -9,7 +9,7 @@ export default function Localizacao() {
       <div className="location-details">
         <span>Local do congresso</span>
         <h2>Esperamos você.</h2>
-        <address>Av. Ver. José Donato, 913<br/>Cabreúva — SP<br/>CEP 13318-000</address>
+        <address>Av. Ver. José Donato, 913<br/>Jacaré — Cabreúva/SP<br/>CEP 13318-000</address>
         <a className="event-button dark" href={directionsUrl} target="_blank" rel="noreferrer">Traçar minha rota</a>
       </div>
       <div className="location-map">

@@ -1,33 +1,6 @@
 import { lazy, Suspense, useState, useEffect } from "react"
 import { Routes, Route, Navigate } from "react-router-dom"
 
-import Dashboard from "./pages/Dashboard"
-import Pedidos from "./pages/Pedidos"
-import Solicitacoes from "./pages/Solicitacoes"
-import Agenda from "./pages/Agenda"
-import Avisos from "./pages/Avisos"
-import TrocarSenha from "./pages/trocarSenha"
-import Usuarios from "./pages/Usuarios"
-import KanbanPedidos from "./pages/KanbanPedidos"
-import EscalaMidia from "./pages/EscalaMidia"
-import SenhasAplicativos from "./pages/SenhasAplicativos"
-import CustosFixos from "./pages/CustosFixos"
-import EBDDashboard from "./pages/EBDDashboard"
-import PortalAluno from "./pages/PortalAluno"
-import EBDFinanceiro from "./pages/EBDFinanceiro"
-import Membros from "./pages/Membros"
-import WhatsApp from "./pages/WhatsApp"
-
-import EBD from "./pages/EBD"
-import EBDAlunos from "./pages/EBDAlunos"
-import EBDChamadaComOferta from "./pages/EBDChamadaComOferta"
-import EBDRelatorios from "./pages/EBDRelatorios"
-import EBDRelatorioOfertas from "./pages/EBDRelatorioOfertas"
-import EBDTrimestres from "./pages/EBDTrimestres"
-import CadastroProfessorPublico from "./pages/CadastroProfessorPublico"
-import EBDSolicitacoesProfessores from "./pages/EBDSolicitacoesProfessores"
-import EBDSolicitacaoProfessor from "./pages/EBDSolicitacaoProfessor"
-
 import Sidebar from "./components/Sidebar"
 import { temPermissao } from "./lib/permissions"
 import "./AppShell.css"
@@ -46,7 +19,42 @@ import {
   verificarAtualizacaoDoApp,
 } from "./lib/appUpdater"
 
+const Dashboard = lazy(() => import("./pages/Dashboard"))
+const Pedidos = lazy(() => import("./pages/Pedidos"))
+const Solicitacoes = lazy(() => import("./pages/Solicitacoes"))
+const Agenda = lazy(() => import("./pages/Agenda"))
+const Avisos = lazy(() => import("./pages/Avisos"))
+const TrocarSenha = lazy(() => import("./pages/trocarSenha"))
+const Usuarios = lazy(() => import("./pages/Usuarios"))
+const KanbanPedidos = lazy(() => import("./pages/KanbanPedidos"))
+const EscalaMidia = lazy(() => import("./pages/EscalaMidia"))
+const SenhasAplicativos = lazy(() => import("./pages/SenhasAplicativos"))
+const CustosFixos = lazy(() => import("./pages/CustosFixos"))
+const EBDDashboard = lazy(() => import("./pages/EBDDashboard"))
+const PortalAluno = lazy(() => import("./pages/PortalAluno"))
+const EBDFinanceiro = lazy(() => import("./pages/EBDFinanceiro"))
+const Membros = lazy(() => import("./pages/Membros"))
+const WhatsApp = lazy(() => import("./pages/WhatsApp"))
+const EBD = lazy(() => import("./pages/EBD"))
+const EBDAlunos = lazy(() => import("./pages/EBDAlunos"))
+const EBDChamadaComOferta = lazy(() => import("./pages/EBDChamadaComOferta"))
+const EBDRelatorios = lazy(() => import("./pages/EBDRelatorios"))
+const EBDRelatorioOfertas = lazy(() => import("./pages/EBDRelatorioOfertas"))
+const EBDTrimestres = lazy(() => import("./pages/EBDTrimestres"))
+const CadastroProfessorPublico = lazy(() => import("./pages/CadastroProfessorPublico"))
+const EBDSolicitacoesProfessores = lazy(() => import("./pages/EBDSolicitacoesProfessores"))
+const EBDSolicitacaoProfessor = lazy(() => import("./pages/EBDSolicitacaoProfessor"))
 const TetelestaiApp = lazy(() => import("./tetelestai/TetelestaiApp"))
+
+function CarregandoPagina() {
+  return (
+    <div className="app-carregando" role="status" aria-live="polite">
+      <span><i /><i /><i /></span>
+      <strong>Carregando página</strong>
+      <small>Preparando as informações para você...</small>
+    </div>
+  )
+}
 
 function isTetelestaiRequest() {
   const host = window.location.hostname.toLowerCase()
@@ -244,6 +252,7 @@ export default function App() {
         </div>
       )}
 
+      <Suspense fallback={<CarregandoPagina />}>
       <Routes>
       <Route path="/portal-aluno/*" element={<PortalAluno />} />
       <Route path="/cadastro-professor" element={<CadastroProfessorPublico />} />
@@ -435,6 +444,7 @@ export default function App() {
         />
       )}
       </Routes>
+      </Suspense>
     </>
   )
 }

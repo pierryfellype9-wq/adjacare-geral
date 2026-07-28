@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { authorizeRequest, rejectUnauthorized } from "../server/authorize.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -9,6 +10,18 @@ export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
+
+  const authorization = await authorizeRequest(req, [
+    "Administrador",
+    "Dirigente",
+    "Mídia",
+    "Secretaria",
+    "Suporte",
+    "TI",
+    "Sonoplastia",
+    "Projeção",
+  ]);
+  if (authorization.error) return rejectUnauthorized(res, authorization);
 
   const { telefone, mensagem, enviado_por, role } = req.body || {};
 

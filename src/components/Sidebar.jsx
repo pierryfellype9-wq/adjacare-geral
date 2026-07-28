@@ -10,6 +10,7 @@ const ICONES = {
   agenda: "M6 3v3m12-3v3M4 8h16v12H4V8Zm4 4h8m-8 4h5",
   avisos: "M12 3a6 6 0 0 0-6 6v3l-2 3v1h16v-1l-2-3V9a6 6 0 0 0-6-6Zm-2 15h4",
   usuarios: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m7-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8-1a4 4 0 0 1 0 8",
+  membros: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9v-2a7 7 0 0 1 14 0v2M3 21h18",
   senha: "M7 10V7a5 5 0 0 1 10 0v3m-11 0h12v11H6V10Zm6 4v3",
   cofre: "M5 4h14v16H5V4Zm4 7a3 3 0 1 0 6 0 3 3 0 0 0-6 0Zm3 3v3",
   custos: "M3 6h18v13H3V6Zm2 3v8h14V9H5Zm7 1a3 3 0 1 1 0 6 3 3 0 0 1 0-6ZM6 3h12v2H6V3Z",
@@ -85,6 +86,7 @@ export default function Sidebar({ open, setOpen, user, onLogout }) {
 
           <section>
             <h2>ADMINISTRAÇÃO</h2>
+            {temPermissao(user, "membros") && <Item to="/membros" icon="membros" setOpen={setOpen}>Membros</Item>}
             <Item to="/usuarios" icon="usuarios" setOpen={setOpen}>Usuários</Item>
             <Item to="/trocar-senha" icon="senha" setOpen={setOpen}>Alterar senha</Item>
             {temPermissao(user, "senhasAplicativos") && <Item to="/senhas-aplicativos" icon="cofre" setOpen={setOpen}>Senhas de aplicativos</Item>}

@@ -843,10 +843,10 @@
   width:100%;
   height:100%;
   object-fit:contain;
+  transform:translateX(11%);
 }
 .hero-lockup-crown{
   clip-path:inset(0 0 39% 0);
-  transform:none;
   transform-origin:50% 38%;
 }
 .hero-lockup-wordmark{

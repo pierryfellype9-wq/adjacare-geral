@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import { google } from "googleapis"
+import { authorizeRequest, rejectUnauthorized } from "../server/authorize.js"
 
 const supabase = createClient(
  process.env.SUPABASE_URL,
@@ -40,6 +41,8 @@ export default async function handler(req,res){
  }
 
  try{
+  const authorization = await authorizeRequest(req)
+  if (authorization.error) return rejectUnauthorized(res, authorization)
 
   const {
  titulo,
@@ -90,4 +93,3 @@ export default async function handler(req,res){
  }
 
 }
-

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
+import "./CustosFixos.css"
 
 function formatarMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -99,6 +100,8 @@ export default function CustosFixos({ user }) {
   const [loading, setLoading] = useState(true)
   const [salvando, setSalvando] = useState(false)
   const [processandoId, setProcessandoId] = useState(null)
+  const [formularioAberto, setFormularioAberto] = useState(false)
+  const [filtroStatus, setFiltroStatus] = useState("Todos")
 
   const [form, setForm] = useState({
     nome: "",
@@ -164,6 +167,11 @@ export default function CustosFixos({ user }) {
     return custosTratados.filter((item) => item.statusVisual === "Atrasado").length
   }, [custosTratados])
 
+  const custosFiltrados = useMemo(() => {
+    if (filtroStatus === "Todos") return custosTratados
+    return custosTratados.filter((item) => item.statusVisual === filtroStatus)
+  }, [custosTratados, filtroStatus])
+
   function atualizarCampo(e) {
     const { name, value } = e.target
     setForm((prev) => ({
@@ -201,6 +209,7 @@ export default function CustosFixos({ user }) {
         status: "Ativo",
       })
 
+      setFormularioAberto(false)
       await carregarCustos()
     } catch (error) {
       console.error("Erro ao cadastrar custo:", error)
@@ -281,282 +290,65 @@ export default function CustosFixos({ user }) {
   }
 
   return (
-    <div className="senhas-page">
-      <div className="senhas-card">
-        <div className="senhas-topo">
-          <div>
-            <h1>Assinaturas e Pagamentos Mídia</h1>
-            <p>Controle de assinaturas, pagamentos e vencimentos.</p>
-          </div>
+    <main className="custos-page">
+      <section className="custos-hero">
+        <div>
+          <span className="custos-kicker">CONTROLE FINANCEIRO • MÍDIA</span>
+          <h1>Custos e assinaturas</h1>
+          <p>Acompanhe vencimentos, serviços recorrentes e pagamentos da equipe em um só lugar.</p>
+          <button type="button" onClick={() => setFormularioAberto(true)}><b>＋</b> Cadastrar novo custo</button>
         </div>
+        <div className="custos-hero__valor"><small>CUSTO MÉDIO MENSAL</small><strong>{formatarMoeda(totalMensal)}</strong><span>estimativa atual</span></div>
+        <i className="custos-circulo um" /><i className="custos-circulo dois" />
+      </section>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: 18,
-            marginBottom: 24,
-          }}
-        >
-          <div
-            style={{
-              background: "#ffffff",
-              border: "1px solid #e5e7eb",
-              borderRadius: 16,
-              padding: 20,
-              boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
-            }}
-          >
-            <div style={{ color: "#64748b", fontSize: 14 }}>Total mensal</div>
-            <div style={{ fontSize: 32, fontWeight: 700, marginTop: 8, color: "#0f172a" }}>
-              {formatarMoeda(totalMensal)}
-            </div>
-          </div>
+      <section className="custos-resumo">
+        <article><span className="azul">R$</span><div><small>Total mensal</small><strong>{formatarMoeda(totalMensal)}</strong></div></article>
+        <article><span className="amarelo">◷</span><div><small>Vencem em breve</small><strong>{proximosVencimentos}</strong></div></article>
+        <article className={quantidadeAtrasados ? "alerta" : ""}><span className="vermelho">!</span><div><small>Pagamentos atrasados</small><strong>{quantidadeAtrasados}</strong></div></article>
+        <article><span className="escuro">↘</span><div><small>Valor atrasado</small><strong>{formatarMoeda(totalAtrasado)}</strong></div></article>
+      </section>
 
-          <div
-            style={{
-              background: "#ffffff",
-              border: "1px solid #e5e7eb",
-              borderRadius: 16,
-              padding: 20,
-              boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
-            }}
-          >
-            <div style={{ color: "#64748b", fontSize: 14 }}>Próximos vencimentos</div>
-            <div style={{ fontSize: 32, fontWeight: 700, marginTop: 8, color: "#0f172a" }}>
-              {proximosVencimentos}
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: "#ffffff",
-              border: "1px solid #e5e7eb",
-              borderRadius: 16,
-              padding: 20,
-              boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
-            }}
-          >
-            <div style={{ color: "#64748b", fontSize: 14 }}>Atrasados</div>
-            <div style={{ fontSize: 32, fontWeight: 700, marginTop: 8, color: "#0f172a" }}>
-              {quantidadeAtrasados}
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: "#ffffff",
-              border: "1px solid #e5e7eb",
-              borderRadius: 16,
-              padding: 20,
-              boxShadow: "0 6px 20px rgba(0,0,0,0.05)",
-            }}
-          >
-            <div style={{ color: "#64748b", fontSize: 14 }}>Valor atrasado</div>
-            <div style={{ fontSize: 32, fontWeight: 700, marginTop: 8, color: "#0f172a" }}>
-              {formatarMoeda(totalAtrasado)}
-            </div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: "#f8fafc",
-            border: "1px solid #e2e8f0",
-            borderRadius: 16,
-            padding: 20,
-            marginBottom: 24,
-          }}
-        >
-          <h2 style={{ marginTop: 0, marginBottom: 16, color: "#1e293b" }}>
-            Cadastrar custo fixo
-          </h2>
-
-          <form
-            onSubmit={cadastrarCusto}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 12,
-              alignItems: "end",
-            }}
-          >
-            <input
-              className="input"
-              name="nome"
-              placeholder="Nome do serviço"
-              value={form.nome}
-              onChange={atualizarCampo}
-              style={{ marginTop: 0, height: 44 }}
-            />
-
-            <input
-              className="input"
-              name="valor"
-              type="number"
-              step="0.01"
-              placeholder="Valor"
-              value={form.valor}
-              onChange={atualizarCampo}
-              style={{ marginTop: 0, height: 44 }}
-            />
-
-            <select
-              className="input"
-              name="frequencia"
-              value={form.frequencia}
-              onChange={atualizarCampo}
-              style={{ marginTop: 0, height: 44 }}
-            >
-              <option value="mensal">Mensal</option>
-              <option value="anual">Anual</option>
-              <option value="unico">Único</option>
-            </select>
-
-            <input
-              className="input"
-              name="data_proximo_pagamento"
-              type="date"
-              value={form.data_proximo_pagamento}
-              onChange={atualizarCampo}
-              style={{ marginTop: 0, height: 44 }}
-            />
-
-            <button
-              type="submit"
-              className="btn"
-              disabled={salvando}
-              style={{
-                height: 44,
-                borderRadius: 12,
-              }}
-            >
-              {salvando ? "Salvando..." : "Cadastrar"}
-            </button>
+      {formularioAberto && (
+        <section className="custos-formulario">
+          <header><div><span className="custos-kicker">NOVA DESPESA</span><h2>Cadastrar custo fixo</h2><p>Informe os dados para acompanhar os próximos pagamentos.</p></div><button type="button" onClick={() => setFormularioAberto(false)}>×</button></header>
+          <form onSubmit={cadastrarCusto}>
+            <label className="largo"><span>Nome do serviço</span><input name="nome" placeholder="Ex.: Licença do software" value={form.nome} onChange={atualizarCampo} required /></label>
+            <label><span>Valor</span><div className="custos-valor-input"><b>R$</b><input name="valor" type="number" step="0.01" placeholder="0,00" value={form.valor} onChange={atualizarCampo} required /></div></label>
+            <label><span>Frequência</span><select name="frequencia" value={form.frequencia} onChange={atualizarCampo}><option value="mensal">Mensal</option><option value="anual">Anual</option><option value="unico">Pagamento único</option></select></label>
+            <label><span>Próximo vencimento</span><input name="data_proximo_pagamento" type="date" value={form.data_proximo_pagamento} onChange={atualizarCampo} required /></label>
+            <footer className="largo"><button type="button" className="secundario" onClick={() => setFormularioAberto(false)}>Cancelar</button><button type="submit" disabled={salvando}>{salvando ? "Salvando..." : "Cadastrar custo"} <span>→</span></button></footer>
           </form>
-        </div>
+        </section>
+      )}
 
-        <div
-          style={{
-            background: "#ffffff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 16,
-            padding: 20,
-          }}
-        >
-          <h2 style={{ marginTop: 0, marginBottom: 16, color: "#1e293b" }}>
-            Assinaturas e pagamentos
-          </h2>
+      <section className="custos-listagem">
+        <header>
+          <div><span className="custos-kicker">AGENDA DE PAGAMENTOS</span><h2>Assinaturas e pagamentos</h2><p>Os custos mais próximos do vencimento aparecem primeiro.</p></div>
+          <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}><option>Todos</option><option>Em dia</option><option>Próximo</option><option>Atrasado</option><option>Sem data</option><option>Cancelado</option></select>
+        </header>
 
-          {loading ? (
-            <p style={{ margin: 0, color: "#64748b" }}>Carregando...</p>
-          ) : custosTratados.length === 0 ? (
-            <p style={{ margin: 0, color: "#64748b" }}>Nenhum custo fixo cadastrado.</p>
-          ) : (
-            <div style={{ display: "grid", gap: 14 }}>
-              {custosTratados.map((item) => {
-                const estiloStatus = corStatus(item.statusVisual)
-
-                return (
-                  <div
-                    key={item.id}
-                    style={{
-                      background: "#f8fafc",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: 16,
-                      padding: 18,
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 16,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <div style={{ flex: 1, minWidth: 240 }}>
-                      <div
-                        style={{
-                          fontSize: 19,
-                          fontWeight: 700,
-                          color: "#0f172a",
-                          marginBottom: 8,
-                        }}
-                      >
-                        {item.nome}
-                      </div>
-
-                      <div
-                        style={{
-                          fontSize: 16,
-                          fontWeight: 600,
-                          color: "#111827",
-                          marginBottom: 8,
-                        }}
-                      >
-                        {formatarMoeda(item.valor)}
-                      </div>
-
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 10,
-                          flexWrap: "wrap",
-                          color: "#475569",
-                          fontSize: 14,
-                        }}
-                      >
-                        <span><strong>Frequência:</strong> {item.frequencia}</span>
-                        <span><strong>Vence:</strong> {formatarData(item.data_proximo_pagamento)}</span>
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <span
-                        style={{
-                          background: estiloStatus.fundo,
-                          color: estiloStatus.texto,
-                          border: `1px solid ${estiloStatus.borda}`,
-                          padding: "6px 14px",
-                          borderRadius: 999,
-                          fontWeight: 700,
-                          fontSize: 12,
-                          letterSpacing: "0.3px",
-                        }}
-                      >
-                        {item.statusVisual}
-                      </span>
-
-                      <button
-                        onClick={() => marcarComoPago(item)}
-                        disabled={processandoId === item.id}
-                        style={{
-                          border: "none",
-                          borderRadius: 10,
-                          padding: "8px 12px",
-                          background: "#0f172a",
-                          color: "#fff",
-                          fontWeight: 600,
-                          fontSize: 13,
-                          cursor: processandoId === item.id ? "not-allowed" : "pointer",
-                          opacity: processandoId === item.id ? 0.7 : 1,
-                        }}
-                      >
-                        {processandoId === item.id ? "Salvando..." : "Marcar como pago"}
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+        {loading ? (
+          <div className="custos-estado"><span>◷</span><p>Carregando pagamentos...</p></div>
+        ) : custosFiltrados.length === 0 ? (
+          <div className="custos-estado"><span>✓</span><h3>Nenhum custo encontrado</h3><p>Não há pagamentos nesta categoria.</p></div>
+        ) : (
+          <div className="custos-grid">
+            {custosFiltrados.map((item) => {
+              const estiloStatus = corStatus(item.statusVisual)
+              const inicial = (item.nome || "C").charAt(0).toUpperCase()
+              return (
+                <article className={`custo-card status-${item.statusVisual.toLowerCase().replace(" ", "-")}`} key={item.id}>
+                  <header><div className="custo-card__icone">{inicial}</div><div><h3>{item.nome}</h3><span>{item.frequencia === "unico" ? "Pagamento único" : `Cobrança ${item.frequencia}`}</span></div><b style={{color:estiloStatus.texto,background:estiloStatus.fundo,borderColor:estiloStatus.borda}}>{item.statusVisual}</b></header>
+                  <div className="custo-card__valor"><small>VALOR DA COBRANÇA</small><strong>{formatarMoeda(item.valor)}</strong></div>
+                  <div className="custo-card__vencimento"><span>◷</span><div><small>PRÓXIMO VENCIMENTO</small><strong>{formatarData(item.data_proximo_pagamento)}</strong></div></div>
+                  <footer><span>{item.statusVisual === "Atrasado" ? "Pagamento precisa de atenção" : "Pagamento acompanhado"}</span><button type="button" onClick={() => marcarComoPago(item)} disabled={processandoId === item.id || item.status === "Cancelado"}>{processandoId === item.id ? "Salvando..." : "✓ Marcar como pago"}</button></footer>
+                </article>
+              )
+            })}
+          </div>
+        )}
+      </section>
+    </main>
   )
 }

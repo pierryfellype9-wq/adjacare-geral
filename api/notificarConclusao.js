@@ -1,5 +1,6 @@
 import { Resend } from "resend"
 import { createClient } from "@supabase/supabase-js"
+import { authorizeRequest, rejectUnauthorized } from "../server/authorize.js"
 
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -12,10 +13,17 @@ const supabase = createClient(
 
 
 export default async function handler(req,res){
-
-
+ if (req.method !== "POST") {
+  return res.status(405).json({ erro: "Método não permitido" })
+ }
  try{
-
+  const authorization = await authorizeRequest(req, [
+   "Administrador",
+   "Mídia",
+   "Sonoplastia",
+   "Secretaria",
+  ])
+  if (authorization.error) return rejectUnauthorized(res, authorization)
 
   const { id } = req.body
 

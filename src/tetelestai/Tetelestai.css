@@ -846,7 +846,7 @@
 }
 .hero-lockup-crown{
   clip-path:inset(0 0 39% 0);
-  transform:rotate(1.25deg) scale(.992);
+  transform:none;
   transform-origin:50% 38%;
 }
 .hero-lockup-wordmark{

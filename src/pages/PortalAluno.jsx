@@ -3,6 +3,9 @@ import { supabase } from "../lib/supabase"
 import "./PortalAluno.css"
 
 export default function PortalAluno() {
+  const portalNoSubdominio = window.location.hostname.toLowerCase().startsWith("aluno.")
+  const rotaBase = portalNoSubdominio ? "" : "/portal-aluno"
+
   const [email, setEmail] = useState("")
   const [senha, setSenha] = useState("")
   const [aluno, setAluno] = useState(null)
@@ -19,7 +22,7 @@ export default function PortalAluno() {
 
   function irPara(p) {
     setPagina(p)
-    window.history.pushState({}, "", `/portal-aluno/${p === "inicio" ? "" : p}`)
+    window.history.pushState({}, "", `${rotaBase}/${p === "inicio" ? "" : p}`)
   }
 
   async function fazerLogin(e) {
@@ -140,7 +143,7 @@ export default function PortalAluno() {
     setLicoes([])
     setPresencas([])
     setPagina("inicio")
-    window.history.pushState({}, "", "/portal-aluno")
+    window.history.pushState({}, "", rotaBase || "/")
   }
 
   function formatarData(data) {

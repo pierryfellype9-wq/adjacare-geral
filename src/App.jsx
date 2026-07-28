@@ -168,6 +168,7 @@ export default function App() {
   const podeVerEscala = temPermissao(user, "escala")
   const podeVerSenhas = temPermissao(user, "senhasAplicativos")
   const podeVerCustosFixos = temPermissao(user, "custosFixos")
+  const podeVerMembros = temPermissao(user, "membros")
 
   return (
     <>
@@ -439,7 +440,16 @@ export default function App() {
                 <Route path="/ebd/relatorios" element={<EBDRelatorios user={user} />} />
                 <Route path="/ebd/relatorio-ofertas" element={<EBDRelatorioOfertas user={user} />} />
                 <Route path="/ebd/dashboard" element={<EBDDashboard user={user} />} />
-                <Route path="/membros" element={<Membros user={user} />} />
+                <Route
+                  path="/membros"
+                  element={
+                    podeVerMembros ? (
+                      <Membros user={user} />
+                    ) : (
+                      <Navigate to="/dashboard" replace />
+                    )
+                  }
+                />
               </Routes>
             </div>
           }

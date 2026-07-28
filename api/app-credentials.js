@@ -5,8 +5,34 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
+async function autorizar(req, podeAlterar = false) {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, "")
+  if (!token) return { status: 401, error: "Sessão não informada." }
+
+  const { data: authData, error: authError } = await supabase.auth.getUser(token)
+  if (authError || !authData.user) return { status: 401, error: "Sessão inválida." }
+
+  const { data: perfil, error: perfilError } = await supabase
+    .from("users")
+    .select("role")
+    .eq("auth_user_id", authData.user.id)
+    .maybeSingle()
+
+  if (perfilError) return { status: 403, error: "Perfil não encontrado." }
+
+  const permitidos = podeAlterar ? ["Administrador"] : ["Administrador", "Mídia"]
+  if (!permitidos.includes(perfil?.role)) {
+    return { status: 403, error: "Você não tem permissão para esta ação." }
+  }
+
+  return { perfil }
+}
+
 export default async function handler(req, res) {
   try {
+    const acesso = await autorizar(req, req.method !== "GET")
+    if (acesso.error) return res.status(acesso.status).json({ error: acesso.error })
+
     if (req.method === "GET") {
       const { categoria } = req.query
 

@@ -46,6 +46,7 @@ const CadastroProfessorPublico = lazy(() => import("./pages/CadastroProfessorPub
 const EBDSolicitacoesProfessores = lazy(() => import("./pages/EBDSolicitacoesProfessores"))
 const EBDSolicitacaoProfessor = lazy(() => import("./pages/EBDSolicitacaoProfessor"))
 const TetelestaiApp = lazy(() => import("./tetelestai/TetelestaiApp"))
+const IgrejaSite = lazy(() => import("./igreja/IgrejaSite"))
 
 function CarregandoPagina() {
   return (
@@ -68,9 +69,18 @@ function isPortalAlunoRequest() {
   return host === "aluno.adjacare.org" || host.startsWith("aluno.")
 }
 
+function isIgrejaRequest() {
+  const host = window.location.hostname.toLowerCase()
+  const path = window.location.pathname.toLowerCase()
+  return host === "adjacare.org" || host === "www.adjacare.org" ||
+    path === "/igreja" || path.startsWith("/igreja/") ||
+    path === "/igreja-preview" || path.startsWith("/igreja-preview/")
+}
+
 export default function App() {
   if (isTetelestaiRequest()) return <Suspense fallback={<div style={{minHeight:"100vh",background:"#020306"}} />}><TetelestaiApp /></Suspense>
   if (isPortalAlunoRequest()) return <Suspense fallback={<CarregandoPagina />}><PortalAluno /></Suspense>
+  if (isIgrejaRequest()) return <Suspense fallback={<div style={{minHeight:"100vh",background:"#061a34"}} />}><IgrejaSite /></Suspense>
 
   useEffect(() => { document.title = "Sistema AD Jacaré" }, [])
 

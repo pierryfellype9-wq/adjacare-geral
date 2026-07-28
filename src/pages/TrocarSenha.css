@@ -1,0 +1,402 @@
+.trocar-senha-page {
+  width: min(1120px, calc(100% - 40px));
+  margin: 34px auto 70px;
+  color: #17243a;
+  font-size: 16px;
+}
+
+.trocar-senha-painel {
+  min-height: 650px;
+  display: grid;
+  grid-template-columns: minmax(0, .95fr) minmax(420px, 1.05fr);
+  overflow: hidden;
+  border: 1px solid #e0e6ee;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: 0 25px 65px rgba(19,44,81,.15);
+}
+
+.trocar-senha-apresentacao {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  padding: 56px 48px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 25% 10%, rgba(255,255,255,.13), transparent 25%),
+    linear-gradient(145deg, #071f43 0%, #124d91 60%, #1d70bc 100%);
+}
+
+.trocar-senha-apresentacao > *:not(.trocar-senha-circulo) {
+  position: relative;
+  z-index: 2;
+}
+
+.trocar-senha-marca {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 42px;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 19px;
+  color: #f0cc82;
+  background: rgba(255,255,255,.09);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -.05em;
+  backdrop-filter: blur(8px);
+}
+
+.trocar-senha-kicker {
+  display: block;
+  margin-bottom: 9px;
+  color: #d3a94f;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.trocar-senha-apresentacao .trocar-senha-kicker {
+  color: #eaca85;
+}
+
+.trocar-senha-apresentacao h1 {
+  max-width: 440px;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(39px, 4.5vw, 55px);
+  line-height: 1.04;
+  letter-spacing: -.045em;
+}
+
+.trocar-senha-apresentacao > p {
+  max-width: 460px;
+  margin: 20px 0 32px;
+  color: #cbdced;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.trocar-senha-dicas {
+  display: grid;
+  gap: 16px;
+}
+
+.trocar-senha-dicas > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trocar-senha-dicas > div > span {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 11px;
+  color: #f2cf88;
+  background: rgba(255,255,255,.08);
+  font-weight: 900;
+}
+
+.trocar-senha-dicas p {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  color: #b7cce2;
+  font-size: 12px;
+}
+
+.trocar-senha-dicas strong {
+  color: #fff;
+  font-size: 14px;
+}
+
+.trocar-senha-circulo {
+  position: absolute;
+  border: 35px solid rgba(255,255,255,.05);
+  border-radius: 50%;
+}
+
+.trocar-senha-circulo.um {
+  width: 240px;
+  height: 240px;
+  right: -155px;
+  bottom: -80px;
+}
+
+.trocar-senha-circulo.dois {
+  width: 85px;
+  height: 85px;
+  left: -65px;
+  top: 155px;
+}
+
+.trocar-senha-formulario {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 55px 62px;
+}
+
+.trocar-senha-voltar {
+  position: absolute;
+  top: 27px;
+  left: 30px;
+  border: 0;
+  padding: 8px 10px;
+  color: #68768b;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.trocar-senha-icone {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 23px;
+  border-radius: 18px;
+  color: #185ca7;
+  background: #e9f2fd;
+}
+
+.trocar-senha-icone b {
+  font-size: 29px;
+}
+
+.trocar-senha-icone span {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  color: #d3a84e;
+  font-size: 10px;
+}
+
+.trocar-senha-formulario h2 {
+  margin: 0;
+  color: #142640;
+  font-size: 31px;
+  line-height: 1.15;
+  letter-spacing: -.03em;
+}
+
+.trocar-senha-introducao {
+  margin: 10px 0 26px;
+  color: #6b788d;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.trocar-senha-formulario form {
+  display: grid;
+  gap: 17px;
+}
+
+.trocar-senha-campo > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #35445b;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.trocar-senha-campo > div {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #d4dde8;
+  border-radius: 13px;
+  background: #f9fbfd;
+  transition: border .16s ease, box-shadow .16s ease;
+}
+
+.trocar-senha-campo > div:focus-within {
+  border-color: #3378c5;
+  box-shadow: 0 0 0 3px rgba(32,103,183,.1);
+}
+
+.trocar-senha-campo input {
+  min-width: 0;
+  flex: 1;
+  box-sizing: border-box;
+  margin: 0;
+  border: 0;
+  outline: 0;
+  padding: 14px;
+  color: #172840;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+}
+
+.trocar-senha-campo button {
+  align-self: stretch;
+  border: 0;
+  padding: 0 14px;
+  color: #2867ac;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.trocar-senha-requisitos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 15px;
+  padding: 2px 1px;
+}
+
+.trocar-senha-requisitos > span {
+  color: #8792a2;
+  font-size: 12px;
+}
+
+.trocar-senha-requisitos > span b {
+  display: inline-grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  margin-right: 4px;
+  border-radius: 50%;
+  color: #8490a1;
+  background: #edf0f4;
+}
+
+.trocar-senha-requisitos > span.valido {
+  color: #187255;
+}
+
+.trocar-senha-requisitos > span.valido b {
+  color: #fff;
+  background: #1a936d;
+}
+
+.trocar-senha-salvar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 48px;
+  margin-top: 3px;
+  border: 0;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(135deg, #145299, #2476c3);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 850;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(25,92,164,.2);
+}
+
+.trocar-senha-salvar span {
+  font-size: 20px;
+}
+
+.trocar-senha-salvar:disabled {
+  opacity: .52;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.trocar-senha-cancelar {
+  border: 0;
+  padding: 8px;
+  color: #718096;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.trocar-senha-rodape {
+  display: block;
+  margin-top: 24px;
+  color: #8490a1;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 820px) {
+  .trocar-senha-page {
+    width: min(100% - 24px, 1120px);
+    margin-top: 18px;
+  }
+
+  .trocar-senha-painel {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    border-radius: 24px;
+  }
+
+  .trocar-senha-apresentacao {
+    min-height: 245px;
+    justify-content: flex-start;
+    padding: 32px 25px;
+  }
+
+  .trocar-senha-marca {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 27px;
+    border-radius: 15px;
+    font-size: 18px;
+  }
+
+  .trocar-senha-apresentacao h1 {
+    font-size: 36px !important;
+  }
+
+  .trocar-senha-apresentacao > p {
+    margin: 15px 0 0;
+    font-size: 15px;
+  }
+
+  .trocar-senha-dicas {
+    display: none;
+  }
+
+  .trocar-senha-formulario {
+    padding: 45px 23px 30px;
+  }
+
+  .trocar-senha-voltar {
+    top: 12px;
+    left: 14px;
+  }
+
+  .trocar-senha-icone {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 19px;
+  }
+
+  .trocar-senha-formulario h2 {
+    font-size: 27px;
+  }
+
+  .trocar-senha-introducao {
+    font-size: 15px;
+  }
+
+  .trocar-senha-campo input {
+    font-size: 16px;
+  }
+
+  .trocar-senha-requisitos {
+    display: grid;
+  }
+}

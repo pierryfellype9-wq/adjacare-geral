@@ -116,14 +116,28 @@ export default function EnviarHinoPublico() {
       const preparo = await respostaPreparo.json()
       if (!respostaPreparo.ok) throw new Error(preparo.error)
 
+      setProgresso("Preparando arquivo...")
+      const bytesArquivo = await arquivo.arrayBuffer()
+      if (!bytesArquivo.byteLength) {
+        throw new Error("O celular não conseguiu liberar o conteúdo do arquivo. Selecione-o novamente.")
+      }
+      const arquivoNormalizado = new Blob([bytesArquivo], {
+        type: metadados.mime_type,
+      })
+
       setProgresso("Enviando arquivo...")
       const { error: erroUpload } = await supabase.storage
         .from("hinos-temporarios")
-        .uploadToSignedUrl(preparo.path, preparo.token, arquivo, {
+        .uploadToSignedUrl(preparo.path, preparo.token, arquivoNormalizado, {
           contentType: metadados.mime_type,
           cacheControl: "3600",
         })
-      if (erroUpload) throw erroUpload
+      if (erroUpload) {
+        if (/no content provided/i.test(erroUpload.message || "")) {
+          throw new Error("O celular não enviou o conteúdo da foto. Selecione a imagem novamente pela galeria.")
+        }
+        throw erroUpload
+      }
 
       setProgresso("Organizando no Drive...")
       const respostaFinal = await fetch("/api/whatsapp", {

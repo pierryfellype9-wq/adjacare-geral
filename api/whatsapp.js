@@ -311,6 +311,36 @@ async function garantirPastasDoCulto(culto, departamento) {
   return { drive, pastaCulto, pastaDepartamento };
 }
 
+async function criarPastaPedidoDrive(titulo) {
+  const pastaBase = process.env.DRIVE_PASTA_PEDIDOS;
+  if (!pastaBase) {
+    throw new Error("Configure DRIVE_PASTA_PEDIDOS na Vercel.");
+  }
+
+  const drive = await obterDrive();
+  const pastaPedidos = await encontrarOuCriarPasta(drive, {
+    parentId: pastaBase,
+    nome: "PEDIDOS DO SISTEMA",
+    chave: "sistema_adjacare",
+    valor: "pedidos",
+  });
+
+  const criada = await drive.files.create({
+    requestBody: {
+      name: textoSeguro(titulo, 120),
+      mimeType: DRIVE_FOLDER_MIME,
+      parents: [pastaPedidos.id],
+      appProperties: {
+        sistema_adjacare: "pedido_whatsapp",
+      },
+    },
+    fields: "id,webViewLink",
+    supportsAllDrives: true,
+  });
+
+  return criada.data.webViewLink || `https://drive.google.com/drive/folders/${criada.data.id}`;
+}
+
 async function baixarMidiaWhatsApp(mediaId) {
   const metadados = await fetch(
     `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${mediaId}`,
@@ -1558,6 +1588,7 @@ Digite:
     if (sessao.etapa === "confirmando_pedido") {
       if (texto === "1") {
         const dados = sessao.dados;
+        const linkDrive = await criarPastaPedidoDrive(dados.titulo);
 
         const { error: erroPedido } = await supabase.from("pedidos").insert({
           titulo: dados.titulo,
@@ -1567,6 +1598,10 @@ Digite:
           ministerio: dados.ministerio || "Não informado",
           criado_por: sessao.usuario_nome || "WhatsApp",
           status: "Pendente",
+          link_drive: linkDrive,
+          origem: "whatsapp",
+          canal: "whatsapp",
+          data: new Date().toISOString(),
         });
 
         if (erroPedido) {
@@ -1631,14 +1666,20 @@ Conversa encerrada. Para uma nova solicitação, envie "menu".`
     }
 
     if (sessao.etapa === "suporte_lider") {
+      const tituloSuporte = "Suporte para líder/professor";
+      const linkDrive = await criarPastaPedidoDrive(tituloSuporte);
       const { error: erroSuporte } = await supabase.from("pedidos").insert({
-        titulo: "Suporte para líder/professor",
+        titulo: tituloSuporte,
         descricao: texto,
         destino: "Mídia",
         prioridade: "Normal",
         ministerio: sessao.dados?.ministerio || "Não informado",
         criado_por: sessao.usuario_nome || "WhatsApp",
         status: "Pendente",
+        link_drive: linkDrive,
+        origem: "whatsapp",
+        canal: "whatsapp",
+        data: new Date().toISOString(),
       });
 
       if (erroSuporte) {

@@ -39,6 +39,24 @@ export default function EnviarHinoPublico() {
   })
 
   useEffect(() => {
+    const tituloAnterior = document.title
+    const icone = document.querySelector('link[rel="icon"]')
+    const iconeAnterior = icone?.getAttribute("href")
+    const tema = document.querySelector('meta[name="theme-color"]')
+    const temaAnterior = tema?.getAttribute("content")
+
+    document.title = "Envio de Hinos | AD Jacaré"
+    if (icone) icone.setAttribute("href", "/logo-ad-site.png")
+    if (tema) tema.setAttribute("content", "#0b4a92")
+
+    return () => {
+      document.title = tituloAnterior
+      if (icone && iconeAnterior) icone.setAttribute("href", iconeAnterior)
+      if (tema && temaAnterior) tema.setAttribute("content", temaAnterior)
+    }
+  }, [])
+
+  useEffect(() => {
     fetch("/api/whatsapp?acao=formulario_hinos")
       .then(async (resposta) => {
         const dados = await resposta.json()
@@ -253,7 +271,7 @@ export default function EnviarHinoPublico() {
         <header style={estilos.topo}>
           <span style={estilos.marca} />
           <div style={estilos.logoCaixa}>
-            <img src="/logo.png" alt="AD Jacaré" style={estilos.logo} />
+            <img src="/logo-ad-site.png" alt="Assembleia de Deus — AD Jacaré" style={estilos.logo} />
           </div>
           <span style={estilos.detalhe}>Som e projeção • AD Jacaré</span>
           <h1 style={estilos.titulo}>Envio de hinos</h1>

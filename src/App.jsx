@@ -43,6 +43,7 @@ const EBDRelatorios = lazy(() => import("./pages/EBDRelatorios"))
 const EBDRelatorioOfertas = lazy(() => import("./pages/EBDRelatorioOfertas"))
 const EBDTrimestres = lazy(() => import("./pages/EBDTrimestres"))
 const CadastroProfessorPublico = lazy(() => import("./pages/CadastroProfessorPublico"))
+const EnviarHinoPublico = lazy(() => import("./pages/EnviarHinoPublico"))
 const EBDSolicitacoesProfessores = lazy(() => import("./pages/EBDSolicitacoesProfessores"))
 const EBDSolicitacaoProfessor = lazy(() => import("./pages/EBDSolicitacaoProfessor"))
 const TetelestaiApp = lazy(() => import("./tetelestai/TetelestaiApp"))
@@ -78,6 +79,8 @@ function isIgrejaRequest() {
 }
 
 export default function App() {
+  const rotaHinos = window.location.pathname.toLowerCase() === "/enviar-hino"
+  if (rotaHinos) return <Suspense fallback={<CarregandoPagina />}><EnviarHinoPublico /></Suspense>
   if (isTetelestaiRequest()) return <Suspense fallback={<div style={{minHeight:"100vh",background:"#020306"}} />}><TetelestaiApp /></Suspense>
   if (isPortalAlunoRequest()) return <Suspense fallback={<CarregandoPagina />}><PortalAluno /></Suspense>
   if (isIgrejaRequest()) return <Suspense fallback={<div style={{minHeight:"100vh",background:"#061a34"}} />}><IgrejaSite /></Suspense>
@@ -275,6 +278,7 @@ export default function App() {
       <Routes>
       <Route path="/portal-aluno/*" element={<PortalAluno />} />
       <Route path="/cadastro-professor" element={<CadastroProfessorPublico />} />
+      <Route path="/enviar-hino" element={<EnviarHinoPublico />} />
 
       {!user ? (
         <Route

@@ -50,8 +50,8 @@ function dataAviso(valor) {
 function Marca() {
   return (
     <span className="igreja-marca">
-      <img src="/logo.png" alt="" />
-      <span><b>ASSEMBLEIA DE DEUS</b><strong>AD JACARÉ</strong></span>
+      <img src="/logo-ad-site.png" alt="" />
+      <span><b>ASSEMBLEIA DE DEUS</b><strong>AD JACARÉ</strong><small>Jundiaí • SP</small></span>
     </span>
   )
 }
@@ -208,7 +208,7 @@ export default function IgrejaSite() {
         <>
           <CabecalhoPagina numero="01" kicker="CONHEÇA A AD JACARÉ" titulo={<>Uma igreja.<br /><em>Muitas histórias.</em></>} texto="Nossa identidade nasce na Palavra, cresce na comunhão e se revela no cuidado com pessoas." />
           <section className="igreja-historia igreja-container">
-            <div className="igreja-historia-visual"><div><span>AD</span><strong>JACARÉ</strong><small>Cabreúva • SP</small></div><p>UMA CASA<br />PARA TODOS</p><i /></div>
+            <div className="igreja-historia-visual"><img src="/logo-ad-institucional-branca.png" alt="Assembleia de Deus Jundiaí - SP" /><p>CONGREGAÇÃO<br />DO JACARÉ</p><i /></div>
             <div className="igreja-historia-texto">
               <span className="igreja-kicker">NOSSA ESSÊNCIA</span>
               <h2>Fé que se vive em comunidade.</h2>
@@ -301,7 +301,7 @@ export default function IgrejaSite() {
 
       <footer className="igreja-rodape">
         <div className="igreja-container">
-          <LinkInterno rota="/" className="igreja-marca-link"><Marca /></LinkInterno>
+          <LinkInterno rota="/" className="igreja-marca-link igreja-rodape-logo"><img src="/logo-ad-institucional-branca.png" alt="Assembleia de Deus Jundiaí - SP" /></LinkInterno>
           <div className="igreja-rodape-nav"><LinkInterno rota="/quem-somos">Quem somos</LinkInterno><LinkInterno rota="/onde-estamos">Onde estamos</LinkInterno><LinkInterno rota="/departamentos">Departamentos</LinkInterno><LinkInterno rota="/contribuicao">Contribuição</LinkInterno></div>
           <p>Uma igreja presente em Cabreúva.</p>
           <small>© {new Date().getFullYear()} AD Jacaré. Todos os direitos reservados.</small>

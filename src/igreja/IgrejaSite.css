@@ -43,3 +43,8 @@
 .igreja-conexoes{padding:65px 0;background:#f0f2f4}.igreja-conexoes h2{color:#17365f;font-size:40px}.igreja-conexoes .igreja-kicker{color:#c76728}.igreja-conexoes-links a{color:#24364d;border-bottom-color:#cfd6de}
 @media(max-width:980px){.igreja-caminhos-grade{grid-template-columns:repeat(2,1fr)}.igreja-departamentos-grade{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:700px){.igreja-topo{height:96px;padding-inline:16px}.igreja-topo::before{height:24px;padding:6px 16px;font-size:7px}.igreja-topo>.igreja-marca-link,.igreja-topo>nav,.igreja-topo>.igreja-topo-acao,.igreja-topo>.igreja-menu-botao{margin-top:24px}.igreja-topo nav{top:88px}.igreja-topo nav a{color:#24364d}.igreja-menu-botao{border-color:#ccd5df;background:#f1f4f7}.igreja-menu-botao i{background:#17365f}.igreja-hero{min-height:720px;padding-top:90px}.igreja-hero h1{font-size:47px}.igreja-caminhos-grade,.igreja-departamentos-grade{grid-template-columns:1fr}.igreja-pagina-hero{min-height:360px;padding-top:70px}.igreja-pagina-hero h1{font-size:42px}}
+
+.igreja-marca small{margin-top:3px;color:#75849a;font-size:7px;font-weight:700;letter-spacing:.17em;text-transform:uppercase}
+.igreja-historia-visual>img{position:relative;z-index:2;width:min(76%,390px);height:auto;object-fit:contain}
+.igreja-rodape-logo img{width:230px;height:auto;display:block}
+@media(max-width:700px){.igreja-rodape-logo img{width:200px}}

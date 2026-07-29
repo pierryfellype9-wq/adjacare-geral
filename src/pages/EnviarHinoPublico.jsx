@@ -1,3 +1,4 @@
+import { supabase } from "../lib/supabase"
 import { useEffect, useMemo, useState } from "react"
 const departamentosPadrao = [
   "Adolescentes e Jovens",
@@ -29,6 +30,9 @@ export default function EnviarHinoPublico() {
   const [carregando, setCarregando] = useState(true)
   const [erroCarregamento, setErroCarregamento] = useState("")
   const [arquivo, setArquivo] = useState(null)
+  const [enviando, setEnviando] = useState(false)
+  const [progresso, setProgresso] = useState("")
+  const [resultado, setResultado] = useState(null)
   const [form, setForm] = useState({
     culto_id: "",
     departamento: "",
@@ -76,9 +80,67 @@ export default function EnviarHinoPublico() {
     setForm((anterior) => ({ ...anterior, [campo]: valor }))
   }
 
-  function visualizarEnvio(evento) {
+  async function enviarHino(evento) {
     evento.preventDefault()
-    alert("A página visual está pronta. A conexão com o envio será ativada na próxima etapa.")
+    if (!arquivo) return alert("Escolha o arquivo do hino.")
+    if (arquivo.size > 50 * 1024 * 1024) {
+      return alert("O arquivo ultrapassa o limite de 50 MB.")
+    }
+
+    setEnviando(true)
+    try {
+      const metadados = {
+        culto_id: form.culto_id,
+        departamento: form.departamento,
+        outro_departamento: form.outro_departamento,
+        nome_apresentacao: form.apresentacao,
+        telefone: form.telefone,
+        observacoes: form.observacoes,
+        nome_original: arquivo.name,
+        mime_type: arquivo.type || "application/octet-stream",
+        tamanho_bytes: arquivo.size,
+      }
+
+      setProgresso("Preparando envio seguro...")
+      const respostaPreparo = await fetch("/api/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acao: "preparar_hino_site", ...metadados }),
+      })
+      const preparo = await respostaPreparo.json()
+      if (!respostaPreparo.ok) throw new Error(preparo.error)
+
+      setProgresso("Enviando arquivo...")
+      const { error: erroUpload } = await supabase.storage
+        .from("hinos-temporarios")
+        .uploadToSignedUrl(preparo.path, preparo.token, arquivo, {
+          contentType: metadados.mime_type,
+          cacheControl: "3600",
+        })
+      if (erroUpload) throw erroUpload
+
+      setProgresso("Organizando no Drive...")
+      const respostaFinal = await fetch("/api/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          acao: "finalizar_hino_site",
+          upload_id: preparo.upload_id,
+          path: preparo.path,
+          ...metadados,
+        }),
+      })
+      const finalizado = await respostaFinal.json()
+      if (!respostaFinal.ok) throw new Error(finalizado.error)
+
+      setResultado(finalizado.registro)
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    } catch (error) {
+      alert(error?.message || "Não foi possível enviar o hino. Tente novamente.")
+    } finally {
+      setEnviando(false)
+      setProgresso("")
+    }
   }
 
   const estilos = {
@@ -281,7 +343,7 @@ export default function EnviarHinoPublico() {
           </p>
         </header>
 
-        <form style={estilos.corpo} onSubmit={visualizarEnvio}>
+        <form style={estilos.corpo} onSubmit={enviarHino}>
           <div style={estilos.secao}>
             <div style={estilos.cabecalho}>
               <span style={estilos.numero}>1</span>
@@ -429,7 +491,30 @@ export default function EnviarHinoPublico() {
             e se o arquivo é exatamente a versão que será apresentada.
           </div>
 
-          <button style={estilos.botao}>Enviar hino para a mídia</button>
+          {resultado && (
+            <div style={{ ...estilos.observacao, background: "#effcf4", borderColor: "#b9e8ca", color: "#176536" }}>
+              <strong>Hino enviado com sucesso!</strong><br />
+              Protocolo: {resultado.protocolo}<br />
+              Arquivo: {resultado.nome_drive}
+            </div>
+          )}
+
+          <button disabled={enviando || Boolean(resultado)} style={{ ...estilos.botao, opacity: enviando || resultado ? .7 : 1 }}>
+            {resultado ? "Envio concluído" : enviando ? progresso : "Enviar hino para a mídia"}
+          </button>
+          {resultado && (
+            <button
+              type="button"
+              onClick={() => {
+                setResultado(null)
+                setArquivo(null)
+                setForm({ culto_id: "", departamento: "", outro_departamento: "", apresentacao: "", telefone: "", observacoes: "" })
+              }}
+              style={{ ...estilos.botao, marginTop: 10, background: "#e8f0fb", color: "#174c8d", boxShadow: "none" }}
+            >
+              Enviar outro hino
+            </button>
+          )}
         </form>
       </section>
     </main>

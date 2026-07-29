@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
 import { google } from "googleapis";
 import { enviarPush } from "../server/pushNotifications.js";
@@ -465,6 +465,191 @@ function BufferToStream(buffer) {
   return Readable.from(buffer);
 }
 
+function tipoMidiaPorMime(mime = "") {
+  if (mime.startsWith("audio/")) return "audio";
+  if (mime.startsWith("video/")) return "video";
+  if (mime.startsWith("image/")) return "image";
+  return "document";
+}
+
+async function validarCultoHinoSite(cultoId) {
+  const { data: culto, error } = await supabase
+    .from("whatsapp_cultos")
+    .select("*")
+    .eq("id", cultoId)
+    .single();
+
+  if (error || !culto) throw new Error("Culto não encontrado.");
+  if (culto.status !== "aberto") {
+    throw new Error("O recebimento de hinos para esse culto ainda não está aberto.");
+  }
+  if (culto.prazo_envio && new Date(culto.prazo_envio).getTime() < Date.now()) {
+    throw new Error("O prazo de envio dos hinos para esse culto terminou.");
+  }
+  return culto;
+}
+
+function dadosHinoSite(body) {
+  const departamentoEscolhido = textoSeguro(body.departamento, 80);
+  const departamento = departamentoEscolhido === "Outro departamento"
+    ? textoSeguro(body.outro_departamento, 80)
+    : departamentoEscolhido;
+  const nomeApresentacao = textoSeguro(body.nome_apresentacao, 120);
+  const telefone = String(body.telefone || "").replace(/\D/g, "").slice(0, 13);
+  const nomeOriginal = textoSeguro(body.nome_original, 180);
+  const mimeType = textoSeguro(body.mime_type, 120) || "application/octet-stream";
+  const tamanhoBytes = Number(body.tamanho_bytes || 0);
+  const limite = Number(process.env.WHATSAPP_HINO_MAX_BYTES || 50 * 1024 * 1024);
+
+  if (!departamento || !nomeApresentacao || telefone.length < 10) {
+    throw new Error("Preencha departamento, nome da apresentação e celular com DDD.");
+  }
+  if (!nomeOriginal || !tamanhoBytes || tamanhoBytes > limite) {
+    throw new Error(`O arquivo deve ter no máximo ${Math.round(limite / 1024 / 1024)} MB.`);
+  }
+
+  return {
+    departamento,
+    nomeApresentacao,
+    telefone,
+    nomeOriginal,
+    mimeType,
+    tamanhoBytes,
+    observacoes: textoSeguro(body.observacoes, 500) || null,
+  };
+}
+
+async function prepararHinoSite(body) {
+  const culto = await validarCultoHinoSite(body.culto_id);
+  const dados = dadosHinoSite(body);
+
+  const umaHoraAtras = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { count } = await supabase
+    .from("whatsapp_hinos_projecao")
+    .select("id", { count: "exact", head: true })
+    .eq("telefone", dados.telefone)
+    .gte("criado_em", umaHoraAtras);
+  if (Number(count || 0) >= 10) {
+    throw new Error("Muitos envios recentes. Aguarde um pouco antes de tentar novamente.");
+  }
+
+  const uploadId = randomUUID();
+  const extensao = extensaoDaMidia({
+    filename: dados.nomeOriginal,
+    mime_type: dados.mimeType,
+    tipo: tipoMidiaPorMime(dados.mimeType),
+  });
+  const path = `${culto.id}/${uploadId}.${extensao}`;
+  const { data, error } = await supabase.storage
+    .from("hinos-temporarios")
+    .createSignedUploadUrl(path);
+
+  if (error) throw error;
+  return { upload_id: uploadId, path, token: data.token };
+}
+
+async function finalizarHinoSite(body) {
+  const culto = await validarCultoHinoSite(body.culto_id);
+  const dados = dadosHinoSite(body);
+  const uploadId = String(body.upload_id || "");
+  const path = String(body.path || "");
+
+  if (!/^[0-9a-f-]{36}$/i.test(uploadId) || !path.startsWith(`${culto.id}/${uploadId}.`)) {
+    throw new Error("Envio inválido ou expirado.");
+  }
+
+  const { data: blob, error: erroDownload } = await supabase.storage
+    .from("hinos-temporarios")
+    .download(path);
+  if (erroDownload) throw new Error("O arquivo temporário não foi encontrado. Envie novamente.");
+
+  const buffer = Buffer.from(await blob.arrayBuffer());
+  const limite = Number(process.env.WHATSAPP_HINO_MAX_BYTES || 50 * 1024 * 1024);
+  if (!buffer.length || buffer.length > limite) {
+    throw new Error("Arquivo vazio ou maior que o limite permitido.");
+  }
+
+  const hash = createHash("sha256").update(buffer).digest("hex");
+  const { data: duplicado } = await supabase
+    .from("whatsapp_hinos_projecao")
+    .select("protocolo,nome_drive,arquivo_drive_link")
+    .eq("culto_id", culto.id)
+    .eq("hash_sha256", hash)
+    .maybeSingle();
+
+  if (duplicado) {
+    await supabase.storage.from("hinos-temporarios").remove([path]);
+    return { duplicado: true, registro: duplicado };
+  }
+
+  const numero = await proximoNumeroHino(culto.id, dados.departamento, dados.nomeApresentacao);
+  const extensao = extensaoDaMidia({
+    filename: dados.nomeOriginal,
+    mime_type: dados.mimeType,
+    tipo: tipoMidiaPorMime(dados.mimeType),
+  });
+  const nomeDrive = `${dados.nomeApresentacao} - Hino ${String(numero).padStart(2, "0")}.${extensao}`;
+  const { drive, pastaDepartamento } = await garantirPastasDoCulto(culto, dados.departamento);
+
+  const upload = await drive.files.create({
+    requestBody: {
+      name: nomeDrive,
+      parents: [pastaDepartamento.id],
+      description: `Recebido pelo site (${dados.telefone}) para ${culto.titulo}.`,
+      appProperties: {
+        whatsapp_culto_id: culto.id,
+        whatsapp_hash_sha256: hash,
+        origem: "site_publico",
+      },
+    },
+    media: { mimeType: dados.mimeType, body: Readable.from(buffer) },
+    fields: "id,name,webViewLink",
+    supportsAllDrives: true,
+  });
+
+  const { data: registro, error } = await supabase
+    .from("whatsapp_hinos_projecao")
+    .insert({
+      culto_id: culto.id,
+      telefone: dados.telefone,
+      departamento: dados.departamento,
+      nome_apresentacao: dados.nomeApresentacao,
+      tipo_midia: tipoMidiaPorMime(dados.mimeType),
+      nome_original: dados.nomeOriginal,
+      nome_drive: nomeDrive,
+      mime_type: dados.mimeType,
+      tamanho_bytes: buffer.length,
+      hash_sha256: hash,
+      whatsapp_media_id: null,
+      arquivo_drive_id: upload.data.id,
+      arquivo_drive_link: upload.data.webViewLink || `https://drive.google.com/file/d/${upload.data.id}/view`,
+      observacoes: dados.observacoes || "Enviado pelo site",
+      status: "recebido",
+    })
+    .select("protocolo,nome_drive,arquivo_drive_link")
+    .single();
+
+  if (error) throw error;
+  await supabase.storage.from("hinos-temporarios").remove([path]);
+
+  await enviarPush({
+    titulo: "🎵 Novo hino recebido pelo site",
+    mensagem: `${dados.nomeApresentacao} • ${culto.titulo} • ${dados.departamento}`,
+    roles: ["Administrador", "Mídia", "Sonoplastia"],
+    preferencia: "notificar_hinos",
+    dados: {
+      tipo: "hino",
+      protocolo: registro.protocolo,
+      culto_id: culto.id,
+      path: "/whatsapp?aba=hinos",
+    },
+  }).catch((erroPush) =>
+    console.error("Hino salvo, mas a notificação push falhou:", erroPush)
+  );
+
+  return { duplicado: false, registro };
+}
+
 async function listarCultosAbertos() {
   const agora = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
@@ -715,6 +900,20 @@ export default async function handler(req, res) {
 
   if (req.method !== "POST") {
     return res.status(405).send("Método não permitido");
+  }
+
+  if (req.body?.acao === "preparar_hino_site" || req.body?.acao === "finalizar_hino_site") {
+    try {
+      const resultado = req.body.acao === "preparar_hino_site"
+        ? await prepararHinoSite(req.body)
+        : await finalizarHinoSite(req.body);
+      return res.status(200).json(resultado);
+    } catch (error) {
+      console.error("Erro no envio de hino pelo site:", error);
+      return res.status(400).json({
+        error: error?.message || "Não foi possível concluir o envio.",
+      });
+    }
   }
 
   try {

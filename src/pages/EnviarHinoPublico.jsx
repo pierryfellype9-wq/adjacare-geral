@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from "react"
 const departamentosPadrao = [
   "Adolescentes e Jovens",
-  "Círculo de Oração",
   "Cofemp",
-  "EBD",
   "Infantil",
   "Individual (solo)",
-  "Louvor",
+  "Mídia",
   "Outro departamento",
 ]
 
@@ -34,6 +32,7 @@ export default function EnviarHinoPublico() {
   const [form, setForm] = useState({
     culto_id: "",
     departamento: "",
+    outro_departamento: "",
     apresentacao: "",
     telefone: "",
     observacoes: "",
@@ -45,7 +44,6 @@ export default function EnviarHinoPublico() {
         const dados = await resposta.json()
         if (!resposta.ok) throw new Error(dados.error)
         setCultos(dados.cultos || [])
-        if (dados.departamentos?.length) setDepartamentos(dados.departamentos)
       })
       .catch(() => setErroCarregamento("Não foi possível carregar as programações. Atualize a página."))
       .finally(() => setCarregando(false))
@@ -324,6 +322,15 @@ export default function EnviarHinoPublico() {
                   <option value="">Selecione</option>
                   {departamentos.map((item) => <option key={item}>{item}</option>)}
                 </select>
+                {form.departamento === "Outro departamento" && (
+                  <input
+                    required
+                    style={{ ...estilos.campo, marginTop: 10 }}
+                    placeholder="Digite o nome do departamento"
+                    value={form.outro_departamento}
+                    onChange={(e) => atualizar("outro_departamento", e.target.value)}
+                  />
+                )}
               </div>
               <div>
                 <label style={estilos.label}>Quem vai cantar?</label>

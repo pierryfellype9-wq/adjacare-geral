@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { supabase } from "../lib/supabase"
-
-const departamentos = [
+const departamentosPadrao = [
   "Adolescentes e Jovens",
   "Círculo de Oração",
   "Cofemp",
@@ -29,7 +27,9 @@ function formatarData(valor, comHora = true) {
 
 export default function EnviarHinoPublico() {
   const [cultos, setCultos] = useState([])
+  const [departamentos, setDepartamentos] = useState(departamentosPadrao)
   const [carregando, setCarregando] = useState(true)
+  const [erroCarregamento, setErroCarregamento] = useState("")
   const [arquivo, setArquivo] = useState(null)
   const [form, setForm] = useState({
     culto_id: "",
@@ -40,15 +40,15 @@ export default function EnviarHinoPublico() {
   })
 
   useEffect(() => {
-    supabase
-      .from("whatsapp_cultos")
-      .select("id,titulo,data_culto,prazo_envio,status")
-      .in("status", ["aberto", "aguardando"])
-      .order("data_culto", { ascending: true })
-      .then(({ data }) => {
-        setCultos(data || [])
-        setCarregando(false)
+    fetch("/api/whatsapp?acao=formulario_hinos")
+      .then(async (resposta) => {
+        const dados = await resposta.json()
+        if (!resposta.ok) throw new Error(dados.error)
+        setCultos(dados.cultos || [])
+        if (dados.departamentos?.length) setDepartamentos(dados.departamentos)
       })
+      .catch(() => setErroCarregamento("Não foi possível carregar as programações. Atualize a página."))
+      .finally(() => setCarregando(false))
   }, [])
 
   const culto = useMemo(
@@ -290,6 +290,11 @@ export default function EnviarHinoPublico() {
                 </option>
               ))}
             </select>
+            {erroCarregamento && (
+              <div style={{ ...estilos.cultoResumo, color: "#9f2f2f", background: "#fff2f2", borderColor: "#f1caca" }}>
+                {erroCarregamento}
+              </div>
+            )}
             {culto && (
               <div style={estilos.cultoResumo}>
                 <strong>{culto.titulo}</strong><br />

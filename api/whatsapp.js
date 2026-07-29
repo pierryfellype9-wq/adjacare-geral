@@ -679,6 +679,29 @@ Aguarde um momento. Um atendente irá responder por aqui.`
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
+    if (req.query.acao === "formulario_hinos") {
+      try {
+        const [cultos, departamentos] = await Promise.all([
+          listarCultosAbertos(),
+          listarDepartamentosHinos(),
+        ]);
+        res.setHeader("Cache-Control", "no-store");
+        return res.status(200).json({
+          cultos: cultos.map(({ id, titulo, data_culto, prazo_envio, status }) => ({
+            id,
+            titulo,
+            data_culto,
+            prazo_envio,
+            status,
+          })),
+          departamentos,
+        });
+      } catch (error) {
+        console.error("Erro ao carregar formulário público de hinos:", error);
+        return res.status(500).json({ error: "Não foi possível carregar as informações." });
+      }
+    }
+
     const mode = req.query["hub.mode"];
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];

@@ -29,7 +29,7 @@ async function salvarMensagem(telefone, direcao, mensagem) {
 }
 
 async function enviarMensagem(telefone, texto) {
-  await fetch(
+  const resposta = await fetch(
     `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
     {
       method: "POST",
@@ -49,6 +49,14 @@ async function enviarMensagem(telefone, texto) {
       }),
     }
   );
+
+  const retorno = await resposta.json().catch(() => ({}));
+  if (!resposta.ok) {
+    const detalhe = retorno?.error?.message || `WhatsApp recusou a mensagem (${resposta.status}).`;
+    const codigo = retorno?.error?.code ? ` [código ${retorno.error.code}]` : "";
+    await salvarMensagem(telefone, "erro", `${detalhe}${codigo}`);
+    throw new Error(`${detalhe}${codigo}`);
+  }
 
   await salvarMensagem(telefone, "enviada", texto);
 }

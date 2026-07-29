@@ -497,7 +497,10 @@ function dadosHinoSite(body) {
   const nomeApresentacao = textoSeguro(body.nome_apresentacao, 120);
   const telefone = String(body.telefone || "").replace(/\D/g, "").slice(0, 13);
   const nomeOriginal = textoSeguro(body.nome_original, 180);
-  const mimeType = textoSeguro(body.mime_type, 120) || "application/octet-stream";
+  const mimeRecebido = String(body.mime_type || "").trim().toLowerCase();
+  const mimeType = /^[a-z0-9.+-]+\/[a-z0-9.+-]+$/i.test(mimeRecebido)
+    ? mimeRecebido
+    : "application/octet-stream";
   const tamanhoBytes = Number(body.tamanho_bytes || 0);
   const limite = Number(process.env.WHATSAPP_HINO_MAX_BYTES || 50 * 1024 * 1024);
 

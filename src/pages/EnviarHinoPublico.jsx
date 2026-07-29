@@ -33,6 +33,7 @@ export default function EnviarHinoPublico() {
   const [enviando, setEnviando] = useState(false)
   const [progresso, setProgresso] = useState("")
   const [resultado, setResultado] = useState(null)
+  const [mensagemErro, setMensagemErro] = useState("")
   const [form, setForm] = useState({
     culto_id: "",
     departamento: "",
@@ -82,9 +83,14 @@ export default function EnviarHinoPublico() {
 
   async function enviarHino(evento) {
     evento.preventDefault()
-    if (!arquivo) return alert("Escolha o arquivo do hino.")
+    setMensagemErro("")
+    if (!arquivo) {
+      setMensagemErro("Escolha o arquivo do hino.")
+      return
+    }
     if (arquivo.size > 50 * 1024 * 1024) {
-      return alert("O arquivo ultrapassa o limite de 50 MB.")
+      setMensagemErro("O arquivo ultrapassa o limite de 50 MB.")
+      return
     }
 
     setEnviando(true)
@@ -136,7 +142,7 @@ export default function EnviarHinoPublico() {
       setResultado(finalizado.registro)
       window.scrollTo({ top: 0, behavior: "smooth" })
     } catch (error) {
-      alert(error?.message || "Não foi possível enviar o hino. Tente novamente.")
+      setMensagemErro(error?.message || "Não foi possível enviar o hino. Tente novamente.")
     } finally {
       setEnviando(false)
       setProgresso("")
@@ -329,6 +335,102 @@ export default function EnviarHinoPublico() {
 
   return (
     <main style={estilos.pagina}>
+      <style>{`
+        @keyframes hino-girar { to { transform: rotate(360deg); } }
+        @keyframes hino-pulsar { 0%,100% { opacity:.45; transform:scale(.92) } 50% { opacity:1; transform:scale(1) } }
+      `}</style>
+
+      {enviando && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-live="assertive"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 99999,
+            display: "grid",
+            placeItems: "center",
+            padding: 18,
+            background: "rgba(5,18,40,.72)",
+            backdropFilter: "blur(7px)",
+          }}
+        >
+          <div style={{
+            width: "min(390px,100%)",
+            padding: "30px 24px",
+            borderRadius: 24,
+            textAlign: "center",
+            background: "#fff",
+            boxShadow: "0 28px 80px rgba(0,0,0,.32)",
+          }}>
+            <div style={{
+              width: 64,
+              height: 64,
+              margin: "0 auto 18px",
+              borderRadius: "50%",
+              border: "6px solid #dbe9fb",
+              borderTopColor: "#1769c2",
+              animation: "hino-girar .85s linear infinite",
+            }} />
+            <h2 style={{ margin: 0, color: "#10284a", fontSize: 23 }}>{progresso}</h2>
+            <p style={{ margin: "9px 0 0", color: "#6f819b", lineHeight: 1.5 }}>
+              Não feche nem atualize esta página.
+            </p>
+            <div style={{ display:"flex", justifyContent:"center", gap:7, marginTop:18 }}>
+              {[0,1,2].map((item) => (
+                <i key={item} style={{
+                  width:8, height:8, borderRadius:"50%", background:"#2a76ce",
+                  animation:`hino-pulsar 1s ease-in-out ${item * .18}s infinite`
+                }} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mensagemErro && !enviando && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 99999,
+            display: "grid",
+            placeItems: "center",
+            padding: 18,
+            background: "rgba(5,18,40,.68)",
+            backdropFilter: "blur(6px)",
+          }}
+        >
+          <div style={{
+            width: "min(420px,100%)",
+            padding: "27px 23px",
+            borderRadius: 23,
+            textAlign: "center",
+            background: "#fff",
+            boxShadow: "0 28px 80px rgba(0,0,0,.3)",
+          }}>
+            <div style={{
+              width: 54, height: 54, margin:"0 auto 14px", borderRadius:17,
+              display:"grid", placeItems:"center", background:"#fff0f0",
+              color:"#bb3030", fontSize:27, fontWeight:900
+            }}>!</div>
+            <h2 style={{ margin:0, color:"#10284a", fontSize:22 }}>Não foi possível enviar</h2>
+            <p style={{ margin:"10px 0 20px", color:"#657891", lineHeight:1.55 }}>{mensagemErro}</p>
+            <button
+              type="button"
+              onClick={() => setMensagemErro("")}
+              style={{
+                width:"100%", padding:13, border:0, borderRadius:13,
+                background:"#175eae", color:"#fff", fontSize:15,
+                fontWeight:800, cursor:"pointer"
+              }}
+            >Entendi, tentar novamente</button>
+          </div>
+        </div>
+      )}
       <section style={estilos.card}>
         <header style={estilos.topo}>
           <span style={estilos.marca} />
@@ -500,7 +602,7 @@ export default function EnviarHinoPublico() {
           )}
 
           <button disabled={enviando || Boolean(resultado)} style={{ ...estilos.botao, opacity: enviando || resultado ? .7 : 1 }}>
-            {resultado ? "Envio concluído" : enviando ? progresso : "Enviar hino para a mídia"}
+            {resultado ? "Envio concluído" : "Enviar hino para a mídia"}
           </button>
           {resultado && (
             <button

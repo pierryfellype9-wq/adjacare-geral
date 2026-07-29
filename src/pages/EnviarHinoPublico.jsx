@@ -389,6 +389,116 @@ export default function EnviarHinoPublico() {
         </div>
       )}
 
+      {resultado && !enviando && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Hino enviado com sucesso"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 99998,
+            display: "grid",
+            placeItems: "center",
+            padding: 18,
+            background: "linear-gradient(145deg,#e8f4ff 0%,#f4fbf7 48%,#fff 100%)",
+            overflowY: "auto",
+          }}
+        >
+          <div style={{
+            width: "min(560px,100%)",
+            padding: "38px 25px 28px",
+            borderRadius: 28,
+            textAlign: "center",
+            background: "#fff",
+            border: "1px solid #cfe7d8",
+            boxShadow: "0 25px 75px rgba(15,64,45,.15)",
+          }}>
+            <div style={{
+              width: 82,
+              height: 82,
+              margin: "0 auto 20px",
+              borderRadius: "50%",
+              display: "grid",
+              placeItems: "center",
+              color: "#fff",
+              background: "linear-gradient(145deg,#0e9c59,#18bb70)",
+              boxShadow: "0 14px 30px rgba(17,164,94,.28)",
+              fontSize: 42,
+              fontWeight: 900,
+            }}>✓</div>
+
+            <span style={{
+              display: "block",
+              color: "#15834f",
+              fontSize: 12,
+              fontWeight: 900,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+            }}>Envio concluído</span>
+            <h1 style={{
+              margin: "8px 0 10px",
+              color: "#10284a",
+              fontSize: "clamp(27px,7vw,38px)",
+              lineHeight: 1.12,
+            }}>Hino enviado com sucesso!</h1>
+            <p style={{ margin: "0 auto", maxWidth: 440, color: "#6d7e94", lineHeight: 1.55 }}>
+              O arquivo foi organizado e já está disponível para a equipe de mídia.
+            </p>
+
+            <div style={{
+              margin: "24px 0",
+              padding: "18px",
+              borderRadius: 18,
+              textAlign: "left",
+              background: "#effbf4",
+              border: "1px solid #bee6cd",
+              color: "#17643a",
+              lineHeight: 1.65,
+              overflowWrap: "anywhere",
+            }}>
+              <small style={{ display:"block", color:"#56806a", fontWeight:700 }}>PROTOCOLO</small>
+              <strong style={{ display:"block", fontSize:18 }}>{resultado.protocolo}</strong>
+              <small style={{ display:"block", marginTop:10, color:"#56806a", fontWeight:700 }}>ARQUIVO</small>
+              <strong>{resultado.nome_drive}</strong>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setResultado(null)
+                setArquivo(null)
+                setForm({ culto_id: "", departamento: "", outro_departamento: "", apresentacao: "", telefone: "", observacoes: "" })
+                window.scrollTo({ top: 0, behavior: "smooth" })
+              }}
+              style={{
+                width: "100%",
+                padding: 15,
+                border: 0,
+                borderRadius: 15,
+                background: "linear-gradient(135deg,#104994,#2476d6)",
+                color: "#fff",
+                fontSize: 16,
+                fontWeight: 850,
+                cursor: "pointer",
+                boxShadow: "0 11px 25px rgba(25,91,177,.22)",
+              }}
+            >Enviar outro hino</button>
+            <a
+              href="/"
+              style={{
+                display: "inline-block",
+                marginTop: 17,
+                color: "#526d91",
+                fontSize: 14,
+                fontWeight: 750,
+                textDecoration: "none",
+              }}
+            >Voltar ao site da igreja</a>
+          </div>
+        </div>
+      )}
+
       {mensagemErro && !enviando && (
         <div
           role="dialog"
@@ -593,30 +703,9 @@ export default function EnviarHinoPublico() {
             e se o arquivo é exatamente a versão que será apresentada.
           </div>
 
-          {resultado && (
-            <div style={{ ...estilos.observacao, background: "#effcf4", borderColor: "#b9e8ca", color: "#176536" }}>
-              <strong>Hino enviado com sucesso!</strong><br />
-              Protocolo: {resultado.protocolo}<br />
-              Arquivo: {resultado.nome_drive}
-            </div>
-          )}
-
           <button disabled={enviando || Boolean(resultado)} style={{ ...estilos.botao, opacity: enviando || resultado ? .7 : 1 }}>
             {resultado ? "Envio concluído" : "Enviar hino para a mídia"}
           </button>
-          {resultado && (
-            <button
-              type="button"
-              onClick={() => {
-                setResultado(null)
-                setArquivo(null)
-                setForm({ culto_id: "", departamento: "", outro_departamento: "", apresentacao: "", telefone: "", observacoes: "" })
-              }}
-              style={{ ...estilos.botao, marginTop: 10, background: "#e8f0fb", color: "#174c8d", boxShadow: "none" }}
-            >
-              Enviar outro hino
-            </button>
-          )}
         </form>
       </section>
     </main>

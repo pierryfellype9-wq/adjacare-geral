@@ -1,92 +1,310 @@
-import { useEffect, useMemo, useState } from "react"
-import { supabase } from "../lib/supabase"
-import "./IgrejaSite.css"
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../lib/supabase";
+import {
+  CULTOS,
+  DEPARTAMENTOS,
+  DESCRICOES_SITE,
+  NAVEGACAO_SITE,
+  ROTAS_SITE,
+  TITULOS_SITE,
+  obterProximosCultos,
+} from "./siteData";
+import "./IgrejaSite.css";
 
-const CULTOS = [
-  { dia: "SEG", horario: "19h30", titulo: "Oração", detalhe: "Às 20h10, ensaio do Círculo de Oração" },
-  { dia: "TER", horario: "14h", titulo: "Oração", detalhe: "Uma tarde de comunhão e busca" },
-  { dia: "QUA", horario: "19h30", titulo: "Culto de Ensino", detalhe: "Palavra e crescimento espiritual" },
-  { dia: "SEX", horario: "19h30", titulo: "Culto de Adoração", detalhe: "Louvor, oração e mensagem" },
-  { dia: "DOM", horario: "9h", titulo: "Escola Bíblica", detalhe: "Classes para todas as idades" },
-  { dia: "DOM", horario: "18h30", titulo: "Culto da Família", detalhe: "Um encontro para toda a igreja" },
-]
-
-const DEPARTAMENTOS = [
-  { numero: "01", nome: "Escola Bíblica Dominical", sigla: "EBD", descricao: "Ensino bíblico para todas as idades, formando discípulos firmados na Palavra.", destaque: "Aprender" },
-  { numero: "02", nome: "Jovens e Adolescentes", sigla: "J&A", descricao: "Uma geração conectada com Deus, crescendo em fé, comunhão e propósito.", destaque: "Crescer" },
-  { numero: "03", nome: "Círculo de Oração", sigla: "COFEMP", descricao: "Mulheres unidas em oração, cuidado e serviço à obra de Deus.", destaque: "Interceder" },
-  { numero: "04", nome: "Departamento Infantil", sigla: "INFANTIL", descricao: "Um espaço seguro e acolhedor para apresentar Jesus aos nossos pequenos.", destaque: "Cuidar" },
-  { numero: "05", nome: "Mídia", sigla: "MÍDIA", descricao: "Criatividade, comunicação e tecnologia a serviço do Evangelho.", destaque: "Comunicar" },
-  { numero: "06", nome: "Orquestra e Coral", sigla: "MÚSICA", descricao: "Talentos reunidos em adoração para servir à igreja e glorificar a Deus.", destaque: "Adorar" },
-]
-
-const ROTAS = {
-  "/": "inicio",
-  "/quem-somos": "quem-somos",
-  "/onde-estamos": "onde-estamos",
-  "/departamentos": "departamentos",
-  "/contribuicao": "contribuicao",
-}
+const ENDERECO =
+  "Av. Vereador José Donato, 913 — Bairro Jacaré, Cabreúva/SP — CEP 13318-000";
+const LINK_MAPA =
+  "https://www.google.com/maps/search/?api=1&query=Av.%20Vereador%20Jos%C3%A9%20Donato%2C%20913%2C%20Cabre%C3%BAva%20SP";
+const MAPA_EMBED =
+  "https://www.google.com/maps?q=Av.%20Vereador%20Jos%C3%A9%20Donato%2C%20913%2C%20Cabre%C3%BAva%20SP&output=embed";
 
 function caminhoLimpo() {
-  const path = window.location.pathname.replace(/^\/igreja(?:-preview)?/, "") || "/"
-  return path !== "/" ? path.replace(/\/$/, "") : path
+  const path =
+    window.location.pathname.replace(/^\/igreja(?:-preview)?/, "") || "/";
+  return path !== "/" ? path.replace(/\/$/, "") : path;
 }
 
 function baseDoSite() {
-  const path = window.location.pathname
-  if (path.startsWith("/igreja-preview")) return "/igreja-preview"
-  if (path.startsWith("/igreja")) return "/igreja"
-  return ""
+  const path = window.location.pathname;
+  if (path.startsWith("/igreja-preview")) return "/igreja-preview";
+  if (path.startsWith("/igreja")) return "/igreja";
+  return "";
+}
+
+function hrefInterno(base, rota) {
+  return rota === "/" ? base || "/" : `${base}${rota}`;
 }
 
 function dataAviso(valor) {
-  if (!valor) return "Comunicado recente"
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" })
-    .format(new Date(valor))
-    .replace(".", "")
+  if (!valor) return "Comunicado";
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date(valor));
 }
 
-function Marca() {
+function definirMeta(seletor, atributo, valor) {
+  let elemento = document.head.querySelector(seletor);
+
+  if (!elemento) {
+    elemento = document.createElement("meta");
+    const [nome, conteudo] = atributo;
+    elemento.setAttribute(nome, conteudo);
+    document.head.appendChild(elemento);
+  }
+
+  elemento.setAttribute("content", valor);
+}
+
+function Seta({ pequena = false }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={pequena ? "seta pequena" : "seta"}
+      viewBox="0 0 24 24"
+    >
+      <path d="M5 12h13M13 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+function Marca({ rodape = false }) {
+  if (rodape) {
+    return (
+      <span className="igreja-marca igreja-marca-rodape">
+        <img
+          src="/logo-ad-institucional-branca.png"
+          alt="Assembleia de Deus Jundiaí"
+        />
+      </span>
+    );
+  }
+
   return (
     <span className="igreja-marca">
       <img src="/logo-ad-site.png" alt="" />
-      <span><b>ASSEMBLEIA DE DEUS</b><strong>AD JACARÉ</strong><small>Jundiaí • SP</small></span>
+      <span>
+        <b>ASSEMBLEIA DE DEUS</b>
+        <strong>AD JACARÉ</strong>
+        <small>Jundiaí • SP</small>
+      </span>
     </span>
-  )
+  );
 }
 
-function IconeSeta() {
-  return <span aria-hidden="true">↗</span>
+function LinkSite({ rota, base, navegar, children, className = "", ...props }) {
+  return (
+    <a
+      {...props}
+      className={className}
+      href={hrefInterno(base, rota)}
+      onClick={(event) => {
+        event.preventDefault();
+        navegar(rota);
+      }}
+    >
+      {children}
+    </a>
+  );
+}
+
+function CabecalhoPagina({ indice, kicker, titulo, texto }) {
+  return (
+    <section className="igreja-pagina-cabecalho">
+      <div className="igreja-container">
+        <span className="igreja-pagina-indice" aria-hidden="true">
+          {indice}
+        </span>
+        <div>
+          <span className="igreja-kicker">{kicker}</span>
+          <h1>{titulo}</h1>
+          <p>{texto}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AvisosPublicos({ avisos }) {
+  if (!avisos.length) return null;
+
+  return (
+    <section className="igreja-avisos" aria-labelledby="titulo-avisos">
+      <div className="igreja-container">
+        <header className="igreja-titulo-secao claro">
+          <div>
+            <span className="igreja-kicker">COMUNICADOS</span>
+            <h2 id="titulo-avisos">Informações da igreja</h2>
+          </div>
+          <p>Avisos públicos atualizados diretamente pelo Sistema ADJACARÉ.</p>
+        </header>
+
+        <div className="igreja-avisos-lista">
+          {avisos.map((aviso) => (
+            <article key={aviso.id} className={aviso.urgente ? "urgente" : ""}>
+              <span>{aviso.urgente ? "Atenção" : dataAviso(aviso.data)}</span>
+              <h3>{aviso.titulo}</h3>
+              <p>{aviso.mensagem}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Rodape({ base, navegar }) {
+  return (
+    <footer className="igreja-rodape">
+      <div className="igreja-container igreja-rodape-principal">
+        <div className="igreja-rodape-identidade">
+          <LinkSite
+            rota="/"
+            base={base}
+            navegar={navegar}
+            aria-label="Voltar ao início"
+          >
+            <Marca rodape />
+          </LinkSite>
+          <p>
+            Ministério do Belém
+            <br />
+            Sede Vianelo • Congregação do Jacaré
+          </p>
+        </div>
+
+        <div>
+          <h2>Institucional</h2>
+          <nav aria-label="Navegação institucional do rodapé">
+            <LinkSite rota="/quem-somos" base={base} navegar={navegar}>
+              Quem somos
+            </LinkSite>
+            <LinkSite rota="/onde-estamos" base={base} navegar={navegar}>
+              Onde estamos
+            </LinkSite>
+            <LinkSite rota="/departamentos" base={base} navegar={navegar}>
+              Departamentos
+            </LinkSite>
+            <LinkSite rota="/programacao" base={base} navegar={navegar}>
+              Programação
+            </LinkSite>
+            <LinkSite rota="/contribuicao" base={base} navegar={navegar}>
+              Contribuição
+            </LinkSite>
+          </nav>
+        </div>
+
+        <div>
+          <h2>Acessos</h2>
+          <nav aria-label="Serviços digitais">
+            <a href="/enviar-hino">Enviar hino</a>
+            <a href="https://aluno.adjacare.org">Portal do Aluno</a>
+            <a href="https://sistema.adjacare.org">Sistema ADJACARÉ</a>
+            <a
+              href="https://instagram.com/adjacare"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Instagram @adjacare
+            </a>
+          </nav>
+        </div>
+
+        <div className="igreja-rodape-endereco">
+          <h2>Visite-nos</h2>
+          <address>
+            Av. Vereador José Donato, 913
+            <br />
+            Bairro Jacaré • Cabreúva/SP
+            <br />
+            CEP 13318-000
+          </address>
+          <a href={LINK_MAPA} target="_blank" rel="noreferrer">
+            Abrir no Google Maps <Seta pequena />
+          </a>
+        </div>
+      </div>
+
+      <div className="igreja-container igreja-rodape-base">
+        <small>
+          © {new Date().getFullYear()} AD Jacaré. Todos os direitos reservados.
+        </small>
+        <button type="button" onClick={() => window.scrollTo({ top: 0 })}>
+          Voltar ao topo <span aria-hidden="true">↑</span>
+        </button>
+      </div>
+    </footer>
+  );
 }
 
 export default function IgrejaSite() {
-  const [menuAberto, setMenuAberto] = useState(false)
-  const [pagina, setPagina] = useState(() => ROTAS[caminhoLimpo()] || "inicio")
-  const [avisos, setAvisos] = useState([])
-  const base = useMemo(baseDoSite, [])
+  const [menuAberto, setMenuAberto] = useState(false);
+  const [pagina, setPagina] = useState(
+    () => ROTAS_SITE[caminhoLimpo()] || "inicio"
+  );
+  const [avisos, setAvisos] = useState([]);
+  const base = useMemo(baseDoSite, []);
+  const proximosCultos = useMemo(() => obterProximosCultos(), []);
+  const proximoCulto = proximosCultos[0];
 
   useEffect(() => {
-    const voltar = () => {
-      setPagina(ROTAS[caminhoLimpo()] || "inicio")
-      window.scrollTo(0, 0)
+    function voltar() {
+      setPagina(ROTAS_SITE[caminhoLimpo()] || "inicio");
+      setMenuAberto(false);
+      window.scrollTo(0, 0);
     }
-    window.addEventListener("popstate", voltar)
-    return () => window.removeEventListener("popstate", voltar)
-  }, [])
+
+    window.addEventListener("popstate", voltar);
+    return () => window.removeEventListener("popstate", voltar);
+  }, []);
 
   useEffect(() => {
-    const titulos = {
-      inicio: "AD Jacaré | Igreja Assembleia de Deus",
-      "quem-somos": "Quem Somos | AD Jacaré",
-      "onde-estamos": "Onde Estamos | AD Jacaré",
-      departamentos: "Departamentos | AD Jacaré",
-      contribuicao: "Contribuição | AD Jacaré",
+    document.title = TITULOS_SITE[pagina];
+    document.documentElement.lang = "pt-BR";
+    document.body.classList.add("igreja-body");
+
+    definirMeta(
+      'meta[name="description"]',
+      ["name", "description"],
+      DESCRICOES_SITE[pagina]
+    );
+    definirMeta(
+      'meta[property="og:title"]',
+      ["property", "og:title"],
+      TITULOS_SITE[pagina]
+    );
+    definirMeta(
+      'meta[property="og:description"]',
+      ["property", "og:description"],
+      DESCRICOES_SITE[pagina]
+    );
+    definirMeta('meta[name="theme-color"]', ["name", "theme-color"], "#0c315f");
+
+    const icone = document.head.querySelector('link[rel~="icon"]');
+    if (icone) icone.setAttribute("href", "/logo-ad-site.png");
+
+    return () => document.body.classList.remove("igreja-body");
+  }, [pagina]);
+
+  useEffect(() => {
+    document.body.classList.toggle("igreja-menu-aberto", menuAberto);
+
+    function fecharComEscape(event) {
+      if (event.key === "Escape") setMenuAberto(false);
     }
-    document.title = titulos[pagina]
-  }, [pagina])
+
+    window.addEventListener("keydown", fecharComEscape);
+    return () => {
+      document.body.classList.remove("igreja-menu-aberto");
+      window.removeEventListener("keydown", fecharComEscape);
+    };
+  }, [menuAberto]);
 
   useEffect(() => {
+    let ativo = true;
+
     async function carregarAvisos() {
       const { data, error } = await supabase
         .from("avisos")
@@ -94,231 +312,574 @@ export default function IgrejaSite() {
         .eq("destino", "Todos")
         .order("fixado", { ascending: false })
         .order("data", { ascending: false })
-        .limit(3)
+        .limit(3);
 
-      if (error) return
-      const agora = new Date()
-      setAvisos((data || []).filter((aviso) => !aviso.expira_em || new Date(aviso.expira_em) > agora))
+      if (error || !ativo) return;
+
+      const agora = new Date();
+      setAvisos(
+        (data || []).filter(
+          (aviso) => !aviso.expira_em || new Date(aviso.expira_em) > agora
+        )
+      );
     }
-    carregarAvisos()
-  }, [])
 
-  function ir(rota) {
-    const destino = rota === "/" ? (base || "/") : `${base}${rota}`
-    window.history.pushState({}, "", destino)
-    setPagina(ROTAS[rota] || "inicio")
-    setMenuAberto(false)
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    carregarAvisos();
+    return () => {
+      ativo = false;
+    };
+  }, []);
+
+  function navegar(rota) {
+    const destino = hrefInterno(base, rota);
+    const novaPagina = ROTAS_SITE[rota] || "inicio";
+
+    if (window.location.pathname !== destino) {
+      window.history.pushState({}, "", destino);
+    }
+
+    setPagina(novaPagina);
+    setMenuAberto(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  const LinkInterno = ({ rota, children, className = "" }) => (
-    <a
-      className={className}
-      href={rota === "/" ? (base || "/") : `${base}${rota}`}
-      onClick={(event) => { event.preventDefault(); ir(rota) }}
-    >
-      {children}
-    </a>
-  )
-
   return (
-    <main className={`igreja-site pagina-${pagina}`}>
-      <header className={`igreja-topo ${pagina !== "inicio" ? "interno" : ""}`}>
-        <LinkInterno rota="/" className="igreja-marca-link"><Marca /></LinkInterno>
-        <button className="igreja-menu-botao" onClick={() => setMenuAberto(!menuAberto)} aria-label="Abrir menu"><i /><i /><i /></button>
-        <nav className={menuAberto ? "aberto" : ""}>
-          <LinkInterno rota="/">Início</LinkInterno>
-          <LinkInterno rota="/quem-somos">Quem somos</LinkInterno>
-          <LinkInterno rota="/onde-estamos">Onde estamos</LinkInterno>
-          <LinkInterno rota="/departamentos">Departamentos</LinkInterno>
-          <LinkInterno rota="/contribuicao">Contribuição</LinkInterno>
-        </nav>
-        <a className="igreja-topo-acao" href="https://instagram.com/adjacare" target="_blank" rel="noreferrer">Acompanhe a igreja <IconeSeta /></a>
+    <div className={`igreja-site pagina-${pagina}`}>
+      <a className="igreja-pular" href="#conteudo-principal">
+        Pular para o conteúdo
+      </a>
+
+      <div className="igreja-barra-institucional">
+        <div className="igreja-container">
+          <span>Ministério do Belém • Sede Vianelo</span>
+          <nav aria-label="Acessos rápidos">
+            <a
+              href="https://instagram.com/adjacare"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Instagram
+            </a>
+            <a href="https://aluno.adjacare.org">Portal do Aluno</a>
+            <a href="https://sistema.adjacare.org">Sistema</a>
+          </nav>
+        </div>
+      </div>
+
+      <header className="igreja-cabecalho">
+        <div className="igreja-container">
+          <LinkSite
+            rota="/"
+            base={base}
+            navegar={navegar}
+            className="igreja-marca-link"
+            aria-label="AD Jacaré — página inicial"
+          >
+            <Marca />
+          </LinkSite>
+
+          <button
+            type="button"
+            className="igreja-menu-botao"
+            onClick={() => setMenuAberto((aberto) => !aberto)}
+            aria-expanded={menuAberto}
+            aria-controls="igreja-navegacao"
+            aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+
+          <nav
+            id="igreja-navegacao"
+            className={`igreja-navegacao ${menuAberto ? "aberta" : ""}`}
+            aria-label="Navegação principal"
+          >
+            {NAVEGACAO_SITE.map((item) => (
+              <LinkSite
+                key={item.rota}
+                rota={item.rota}
+                base={base}
+                navegar={navegar}
+                aria-current={pagina === item.pagina ? "page" : undefined}
+              >
+                {item.label}
+              </LinkSite>
+            ))}
+            <a className="igreja-nav-hino" href="/enviar-hino">
+              Enviar hino <Seta pequena />
+            </a>
+            <div className="igreja-menu-acessos">
+              <a href="https://aluno.adjacare.org">Portal do Aluno</a>
+              <a href="https://sistema.adjacare.org">Sistema ADJACARÉ</a>
+              <a
+                href="https://instagram.com/adjacare"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Instagram
+              </a>
+            </div>
+          </nav>
+        </div>
       </header>
 
-      {pagina === "inicio" && (
-        <>
-          <section className="igreja-hero">
-            <div className="igreja-hero-conteudo">
-              <span className="igreja-kicker">UMA IGREJA PRESENTE EM CABREÚVA</span>
-              <h1>Um lugar para<br /><em>viver a fé.</em></h1>
-              <p>Palavra, comunhão e uma família para caminhar com você. As portas estão abertas — a casa também é sua.</p>
-              <div className="igreja-hero-acoes">
-                <LinkInterno rota="/onde-estamos" className="primario">Planeje sua visita <b>→</b></LinkInterno>
-                <LinkInterno rota="/quem-somos" className="secundario">Conheça nossa igreja</LinkInterno>
+      <main id="conteudo-principal" tabIndex="-1">
+        {pagina === "inicio" && (
+          <>
+            <section className="igreja-hero">
+              <div className="igreja-container igreja-hero-grade">
+                <div className="igreja-hero-conteudo">
+                  <span className="igreja-kicker">
+                    ASSEMBLEIA DE DEUS • CONGREGAÇÃO DO JACARÉ
+                  </span>
+                  <h1>Uma igreja presente em Cabreúva.</h1>
+                  <p>
+                    Palavra, oração e comunhão. A AD Jacaré faz parte do
+                    Ministério do Belém, Sede Vianelo, e está de portas abertas
+                    para receber você e sua família.
+                  </p>
+                  <div className="igreja-acoes">
+                    <LinkSite
+                      rota="/programacao"
+                      base={base}
+                      navegar={navegar}
+                      className="igreja-botao primario"
+                    >
+                      Ver programação <Seta />
+                    </LinkSite>
+                    <LinkSite
+                      rota="/onde-estamos"
+                      base={base}
+                      navegar={navegar}
+                      className="igreja-botao secundario"
+                    >
+                      Como chegar
+                    </LinkSite>
+                  </div>
+                </div>
+
+                <div className="igreja-hero-identidade" aria-label="AD Jacaré">
+                  <span>Desde</span>
+                  <strong>2016</strong>
+                  <div>
+                    <img
+                      src="/logo-ad-institucional-branca.png"
+                      alt="Assembleia de Deus Jundiaí"
+                    />
+                  </div>
+                  <p>
+                    Congregação do Jacaré
+                    <small>Cabreúva • São Paulo</small>
+                  </p>
+                </div>
               </div>
-            </div>
-            <aside className="igreja-hero-proximo">
-              <span>PRÓXIMO ENCONTRO</span>
-              <div><b>DOM</b><strong>18<small>30</small></strong></div>
-              <h2>Culto da Família</h2>
-              <p>Av. Ver. José Donato, 913</p>
-              <LinkInterno rota="/onde-estamos">Como chegar <IconeSeta /></LinkInterno>
-            </aside>
-            <div className="igreja-hero-palavra" aria-hidden="true">JACARÉ</div>
-            <div className="igreja-hero-luz um" /><div className="igreja-hero-luz dois" />
-          </section>
+            </section>
 
-          <section className="igreja-boas-vindas igreja-container">
-            <div>
-              <span className="igreja-kicker">SEJA BEM-VINDO</span>
-              <h2>Mais que um templo.<br />Uma família.</h2>
-            </div>
-            <div>
-              <p>Somos uma comunidade que ama a Deus, valoriza pessoas e acredita no poder transformador do Evangelho.</p>
-              <LinkInterno rota="/quem-somos">Descubra quem somos <b>→</b></LinkInterno>
-            </div>
-          </section>
-
-          <section className="igreja-caminhos">
-            <div className="igreja-container">
-              <header className="igreja-secao-titulo">
-                <div><span className="igreja-kicker">ENCONTRE O QUE PROCURA</span><h2>A AD Jacaré, do seu jeito.</h2></div>
-                <p>Cada assunto ganhou seu próprio espaço. Navegue com calma e conheça mais da nossa igreja.</p>
-              </header>
-              <div className="igreja-caminhos-grade">
-                <LinkInterno rota="/quem-somos"><span>01</span><small>NOSSA HISTÓRIA</small><h3>Quem somos</h3><p>Conheça nossa fé, missão e valores.</p><b>↗</b></LinkInterno>
-                <LinkInterno rota="/onde-estamos"><span>02</span><small>VENHA NOS VISITAR</small><h3>Onde estamos</h3><p>Endereço, rota e horários dos cultos.</p><b>↗</b></LinkInterno>
-                <LinkInterno rota="/departamentos"><span>03</span><small>SIRVA E PERTENÇA</small><h3>Departamentos</h3><p>Encontre seu lugar na nossa comunidade.</p><b>↗</b></LinkInterno>
-                <LinkInterno rota="/contribuicao"><span>04</span><small>GENEROSIDADE</small><h3>Contribuição</h3><p>Formas de contribuir com segurança.</p><b>↗</b></LinkInterno>
+            <section
+              className="igreja-proximo"
+              aria-labelledby="titulo-proximo-culto"
+            >
+              <div className="igreja-container">
+                <div>
+                  <span>PRÓXIMO ENCONTRO</span>
+                  <strong>{proximoCulto.quando}</strong>
+                </div>
+                <div>
+                  <span>{proximoCulto.dia}</span>
+                  <h2 id="titulo-proximo-culto">{proximoCulto.titulo}</h2>
+                </div>
+                <time>{proximoCulto.horario}</time>
+                <LinkSite rota="/programacao" base={base} navegar={navegar}>
+                  Programação completa <Seta pequena />
+                </LinkSite>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <section className="igreja-home-avisos">
-            <div className="igreja-container">
-              <header className="igreja-secao-titulo claro">
-                <div><span className="igreja-kicker">FIQUE POR DENTRO</span><h2>Últimos avisos</h2></div>
-                <p>Comunicados públicos atualizados pelo Sistema ADJACARÉ.</p>
+            <section className="igreja-apresentacao igreja-container">
+              <div className="igreja-numero-secao" aria-hidden="true">
+                01
+              </div>
+              <div>
+                <span className="igreja-kicker">A AD JACARÉ</span>
+                <h2>
+                  Uma congregação do Ministério do Belém no bairro do Jacaré.
+                </h2>
+              </div>
+              <div className="igreja-apresentacao-texto">
+                <p>
+                  A Congregação do Jacaré foi fundada em 2016, durante a
+                  presidência do Pr. Ezequias Soares, juntamente com o pastor
+                  local Manoel Ferreira Moital.
+                </p>
+                <LinkSite
+                  rota="/quem-somos"
+                  base={base}
+                  navegar={navegar}
+                  className="igreja-link"
+                >
+                  Conheça nossa história <Seta pequena />
+                </LinkSite>
+              </div>
+            </section>
+
+            <section
+              className="igreja-programacao-resumo"
+              aria-labelledby="titulo-programacao-resumo"
+            >
+              <div className="igreja-container">
+                <header className="igreja-titulo-secao">
+                  <div>
+                    <span className="igreja-kicker">NOSSA SEMANA</span>
+                    <h2 id="titulo-programacao-resumo">
+                      Sempre há um encontro próximo.
+                    </h2>
+                  </div>
+                  <p>
+                    Confira os próximos cultos e escolha o melhor dia para nos
+                    visitar.
+                  </p>
+                </header>
+
+                <ol className="igreja-proximos-lista">
+                  {proximosCultos.map((culto, index) => (
+                    <li key={culto.id}>
+                      <span>0{index + 1}</span>
+                      <div>
+                        <small>{culto.quando}</small>
+                        <strong>{culto.titulo}</strong>
+                      </div>
+                      <time>{culto.horario}</time>
+                    </li>
+                  ))}
+                </ol>
+
+                <LinkSite
+                  rota="/programacao"
+                  base={base}
+                  navegar={navegar}
+                  className="igreja-link"
+                >
+                  Consultar todos os horários <Seta pequena />
+                </LinkSite>
+              </div>
+            </section>
+
+            <AvisosPublicos avisos={avisos} />
+
+            <section className="igreja-chamada-visita">
+              <div className="igreja-container">
+                <span className="igreja-kicker">VENHA NOS VISITAR</span>
+                <h2>Bairro Jacaré, em Cabreúva.</h2>
+                <p>{ENDERECO}</p>
+                <LinkSite
+                  rota="/onde-estamos"
+                  base={base}
+                  navegar={navegar}
+                  className="igreja-botao claro"
+                >
+                  Ver endereço e rota <Seta />
+                </LinkSite>
+              </div>
+            </section>
+          </>
+        )}
+
+        {pagina === "quem-somos" && (
+          <>
+            <CabecalhoPagina
+              indice="01"
+              kicker="QUEM SOMOS"
+              titulo="Uma história que atravessa gerações."
+              texto="A AD Jacaré faz parte da Assembleia de Deus — Ministério do Belém, Sede Vianelo."
+            />
+
+            <section className="igreja-historia igreja-container">
+              <header>
+                <span className="igreja-kicker">NOSSA HISTÓRIA</span>
+                <h2>De Jundiaí ao bairro do Jacaré.</h2>
+                <p>
+                  A apresentação completa será ampliada com o texto histórico e
+                  o acervo oficial da igreja.
+                </p>
               </header>
-              <div className="igreja-avisos-grade">
-                {avisos.length ? avisos.map((aviso) => (
-                  <article key={aviso.id} className={aviso.urgente ? "urgente" : ""}>
-                    <span>{aviso.urgente ? "ATENÇÃO" : dataAviso(aviso.data)}</span>
-                    <h3>{aviso.titulo}</h3><p>{aviso.mensagem}</p>
+
+              <div className="igreja-linha-tempo">
+                <article>
+                  <time>1928</time>
+                  <div>
+                    <span>ASSEMBLEIA DE DEUS EM JUNDIAÍ</span>
+                    <h3>O início do Ministério em Jundiaí</h3>
+                    <p>
+                      A Assembleia de Deus em Jundiaí, Ministério do Belém, foi
+                      fundada em 1928 pelo missionário Daniel Berg.
+                    </p>
+                  </div>
+                </article>
+                <article>
+                  <time>2016</time>
+                  <div>
+                    <span>CONGREGAÇÃO DO JACARÉ</span>
+                    <h3>A fundação da igreja no Jacaré</h3>
+                    <p>
+                      A congregação foi fundada durante a presidência do Pr.
+                      Ezequias Soares, juntamente com o pastor local Manoel
+                      Ferreira Moital.
+                    </p>
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section className="igreja-acervo">
+              <div className="igreja-container igreja-acervo-grade">
+                <div className="igreja-acervo-marca">
+                  <img
+                    src="/logo-ad-institucional-branca.png"
+                    alt="Assembleia de Deus Jundiaí"
+                  />
+                  <span>Congregação do Jacaré • Desde 2016</span>
+                </div>
+                <div>
+                  <span className="igreja-kicker">ACERVO DA IGREJA</span>
+                  <h2>Uma história contada também por imagens.</h2>
+                  <p>
+                    Este espaço está preparado para receber fotografias
+                    históricas e atuais da congregação, sem utilizar imagens
+                    genéricas no lugar do acervo oficial.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="igreja-lideranca igreja-container">
+              <div>
+                <span className="igreja-kicker">LIDERANÇA LOCAL</span>
+                <h2>Pastor local e família pastoral.</h2>
+                <p>
+                  A apresentação oficial, os nomes e a fotografia serão
+                  incluídos nesta seção após a confirmação das informações.
+                </p>
+              </div>
+              <div
+                className="igreja-foto-reservada"
+                aria-label="Espaço para a fotografia oficial da liderança"
+              >
+                <span>FOTOGRAFIA OFICIAL</span>
+                <strong>Liderança local</strong>
+                <small>Espaço reservado para o acervo da AD Jacaré</small>
+              </div>
+            </section>
+
+            <section className="igreja-identidade">
+              <div className="igreja-container">
+                <span className="igreja-kicker">
+                  MISSÃO, VALORES E IDENTIDADE
+                </span>
+                <div>
+                  <h2>Conteúdo institucional em organização.</h2>
+                  <p>
+                    As declarações oficiais serão publicadas aqui após a
+                    aprovação da liderança, preservando a linguagem e a
+                    identidade próprias da igreja.
+                  </p>
+                </div>
+              </div>
+            </section>
+          </>
+        )}
+
+        {pagina === "onde-estamos" && (
+          <>
+            <CabecalhoPagina
+              indice="02"
+              kicker="ONDE ESTAMOS"
+              titulo="No bairro do Jacaré, em Cabreúva."
+              texto="Consulte o endereço, abra a rota e planeje sua visita."
+            />
+
+            <section className="igreja-localizacao igreja-container">
+              <div className="igreja-localizacao-texto">
+                <span className="igreja-kicker">NOSSO ENDEREÇO</span>
+                <h2>AD Jacaré</h2>
+                <address>
+                  Av. Vereador José Donato, 913
+                  <br />
+                  Bairro Jacaré
+                  <br />
+                  Cabreúva – SP
+                  <br />
+                  CEP 13318-000
+                </address>
+                <a
+                  className="igreja-botao primario"
+                  href={LINK_MAPA}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Abrir rota no Google Maps <Seta />
+                </a>
+              </div>
+
+              <div className="igreja-mapa">
+                <iframe
+                  title="Mapa com a localização da AD Jacaré"
+                  src={MAPA_EMBED}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+              </div>
+            </section>
+
+            <section className="igreja-localizacao-programacao">
+              <div className="igreja-container">
+                <div>
+                  <span className="igreja-kicker">ANTES DE VIR</span>
+                  <h2>Confira os horários da semana.</h2>
+                </div>
+                <p>
+                  A programação regular está disponível em uma página própria.
+                  Em datas especiais, consulte também os comunicados e o
+                  Instagram da igreja.
+                </p>
+                <LinkSite
+                  rota="/programacao"
+                  base={base}
+                  navegar={navegar}
+                  className="igreja-link"
+                >
+                  Ver programação <Seta pequena />
+                </LinkSite>
+              </div>
+            </section>
+          </>
+        )}
+
+        {pagina === "departamentos" && (
+          <>
+            <CabecalhoPagina
+              indice="03"
+              kicker="DEPARTAMENTOS"
+              titulo="A igreja em ação."
+              texto="Áreas de ensino, cuidado, comunhão, missão e serviço que integram a Congregação do Jacaré."
+            />
+
+            <section className="igreja-departamentos igreja-container">
+              <header className="igreja-titulo-secao">
+                <div>
+                  <span className="igreja-kicker">NOSSA COMUNIDADE</span>
+                  <h2>Departamentos da AD Jacaré</h2>
+                </div>
+                <p>
+                  Lideranças, contatos e informações detalhadas serão
+                  acrescentados quando os dados oficiais forem enviados.
+                </p>
+              </header>
+
+              <div className="igreja-departamentos-lista">
+                {DEPARTAMENTOS.map((departamento) => (
+                  <article key={departamento.numero}>
+                    <span>{departamento.numero}</span>
+                    <div>
+                      <small>{departamento.sigla}</small>
+                      <h3>{departamento.nome}</h3>
+                    </div>
+                    <p>{departamento.descricao}</p>
                   </article>
-                )) : <article className="vazio"><span>TUDO CERTO</span><h3>Nenhum comunicado público no momento.</h3><p>Quando houver uma novidade importante, ela aparecerá aqui.</p></article>}
+                ))}
               </div>
-            </div>
-          </section>
-        </>
-      )}
+            </section>
+          </>
+        )}
 
-      {pagina === "quem-somos" && (
-        <>
-          <CabecalhoPagina numero="01" kicker="CONHEÇA A AD JACARÉ" titulo={<>Uma igreja.<br /><em>Muitas histórias.</em></>} texto="Nossa identidade nasce na Palavra, cresce na comunhão e se revela no cuidado com pessoas." />
-          <section className="igreja-historia igreja-container">
-            <div className="igreja-historia-visual"><img src="/logo-ad-institucional-branca.png" alt="Assembleia de Deus Jundiaí - SP" /><p>CONGREGAÇÃO<br />DO JACARÉ</p><i /></div>
-            <div className="igreja-historia-texto">
-              <span className="igreja-kicker">NOSSA ESSÊNCIA</span>
-              <h2>Fé que se vive em comunidade.</h2>
-              <p>Somos uma igreja comprometida com a Palavra de Deus, com a oração e com o cuidado pelas pessoas. Aqui, cada geração encontra espaço para aprender, servir e crescer.</p>
-              <p>Nossa missão acontece dentro e fora do templo: anunciando o Evangelho, fortalecendo famílias e servindo a cidade com amor.</p>
-              <small>Este espaço está preparado para receber a história oficial da igreja e da congregação.</small>
-            </div>
-          </section>
-          <section className="igreja-pilares">
-            <div className="igreja-container">
-              <span className="igreja-kicker">O QUE NOS MOVE</span>
-              <div className="igreja-pilares-grade">
-                <article><b>01</b><h3>Palavra</h3><p>A Bíblia é a base da nossa fé e de tudo o que vivemos.</p></article>
-                <article><b>02</b><h3>Comunhão</h3><p>Crescemos juntos, compartilhando a caminhada e cuidando uns dos outros.</p></article>
-                <article><b>03</b><h3>Serviço</h3><p>Colocamos nossos dons em movimento para servir a Deus e às pessoas.</p></article>
-                <article><b>04</b><h3>Missão</h3><p>Existimos para anunciar Jesus e fazer diferença onde estamos.</p></article>
+        {pagina === "programacao" && (
+          <>
+            <CabecalhoPagina
+              indice="04"
+              kicker="PROGRAMAÇÃO"
+              titulo="Nossa semana na AD Jacaré."
+              texto="Cultos, oração, Escola Bíblica Dominical e encontros regulares da congregação."
+            />
+
+            <section className="igreja-programacao igreja-container">
+              <header>
+                <span className="igreja-kicker">HORÁRIOS REGULARES</span>
+                <h2>Escolha um dia e venha nos visitar.</h2>
+                <p>
+                  Em feriados e programações especiais, os horários podem ser
+                  alterados. Acompanhe os avisos e o Instagram @adjacare.
+                </p>
+              </header>
+
+              <div className="igreja-programacao-lista">
+                {CULTOS.map((culto) => (
+                  <article key={culto.id}>
+                    <span>{culto.abreviado}</span>
+                    <div>
+                      <small>{culto.dia}</small>
+                      <h3>{culto.titulo}</h3>
+                    </div>
+                    <time>{culto.horario}</time>
+                  </article>
+                ))}
               </div>
-            </div>
-          </section>
-        </>
-      )}
+            </section>
 
-      {pagina === "onde-estamos" && (
-        <>
-          <CabecalhoPagina numero="02" kicker="SUA VISITA COMEÇA AQUI" titulo={<>Tem sempre um lugar<br /><em>esperando por você.</em></>} texto="Venha viver um tempo de fé, comunhão e Palavra conosco. Será uma alegria receber você e sua família." />
-          <section className="igreja-endereco igreja-container">
-            <div className="igreja-mapa-visual"><span>23°18'29.7”S</span><strong>46°56'17.9”W</strong><i /><b>AD</b><small>JACARÉ</small></div>
-            <div className="igreja-endereco-texto">
-              <span className="igreja-kicker">NOSSO ENDEREÇO</span>
-              <h2>Estamos no bairro Jacaré, em Cabreúva.</h2>
-              <address>Av. Vereador José Donato, 913<br />Cabreúva – SP<br />CEP 13318-000</address>
-              <a href="https://www.google.com/maps/search/?api=1&query=Av.%20Vereador%20Jos%C3%A9%20Donato%2C%20913%2C%20Cabre%C3%BAva%20SP" target="_blank" rel="noreferrer">Abrir rota no Google Maps <IconeSeta /></a>
-            </div>
-          </section>
-          <section className="igreja-agenda">
-            <div className="igreja-container">
-              <header className="igreja-secao-titulo claro"><div><span className="igreja-kicker">NOSSA SEMANA</span><h2>Escolha o melhor dia para nos visitar.</h2></div><p>Em datas especiais, acompanhe os avisos e o Instagram da igreja.</p></header>
-              <div className="igreja-cultos-grade">
-                {CULTOS.map((culto) => <article key={`${culto.dia}-${culto.horario}`}><div><span>{culto.dia}</span><strong>{culto.horario}</strong></div><h3>{culto.titulo}</h3><p>{culto.detalhe}</p><i>→</i></article>)}
+            <section className="igreja-envio-hino">
+              <div className="igreja-container">
+                <div>
+                  <span className="igreja-kicker">SOM E PROJEÇÃO</span>
+                  <h2>Vai cantar em um de nossos cultos?</h2>
+                  <p>
+                    Envie o hino pelo formulário dentro do prazo definido para o
+                    culto. Depois do horário-limite, o atendimento deve ser
+                    feito diretamente com a equipe na cabine.
+                  </p>
+                </div>
+                <a className="igreja-botao claro" href="/enviar-hino">
+                  Enviar hino <Seta />
+                </a>
               </div>
-            </div>
-          </section>
-        </>
-      )}
+            </section>
+          </>
+        )}
 
-      {pagina === "departamentos" && (
-        <>
-          <CabecalhoPagina numero="03" kicker="SIRVA E PERTENÇA" titulo={<>Há um lugar<br /><em>para você aqui.</em></>} texto="Cada geração, talento e chamado encontra espaço para crescer, servir e construir comunhão." />
-          <section className="igreja-departamentos igreja-container">
-            <header className="igreja-secao-titulo"><div><span className="igreja-kicker">NOSSA COMUNIDADE</span><h2>Pessoas servindo pessoas.</h2></div><p>Esta página está pronta para receber os líderes, horários, contatos e informações oficiais de cada departamento.</p></header>
-            <div className="igreja-departamentos-grade">
-              {DEPARTAMENTOS.map((item, index) => <article key={item.nome} className={index === 0 ? "principal" : ""}><span>{item.numero}</span><div className="sigla">{item.sigla}</div><small>{item.destaque}</small><h3>{item.nome}</h3><p>{item.descricao}</p><b>Conhecer departamento <IconeSeta /></b></article>)}
-            </div>
-          </section>
-        </>
-      )}
+        {pagina === "contribuicao" && (
+          <>
+            <CabecalhoPagina
+              indice="05"
+              kicker="CONTRIBUIÇÃO"
+              titulo="Dízimos e ofertas."
+              texto="Um espaço reservado para as formas oficiais de contribuição da AD Jacaré."
+            />
 
-      {pagina === "contribuicao" && (
-        <>
-          <CabecalhoPagina numero="04" kicker="GENEROSIDADE COM PROPÓSITO" titulo={<>Contribuir também é<br /><em>participar da missão.</em></>} texto="Sua contribuição ajuda a manter a obra, cuidar de pessoas e levar o Evangelho ainda mais longe." />
-          <section className="igreja-contribuicao igreja-container">
-            <div className="igreja-contribuicao-intro">
-              <span className="igreja-kicker">DÍZIMOS E OFERTAS</span>
-              <h2>Uma resposta de gratidão.</h2>
-              <p>Contribuir é um ato voluntário de fé e gratidão. Preparamos este espaço para apresentar as formas oficiais de contribuição da AD Jacaré com clareza e segurança.</p>
-              <blockquote>“Cada um contribua segundo propôs no seu coração.”<small>2 Coríntios 9:7</small></blockquote>
-            </div>
-            <div className="igreja-dados-pendentes">
-              <span>INFORMAÇÕES EM PREPARAÇÃO</span>
-              <div className="igreja-pix-simbolo">PIX</div>
-              <h3>Os dados oficiais serão adicionados aqui.</h3>
-              <p>Envie depois a chave PIX, o nome do favorecido e os dados bancários que devem aparecer. Nenhuma informação financeira foi inventada.</p>
-              <small>Antes de contribuir, sempre confira se os dados exibidos pertencem à igreja.</small>
-            </div>
-          </section>
-          <section className="igreja-transparencia"><div className="igreja-container"><span>SEGURANÇA</span><h2>Confira sempre os dados antes de confirmar.</h2><p>A igreja não solicita senhas, códigos ou dados pessoais para receber contribuições.</p></div></section>
-        </>
-      )}
+            <section className="igreja-contribuicao igreja-container">
+              <div>
+                <span className="igreja-kicker">INFORMAÇÕES EM PREPARAÇÃO</span>
+                <h2>Os dados oficiais serão publicados nesta página.</h2>
+                <p>
+                  A chave PIX, o nome do favorecido e os dados bancários serão
+                  exibidos somente após a confirmação da administração da
+                  igreja.
+                </p>
+              </div>
 
-      <section className="igreja-conexoes">
-        <div className="igreja-container">
-          <div><span className="igreja-kicker">AD JACARÉ DIGITAL</span><h2>Continue conectado.</h2></div>
-          <div className="igreja-conexoes-links">
-            <a href="https://instagram.com/adjacare" target="_blank" rel="noreferrer"><span>Instagram</span><b>@adjacare ↗</b></a>
-            <a href="https://aluno.adjacare.org"><span>Escola Bíblica</span><b>Portal do Aluno →</b></a>
-            <a href="https://sistema.adjacare.org"><span>Área interna</span><b>Sistema ADJACARÉ →</b></a>
-          </div>
-        </div>
-      </section>
+              <aside>
+                <span>SEGURANÇA</span>
+                <h3>Confira o favorecido antes de confirmar.</h3>
+                <p>
+                  A igreja não solicita senhas, códigos de acesso ou dados
+                  pessoais para receber contribuições.
+                </p>
+              </aside>
+            </section>
+          </>
+        )}
+      </main>
 
-      <footer className="igreja-rodape">
-        <div className="igreja-container">
-          <LinkInterno rota="/" className="igreja-marca-link igreja-rodape-logo"><img src="/logo-ad-institucional-branca.png" alt="Assembleia de Deus Jundiaí - SP" /></LinkInterno>
-          <div className="igreja-rodape-nav"><LinkInterno rota="/quem-somos">Quem somos</LinkInterno><LinkInterno rota="/onde-estamos">Onde estamos</LinkInterno><LinkInterno rota="/departamentos">Departamentos</LinkInterno><LinkInterno rota="/contribuicao">Contribuição</LinkInterno></div>
-          <p>Uma igreja presente em Cabreúva.</p>
-          <small>© {new Date().getFullYear()} AD Jacaré. Todos os direitos reservados.</small>
-        </div>
-      </footer>
-    </main>
-  )
-}
-
-function CabecalhoPagina({ numero, kicker, titulo, texto }) {
-  return (
-    <section className="igreja-pagina-hero">
-      <div className="igreja-container">
-        <span className="igreja-pagina-numero">{numero}</span>
-        <div><span className="igreja-kicker">{kicker}</span><h1>{titulo}</h1><p>{texto}</p></div>
-      </div>
-      <i className="anel um" /><i className="anel dois" />
-    </section>
-  )
+      <Rodape base={base} navegar={navegar} />
+    </div>
+  );
 }

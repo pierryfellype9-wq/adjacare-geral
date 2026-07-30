@@ -111,47 +111,119 @@ export const CULTOS = [
   },
 ];
 
+export const MARCOS_HISTORIA = [
+  {
+    marco: "1928",
+    contexto: "ASSEMBLEIA DE DEUS EM JUNDIAÍ",
+    titulo: "O início do Ministério em Jundiaí",
+    paragrafos: [
+      "A Assembleia de Deus Ministério Belém, em Jundiaí, foi fundada em 1928 pelo missionário Daniel Berg. Desde o início, sua história tem sido marcada pela manifestação do poder de Deus, pela perseverança e pelo crescimento da obra. A mensagem proclamada por nossos pioneiros — “Jesus salva, batiza com o Espírito Santo e em breve voltará” — permanece viva até os dias de hoje, guiando a missão da igreja de anunciar o Evangelho e levar a mensagem de salvação a todas as pessoas.",
+    ],
+  },
+  {
+    marco: "2016",
+    contexto: "CONGREGAÇÃO DO JACARÉ",
+    titulo: "A fundação da igreja no Jacaré",
+    paragrafos: [
+      "Como fruto dessa obra, em 2016 foi fundada a Congregação do Jacaré, durante a presidência do Pr. Ezequias Soares, tendo como primeiro pastor local o Pr. Manoel Ferreira Moital e sua amada esposa, irmã Eunice do Prado Leme Moital (in memoriam). Os primeiros cultos aconteceram de forma simples, mas, pela graça e misericórdia de Deus, a igreja cresceu e se fortaleceu ao longo dos anos, tornando-se um lugar de comunhão, adoração e transformação de vidas.",
+      "Atualmente, a igreja conta com diversos departamentos, entre eles: Adolescentes, Jovens, Infantil, Família, Escola Bíblica Dominical, Círculo de Oração, Evangelismo, Assistência Social, Além-Mar, Orquestra e Coral, além de outros ministérios que trabalham unidos com um único propósito: servir ao Senhor e contribuir para o crescimento do Reino de Deus. Cada departamento desempenha um papel importante na edificação da igreja e no cuidado com as pessoas.",
+    ],
+  },
+  {
+    marco: "2026",
+    contexto: "CONTINUIDADE DA OBRA",
+    titulo: "Uma nova etapa na liderança local",
+    paragrafos: [
+      "Após dez anos dedicados à liderança da congregação, em 23 de janeiro de 2026, o Pr. Manoel Ferreira Moital e sua amada esposa, irmã Eunice do Prado Leme Moital, foram jubilados, encerrando um período de grande dedicação, amor e serviço à obra de Deus. Na mesma ocasião, assumiu a liderança da igreja o Pr. Douglas Moital do Prado, ao lado de sua esposa, Anne Karoline do Carmo Prado, dando continuidade ao trabalho com responsabilidade, compromisso e fidelidade ao chamado que Deus lhes confiou.",
+    ],
+  },
+  {
+    marco: "HOJE",
+    contexto: "AD JACARÉ",
+    titulo: "Firmes na mesma missão",
+    paragrafos: [
+      "Hoje, a Assembleia de Deus Ministério Belém – Congregação do Jacaré segue firme em sua missão de anunciar o Evangelho, servir à comunidade e glorificar o nome de Jesus, mantendo viva a mesma essência que marcou o início desta obra: amor a Deus, dedicação à Sua Palavra e compromisso com a salvação de vidas.",
+    ],
+  },
+];
+
+export const LIDERANCA_LOCAL = {
+  pastor: "Pr. Douglas Moital do Prado",
+  esposa: "Anne Karoline do Carmo Prado",
+  inicio: "23 de janeiro de 2026",
+  foto: "/lideranca-pr-douglas-anne.jpg",
+};
+
+export const PILARES_IDENTIDADE = [
+  "Amor a Deus",
+  "Dedicação à Sua Palavra",
+  "Compromisso com a salvação de vidas",
+];
+
 export const DEPARTAMENTOS = [
   {
     numero: "01",
+    nome: "Adolescentes",
+    sigla: "ADOLESCENTES",
+    descricao: "Comunhão e atividades voltadas aos adolescentes da igreja.",
+  },
+  {
+    numero: "02",
+    nome: "Jovens",
+    sigla: "JOVENS",
+    descricao: "Comunhão e atividades voltadas aos jovens da igreja.",
+  },
+  {
+    numero: "03",
+    nome: "Departamento Infantil",
+    sigla: "INFANTIL",
+    descricao: "Ensino e atividades voltados às crianças da igreja.",
+  },
+  {
+    numero: "04",
+    nome: "Família",
+    sigla: "FAMÍLIA",
+    descricao: "Encontros e ações voltados à edificação das famílias.",
+  },
+  {
+    numero: "05",
     nome: "Escola Bíblica Dominical",
     sigla: "EBD",
     descricao:
       "Ensino bíblico aos domingos, com classes organizadas por faixa etária.",
   },
   {
-    numero: "02",
-    nome: "Adolescentes e Jovens",
-    sigla: "J&A",
-    descricao:
-      "Departamento dedicado aos adolescentes e jovens da congregação.",
-  },
-  {
-    numero: "03",
+    numero: "06",
     nome: "Círculo de Oração",
-    sigla: "COFEMP",
+    sigla: "CÍRCULO DE ORAÇÃO",
     descricao: "Oração e comunhão, com encontro e ensaio às segundas-feiras.",
   },
   {
-    numero: "04",
-    nome: "Departamento Infantil",
-    sigla: "INFANTIL",
-    descricao: "Atividades e ensino voltados às crianças da igreja.",
+    numero: "07",
+    nome: "Evangelismo",
+    sigla: "EVANGELISMO",
+    descricao: "Anúncio do Evangelho e ações evangelísticas.",
   },
   {
-    numero: "05",
+    numero: "08",
     nome: "Assistência Social",
     sigla: "SOCIAL",
     descricao: "Ações de cuidado e assistência realizadas pela congregação.",
   },
   {
-    numero: "06",
+    numero: "09",
     nome: "Além-Mar",
     sigla: "MISSÕES",
-    descricao: "Frente missionária da congregação.",
+    descricao: "Trabalho missionário da congregação.",
   },
   {
-    numero: "07",
+    numero: "10",
+    nome: "Orquestra e Coral",
+    sigla: "MÚSICA",
+    descricao: "Ministérios de louvor que servem nos cultos e programações.",
+  },
+  {
+    numero: "11",
     nome: "Mídia",
     sigla: "MÍDIA",
     descricao: "Comunicação, projeção, transmissão e apoio técnico.",

@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   CULTOS,
+  DEPARTAMENTOS,
+  LIDERANCA_LOCAL,
+  MARCOS_HISTORIA,
   ROTAS_SITE,
   obterProximosCultos,
 } from "../src/igreja/siteData.js";
@@ -37,4 +40,32 @@ test("próximo encontro considera o horário de São Paulo", () => {
   assert.equal(obterProximosCultos(antesDoEnsino, 1)[0].id, "quarta-ensino");
   assert.equal(obterProximosCultos(duranteSegunda, 1)[0].id, "segunda-circulo");
   assert.equal(obterProximosCultos(domingoAposEbd, 1)[0].id, "domingo-culto");
+});
+
+test("história e liderança publicadas usam os dados oficiais", () => {
+  assert.deepEqual(
+    MARCOS_HISTORIA.map(({ marco }) => marco),
+    ["1928", "2016", "2026", "HOJE"]
+  );
+  assert.equal(LIDERANCA_LOCAL.pastor, "Pr. Douglas Moital do Prado");
+  assert.equal(LIDERANCA_LOCAL.esposa, "Anne Karoline do Carmo Prado");
+  assert.equal(LIDERANCA_LOCAL.inicio, "23 de janeiro de 2026");
+});
+
+test("departamentos refletem a relação institucional atual", () => {
+  assert.deepEqual(
+    DEPARTAMENTOS.slice(0, 10).map(({ nome }) => nome),
+    [
+      "Adolescentes",
+      "Jovens",
+      "Departamento Infantil",
+      "Família",
+      "Escola Bíblica Dominical",
+      "Círculo de Oração",
+      "Evangelismo",
+      "Assistência Social",
+      "Além-Mar",
+      "Orquestra e Coral",
+    ]
+  );
 });

@@ -4,7 +4,10 @@ import {
   CULTOS,
   DEPARTAMENTOS,
   DESCRICOES_SITE,
+  LIDERANCA_LOCAL,
+  MARCOS_HISTORIA,
   NAVEGACAO_SITE,
+  PILARES_IDENTIDADE,
   ROTAS_SITE,
   TITULOS_SITE,
   obterProximosCultos,
@@ -510,8 +513,10 @@ export default function IgrejaSite() {
               <div className="igreja-apresentacao-texto">
                 <p>
                   A Congregação do Jacaré foi fundada em 2016, durante a
-                  presidência do Pr. Ezequias Soares, juntamente com o pastor
-                  local Manoel Ferreira Moital.
+                  presidência do Pr. Ezequias Soares, tendo como primeiro pastor
+                  local o Pr. Manoel Ferreira Moital. Atualmente, a igreja é
+                  liderada pelo Pr. Douglas Moital do Prado, ao lado de sua
+                  esposa, Anne Karoline do Carmo Prado.
                 </p>
                 <LinkSite
                   rota="/quem-somos"
@@ -592,84 +597,60 @@ export default function IgrejaSite() {
               indice="01"
               kicker="QUEM SOMOS"
               titulo="Uma história que atravessa gerações."
-              texto="A AD Jacaré faz parte da Assembleia de Deus — Ministério do Belém, Sede Vianelo."
+              texto="Conheça a trajetória que une a chegada do Ministério do Belém a Jundiaí, a fundação da Congregação do Jacaré e a continuidade desta obra."
             />
 
             <section className="igreja-historia igreja-container">
               <header>
                 <span className="igreja-kicker">NOSSA HISTÓRIA</span>
-                <h2>De Jundiaí ao bairro do Jacaré.</h2>
+                <h2>Uma obra construída com fé e perseverança.</h2>
                 <p>
-                  A apresentação completa será ampliada com o texto histórico e
-                  o acervo oficial da igreja.
+                  Do trabalho iniciado pelo missionário Daniel Berg à igreja que
+                  hoje serve o bairro do Jacaré, esta história permanece firmada
+                  na mesma mensagem do Evangelho.
                 </p>
               </header>
 
               <div className="igreja-linha-tempo">
-                <article>
-                  <time>1928</time>
-                  <div>
-                    <span>ASSEMBLEIA DE DEUS EM JUNDIAÍ</span>
-                    <h3>O início do Ministério em Jundiaí</h3>
-                    <p>
-                      A Assembleia de Deus em Jundiaí, Ministério do Belém, foi
-                      fundada em 1928 pelo missionário Daniel Berg.
-                    </p>
-                  </div>
-                </article>
-                <article>
-                  <time>2016</time>
-                  <div>
-                    <span>CONGREGAÇÃO DO JACARÉ</span>
-                    <h3>A fundação da igreja no Jacaré</h3>
-                    <p>
-                      A congregação foi fundada durante a presidência do Pr.
-                      Ezequias Soares, juntamente com o pastor local Manoel
-                      Ferreira Moital.
-                    </p>
-                  </div>
-                </article>
-              </div>
-            </section>
-
-            <section className="igreja-acervo">
-              <div className="igreja-container igreja-acervo-grade">
-                <div className="igreja-acervo-marca">
-                  <img
-                    src="/logo-ad-institucional-branca.png"
-                    alt="Assembleia de Deus Jundiaí"
-                  />
-                  <span>Congregação do Jacaré • Desde 2016</span>
-                </div>
-                <div>
-                  <span className="igreja-kicker">ACERVO DA IGREJA</span>
-                  <h2>Uma história contada também por imagens.</h2>
-                  <p>
-                    Este espaço está preparado para receber fotografias
-                    históricas e atuais da congregação, sem utilizar imagens
-                    genéricas no lugar do acervo oficial.
-                  </p>
-                </div>
+                {MARCOS_HISTORIA.map((marco) => (
+                  <article key={marco.marco}>
+                    <time>{marco.marco}</time>
+                    <div>
+                      <span>{marco.contexto}</span>
+                      <h3>{marco.titulo}</h3>
+                      {marco.paragrafos.map((paragrafo) => (
+                        <p key={paragrafo}>{paragrafo}</p>
+                      ))}
+                    </div>
+                  </article>
+                ))}
               </div>
             </section>
 
             <section className="igreja-lideranca igreja-container">
               <div>
                 <span className="igreja-kicker">LIDERANÇA LOCAL</span>
-                <h2>Pastor local e família pastoral.</h2>
+                <h2>
+                  {LIDERANCA_LOCAL.pastor} e {LIDERANCA_LOCAL.esposa}.
+                </h2>
                 <p>
-                  A apresentação oficial, os nomes e a fotografia serão
-                  incluídos nesta seção após a confirmação das informações.
+                  Desde {LIDERANCA_LOCAL.inicio}, o Pr. Douglas e sua esposa,
+                  Anne, conduzem a congregação, dando continuidade ao trabalho
+                  com responsabilidade, compromisso e fidelidade ao chamado que
+                  Deus lhes confiou.
                 </p>
               </div>
-              <div
-                className="igreja-foto-reservada"
-                aria-label="Espaço para a fotografia oficial da liderança"
-              >
-                <span>FOTOGRAFIA OFICIAL</span>
-                <strong>Liderança local</strong>
-                <small>Espaço reservado para o acervo da AD Jacaré</small>
-              </div>
+              <figure className="igreja-lideranca-foto">
+                <img
+                  src={LIDERANCA_LOCAL.foto}
+                  alt={`${LIDERANCA_LOCAL.pastor} ao lado de sua esposa, ${LIDERANCA_LOCAL.esposa}`}
+                />
+                <figcaption>
+                  <span>PASTOR LOCAL E ESPOSA</span>
+                  <strong>{LIDERANCA_LOCAL.pastor}</strong>
+                  <small>{LIDERANCA_LOCAL.esposa}</small>
+                </figcaption>
+              </figure>
             </section>
 
             <section className="igreja-identidade">
@@ -677,13 +658,24 @@ export default function IgrejaSite() {
                 <span className="igreja-kicker">
                   MISSÃO, VALORES E IDENTIDADE
                 </span>
-                <div>
-                  <h2>Conteúdo institucional em organização.</h2>
+                <div className="igreja-identidade-conteudo">
+                  <h2>
+                    Anunciar o Evangelho, servir à comunidade e glorificar a
+                    Jesus.
+                  </h2>
                   <p>
-                    As declarações oficiais serão publicadas aqui após a
-                    aprovação da liderança, preservando a linguagem e a
-                    identidade próprias da igreja.
+                    A AD Jacaré mantém viva a essência que marcou o início desta
+                    obra e segue firme no propósito de levar a mensagem de
+                    salvação a todas as pessoas.
                   </p>
+                  <ol>
+                    {PILARES_IDENTIDADE.map((pilar, indice) => (
+                      <li key={pilar}>
+                        <span>{String(indice + 1).padStart(2, "0")}</span>
+                        <strong>{pilar}</strong>
+                      </li>
+                    ))}
+                  </ol>
                 </div>
               </div>
             </section>

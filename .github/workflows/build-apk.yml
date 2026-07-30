@@ -11,20 +11,20 @@ on:
       version:
         description: "Versão do aplicativo (exemplo: 1.1.0)"
         required: true
-        default: 1.1.0
+        default: 1.1.1
         type: string
       notas:
         description: Resumo da atualização
         required: false
-        default: Melhorias e correções do Sistema ADJACARÉ.
+        default: Nova experiência do WhatsApp no celular, com lista de conversas e atendimento em tela dedicada.
         type: string
 
 permissions:
   contents: write
 
 env:
-  APP_VERSION: ${{ inputs.version || '1.1.0' }}
-  RELEASE_NOTES: ${{ inputs.notas || 'Notificações de novos hinos e avisos principais, além do novo atualizador do aplicativo.' }}
+  APP_VERSION: ${{ inputs.version || '1.1.1' }}
+  RELEASE_NOTES: ${{ inputs.notas || 'Nova experiência do WhatsApp no celular, com lista de conversas e atendimento em tela dedicada.' }}
 
 jobs:
   build:

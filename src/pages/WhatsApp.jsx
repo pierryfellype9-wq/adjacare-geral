@@ -450,7 +450,11 @@ export default function WhatsApp({ user }) {
   );
 
   return (
-    <div className="whatsapp-page">
+    <div
+      className={`whatsapp-page ${
+        aba === "conversas" && telefoneSelecionado ? "chat-mobile-aberto" : ""
+      }`}
+    >
       <div className="whatsapp-header">
         <h1>WhatsApp</h1>
         <p>
@@ -471,7 +475,12 @@ export default function WhatsApp({ user }) {
         </button>
       </nav>
 
-      {aba === "conversas" && <div className="whatsapp-container">
+      {aba === "conversas" && (
+        <div
+          className={`whatsapp-container ${
+            telefoneSelecionado ? "tem-conversa-selecionada" : ""
+          }`}
+        >
         <aside className="whatsapp-sidebar">
           <div className="whatsapp-sidebar-title">Conversas</div>
 
@@ -514,6 +523,15 @@ export default function WhatsApp({ user }) {
           ) : (
             <>
               <div className="whatsapp-chat-topo">
+                <button
+                  type="button"
+                  className="whatsapp-voltar-conversas"
+                  onClick={() => setTelefoneSelecionado("")}
+                  aria-label="Voltar para a lista de conversas"
+                >
+                  <span aria-hidden="true">←</span>
+                </button>
+
                 <div>
                   <strong>{telefoneSelecionado}</strong>
 
@@ -584,7 +602,8 @@ export default function WhatsApp({ user }) {
             </>
           )}
         </main>
-      </div>}
+        </div>
+      )}
 
       {aba === "hinos" && (
         <section className="whatsapp-admin">

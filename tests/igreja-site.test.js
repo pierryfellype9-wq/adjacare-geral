@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import {
   CULTOS,
   DEPARTAMENTOS,
+  JUBILACAO,
   LIDERANCA_LOCAL,
   MARCOS_HISTORIA,
   ROTAS_SITE,
@@ -50,6 +52,12 @@ test("história e liderança publicadas usam os dados oficiais", () => {
   assert.equal(LIDERANCA_LOCAL.pastor, "Pr. Douglas Moital do Prado");
   assert.equal(LIDERANCA_LOCAL.esposa, "Anne Karoline do Carmo Prado");
   assert.equal(LIDERANCA_LOCAL.inicio, "23 de janeiro de 2026");
+});
+
+test("jubilação preserva a memória institucional e sua imagem oficial", () => {
+  assert.equal(JUBILACAO.data, "23 de janeiro de 2026");
+  assert.match(JUBILACAO.paragrafos.join(" "), /presença do Senhor/);
+  assert.ok(existsSync(new URL(`../public${JUBILACAO.foto}`, import.meta.url)));
 });
 
 test("departamentos refletem a relação institucional atual", () => {

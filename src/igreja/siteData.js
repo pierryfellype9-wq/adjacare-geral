@@ -147,6 +147,21 @@ export const MARCOS_HISTORIA = [
   },
 ];
 
+export const JUBILACAO = {
+  data: "23 de janeiro de 2026",
+  titulo: "Dez anos dedicados à Congregação do Jacaré.",
+  foto: "/jubilacao-pr-manoel-eunice.webp",
+  fotoAlt:
+    "Momento de oração na cerimônia de jubilação do Pr. Manoel Ferreira Moital e da irmã Eunice do Prado Leme Moital",
+  legenda:
+    "Momento de oração durante a cerimônia de jubilação e transição da liderança local.",
+  paragrafos: [
+    "Em 23 de janeiro de 2026, a AD Jacaré celebrou a jubilação do Pr. Manoel Ferreira Moital e de sua esposa, irmã Eunice do Prado Leme Moital, após dez anos de dedicação à liderança da congregação.",
+    "Presentes desde a fundação da igreja, em 2016, eles acompanharam os primeiros cultos e cada etapa do crescimento da obra. Serviram com fé, amor e perseverança, contribuindo para que a congregação se tornasse um lugar de comunhão, adoração e cuidado com as pessoas.",
+    "Hoje, a irmã Eunice está na presença do Senhor, e sua caminhada é lembrada com carinho e esperança. A AD Jacaré agradece a Deus pela vida, pelo serviço e pelo legado desse casal, reconhecendo cada oração, ensinamento e gesto de amor dedicado à igreja.",
+  ],
+};
+
 export const LIDERANCA_LOCAL = {
   pastor: "Pr. Douglas Moital do Prado",
   esposa: "Anne Karoline do Carmo Prado",

@@ -4,6 +4,7 @@ import {
   CULTOS,
   DEPARTAMENTOS,
   DESCRICOES_SITE,
+  JUBILACAO,
   LIDERANCA_LOCAL,
   MARCOS_HISTORIA,
   NAVEGACAO_SITE,
@@ -624,6 +625,45 @@ export default function IgrejaSite() {
                     </div>
                   </article>
                 ))}
+              </div>
+            </section>
+
+            <section
+              className="igreja-jubilacao"
+              aria-labelledby="titulo-jubilacao"
+            >
+              <div className="igreja-container">
+                <header className="igreja-jubilacao-cabecalho">
+                  <span className="igreja-kicker">
+                    JUBILAÇÃO • {JUBILACAO.data}
+                  </span>
+                  <h2 id="titulo-jubilacao">{JUBILACAO.titulo}</h2>
+                </header>
+
+                <figure className="igreja-jubilacao-foto">
+                  <img
+                    src={JUBILACAO.foto}
+                    alt={JUBILACAO.fotoAlt}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <figcaption>
+                    <span>AD JACARÉ • MEMÓRIA INSTITUCIONAL</span>
+                    <p>{JUBILACAO.legenda}</p>
+                  </figcaption>
+                </figure>
+
+                <div className="igreja-jubilacao-conteudo">
+                  <div className="igreja-jubilacao-periodo">
+                    <strong>2016—2026</strong>
+                    <span>UMA DÉCADA DE SERVIÇO</span>
+                  </div>
+                  <div className="igreja-jubilacao-texto">
+                    {JUBILACAO.paragrafos.map((paragrafo) => (
+                      <p key={paragrafo}>{paragrafo}</p>
+                    ))}
+                  </div>
+                </div>
               </div>
             </section>
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import SecretariaAbas from "../components/SecretariaAbas"
+import SecretariaCabecalho from "../components/SecretariaCabecalho"
 import { supabase } from "../lib/supabase"
 import {
   calcularResumoSecretaria,
@@ -11,14 +11,17 @@ const AREAS_FUTURAS = [
   {
     titulo: "Movimentações",
     descricao: "Recebimentos, mudanças, desligamentos e histórico cadastral.",
+    destino: "/secretaria/movimentacoes",
   },
   {
     titulo: "Documentos",
     descricao: "Cartas, declarações, certificados e registros oficiais.",
+    destino: "/secretaria/documentos",
   },
   {
     titulo: "Datas importantes",
     descricao: "Batismos, apresentações, recebimentos e aniversários.",
+    destino: "/secretaria/datas",
   },
 ]
 
@@ -36,6 +39,7 @@ export default function Secretaria() {
   const [membros, setMembros] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState("")
+  const [totais, setTotais] = useState({ movimentacoes: 0, documentos: 0, datas: 0 })
 
   useEffect(() => {
     let ativo = true
@@ -44,21 +48,29 @@ export default function Secretaria() {
       setCarregando(true)
       setErro("")
 
-      const { data, error } = await supabase
-        .from("membros")
-        .select(
-          "id,nome,data_nascimento,telefone,batizado_aguas,situacao_cadastral,created_at",
-        )
-        .order("created_at", { ascending: false })
+      const [membrosResposta, movimentacoes, documentos, datas] = await Promise.all([
+        supabase
+          .from("membros")
+          .select("id,nome,data_nascimento,telefone,batizado_aguas,situacao_cadastral,created_at")
+          .order("created_at", { ascending: false }),
+        supabase.from("secretaria_movimentacoes").select("id", { count: "exact", head: true }),
+        supabase.from("secretaria_documentos").select("id", { count: "exact", head: true }),
+        supabase.from("secretaria_datas_importantes").select("id", { count: "exact", head: true }),
+      ])
 
       if (!ativo) return
 
-      if (error) {
-        console.error("Erro ao carregar a visão geral da Secretaria:", error)
+      if (membrosResposta.error) {
+        console.error("Erro ao carregar a visão geral da Secretaria:", membrosResposta.error)
         setErro("Não foi possível carregar os dados da Secretaria.")
         setMembros([])
       } else {
-        setMembros(data || [])
+        setMembros(membrosResposta.data || [])
+        setTotais({
+          movimentacoes: movimentacoes.count || 0,
+          documentos: documentos.count || 0,
+          datas: datas.count || 0,
+        })
       }
 
       setCarregando(false)
@@ -76,22 +88,12 @@ export default function Secretaria() {
 
   return (
     <div className="page secretaria-page">
-      <header className="secretaria-cabecalho">
-        <div>
-          <span className="secretaria-kicker">GESTÃO DE PESSOAS</span>
-          <h1>Secretaria</h1>
-          <p>
-            Visão institucional dos membros e dos registros da Assembleia de
-            Deus, Bairro Jacaré.
-          </p>
-        </div>
-
-        <Link className="secretaria-acao-principal" to="/membros">
-          Cadastrar membro
-        </Link>
-      </header>
-
-      <SecretariaAbas ativa="geral" />
+      <SecretariaCabecalho
+        ativa="geral"
+        titulo="Visão geral"
+        descricao="Membros e registros da Assembleia de Deus, Bairro Jacaré."
+        acao={<Link className="secretaria-botao-claro" to="/membros">+ Novo membro</Link>}
+      />
 
       {carregando ? (
         <div className="secretaria-estado" role="status">
@@ -171,23 +173,23 @@ export default function Secretaria() {
             </aside>
           </section>
 
-          <section className="secretaria-proximas-etapas">
+          <section className="secretaria-proximas-etapas secretaria-bloco">
             <div className="secretaria-secao-titulo">
               <span>ESTRUTURA DO MÓDULO</span>
-              <h2>Próximas áreas da Secretaria</h2>
-              <p>Vamos configurar cada uma separadamente nas próximas etapas.</p>
+              <h2>Áreas da Secretaria</h2>
+              <p>Acesse diretamente cada parte do módulo.</p>
             </div>
 
             <div className="secretaria-areas">
               {AREAS_FUTURAS.map((area, indice) => (
-                <article key={area.titulo}>
+                <Link to={area.destino} key={area.titulo}>
                   <span>0{indice + 1}</span>
                   <div>
                     <h3>{area.titulo}</h3>
                     <p>{area.descricao}</p>
                   </div>
-                  <small>Próxima etapa</small>
-                </article>
+                  <small>{totais[area.destino.split("/").pop()] || 0} registros →</small>
+                </Link>
               ))}
             </div>
           </section>

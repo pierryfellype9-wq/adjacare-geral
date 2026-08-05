@@ -36,6 +36,9 @@ const PortalAluno = lazy(() => import("./pages/PortalAluno"))
 const EBDFinanceiro = lazy(() => import("./pages/EBDFinanceiro"))
 const Membros = lazy(() => import("./pages/Membros"))
 const Secretaria = lazy(() => import("./pages/Secretaria"))
+const SecretariaMovimentacoes = lazy(() => import("./pages/SecretariaMovimentacoes"))
+const SecretariaDocumentos = lazy(() => import("./pages/SecretariaDocumentos"))
+const SecretariaDatas = lazy(() => import("./pages/SecretariaDatas"))
 const WhatsApp = lazy(() => import("./pages/WhatsApp"))
 const EBD = lazy(() => import("./pages/EBD"))
 const EBDAlunos = lazy(() => import("./pages/EBDAlunos"))
@@ -467,6 +470,36 @@ export default function App() {
                   element={
                     podeVerSecretaria ? (
                       <Secretaria user={user} />
+                    ) : (
+                      <Navigate to="/dashboard" replace />
+                    )
+                  }
+                />
+                <Route
+                  path="/secretaria/movimentacoes"
+                  element={
+                    podeVerSecretaria ? (
+                      <SecretariaMovimentacoes user={user} />
+                    ) : (
+                      <Navigate to="/dashboard" replace />
+                    )
+                  }
+                />
+                <Route
+                  path="/secretaria/documentos"
+                  element={
+                    podeVerSecretaria ? (
+                      <SecretariaDocumentos user={user} />
+                    ) : (
+                      <Navigate to="/dashboard" replace />
+                    )
+                  }
+                />
+                <Route
+                  path="/secretaria/datas"
+                  element={
+                    podeVerSecretaria ? (
+                      <SecretariaDatas user={user} />
                     ) : (
                       <Navigate to="/dashboard" replace />
                     )

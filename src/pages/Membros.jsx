@@ -1,104 +1,206 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import SecretariaCabecalho from "../components/SecretariaCabecalho"
 import { supabase } from "../lib/supabase"
-import SecretariaAbas from "../components/SecretariaAbas"
+
+const FORM_INICIAL = {
+  nome: "",
+  data_nascimento: "",
+  telefone: "",
+  sexo: "",
+  estado_civil: "",
+  batizado_aguas: false,
+  situacao_cadastral: "Ativo",
+  observacao: "",
+}
+
+function formatarData(data) {
+  if (!data) return "Não informado"
+  return data.split("-").reverse().join("/")
+}
+
+function SeletorFuncoes({ funcoes, selecionadas, onChange }) {
+  const [busca, setBusca] = useState("")
+  const filtradas = funcoes.filter((funcao) =>
+    `${funcao.nome} ${funcao.categoria}`
+      .toLocaleLowerCase("pt-BR")
+      .includes(busca.toLocaleLowerCase("pt-BR")),
+  )
+
+  function alternar(id) {
+    onChange(
+      selecionadas.includes(id)
+        ? selecionadas.filter((item) => item !== id)
+        : [...selecionadas, id],
+    )
+  }
+
+  return (
+    <div className="secretaria-funcoes secretaria-campo-largo">
+      <div className="secretaria-funcoes-topo">
+        <div>
+          <span>Funções na igreja</span>
+          <small>O membro pode exercer mais de uma função.</small>
+        </div>
+        <b>{selecionadas.length} selecionada(s)</b>
+      </div>
+      <input
+        type="search"
+        placeholder="Buscar função ou departamento"
+        value={busca}
+        onChange={(event) => setBusca(event.target.value)}
+      />
+      <div className="secretaria-funcoes-lista">
+        {filtradas.map((funcao) => (
+          <label
+            className={selecionadas.includes(funcao.id) ? "selecionada" : ""}
+            key={funcao.id}
+          >
+            <input
+              type="checkbox"
+              checked={selecionadas.includes(funcao.id)}
+              onChange={() => alternar(funcao.id)}
+            />
+            <span><strong>{funcao.nome}</strong><small>{funcao.categoria}</small></span>
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function Membros({ user }) {
   const navigate = useNavigate()
-
   const [membros, setMembros] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [filtroSituacao, setFiltroSituacao] = useState("Ativo")
+  const [funcoes, setFuncoes] = useState([])
+  const [funcoesSelecionadas, setFuncoesSelecionadas] = useState([])
+  const [form, setForm] = useState(FORM_INICIAL)
+  const [formAberto, setFormAberto] = useState(false)
   const [editandoId, setEditandoId] = useState(null)
+  const [carregando, setCarregando] = useState(true)
+  const [salvando, setSalvando] = useState(false)
   const [pesquisa, setPesquisa] = useState("")
-  const [limite, setLimite] = useState(12)
+  const [filtroSituacao, setFiltroSituacao] = useState("Ativo")
 
-  const formLimpo = {
-    nome: "",
-    data_nascimento: "",
-    telefone: "",
-    sexo: "",
-    estado_civil: "",
-    batizado_aguas: false,
-    situacao_cadastral: "Ativo",
-    observacao: "",
-  }
+  async function carregar() {
+    setCarregando(true)
+    const [membrosResposta, funcoesResposta] = await Promise.all([
+      supabase
+        .from("membros")
+        .select("*, membro_funcoes(id,funcao_id,ativo,secretaria_funcoes(id,nome,categoria))")
+        .order("nome"),
+      supabase
+        .from("secretaria_funcoes")
+        .select("id,nome,categoria")
+        .eq("ativa", true)
+        .order("categoria")
+        .order("nome"),
+    ])
 
-  const [form, setForm] = useState(formLimpo)
-
-  async function buscarMembros() {
-    setLoading(true)
-
-    const { data, error } = await supabase
-      .from("membros")
-      .select("*")
-      .order("nome")
-
-    if (!error) setMembros(data || [])
-
-    setLoading(false)
+    if (membrosResposta.error || funcoesResposta.error) {
+      alert("Não foi possível carregar todos os dados dos membros.")
+    }
+    setMembros(membrosResposta.data || [])
+    setFuncoes(funcoesResposta.data || [])
+    setCarregando(false)
   }
 
   useEffect(() => {
-    buscarMembros()
+    carregar()
   }, [])
 
   function limparFormulario() {
-    setForm(formLimpo)
+    setForm(FORM_INICIAL)
+    setFuncoesSelecionadas([])
     setEditandoId(null)
+    setFormAberto(false)
   }
 
-  async function salvarMembro(e) {
-    e.preventDefault()
+  async function sincronizarFuncoes(membroId) {
+    const { data: atuais, error } = await supabase
+      .from("membro_funcoes")
+      .select("id,funcao_id")
+      .eq("membro_id", membroId)
+      .eq("ativo", true)
 
-    if (editandoId) {
-      const { error } = await supabase
-        .from("membros")
-        .update(form)
-        .eq("id", editandoId)
+    if (error) throw error
+    const idsAtuais = (atuais || []).map((item) => item.funcao_id)
+    const remover = (atuais || []).filter(
+      (item) => !funcoesSelecionadas.includes(item.funcao_id),
+    )
+    const adicionar = funcoesSelecionadas.filter((id) => !idsAtuais.includes(id))
 
-      if (error) {
-        alert("Erro ao atualizar membro")
-        return
-      }
-
-      alert("Membro atualizado!")
-    } else {
-      const { error } = await supabase
-        .from("membros")
-        .insert([
-          {
-            ...form,
-            criado_por: user?.nome || user?.email
-          }
-        ])
-
-      if (error) {
-        alert("Erro ao salvar membro")
-        return
-      }
-
-      alert("Membro cadastrado!")
+    if (remover.length) {
+      const { error: erroRemover } = await supabase
+        .from("membro_funcoes")
+        .update({ ativo: false, data_fim: new Date().toLocaleDateString("en-CA") })
+        .in("id", remover.map((item) => item.id))
+      if (erroRemover) throw erroRemover
     }
 
-    limparFormulario()
-    buscarMembros()
+    if (adicionar.length) {
+      const { error: erroAdicionar } = await supabase.from("membro_funcoes").insert(
+        adicionar.map((funcaoId) => ({
+          membro_id: membroId,
+          funcao_id: funcaoId,
+          data_inicio: new Date().toLocaleDateString("en-CA"),
+          criado_por: user?.nome || user?.email,
+        })),
+      )
+      if (erroAdicionar) throw erroAdicionar
+    }
+  }
+
+  async function salvarMembro(event) {
+    event.preventDefault()
+    if (salvando) return
+    setSalvando(true)
+
+    try {
+      let membroId = editandoId
+      if (editandoId) {
+        const { error } = await supabase.from("membros").update(form).eq("id", editandoId)
+        if (error) throw error
+      } else {
+        const { data, error } = await supabase
+          .from("membros")
+          .insert({ ...form, criado_por: user?.nome || user?.email })
+          .select("id")
+          .single()
+        if (error) throw error
+        membroId = data.id
+      }
+
+      await sincronizarFuncoes(membroId)
+      alert(editandoId ? "Membro atualizado." : "Membro cadastrado.")
+      limparFormulario()
+      await carregar()
+    } catch (error) {
+      console.error(error)
+      alert(`Não foi possível salvar o cadastro: ${error.message || "erro inesperado"}`)
+    } finally {
+      setSalvando(false)
+    }
   }
 
   function editarMembro(membro) {
     setEditandoId(membro.id)
-
     setForm({
       nome: membro.nome || "",
       data_nascimento: membro.data_nascimento || "",
       telefone: membro.telefone || "",
       sexo: membro.sexo || "",
       estado_civil: membro.estado_civil || "",
-      batizado_aguas: membro.batizado_aguas || false,
+      batizado_aguas: Boolean(membro.batizado_aguas),
       situacao_cadastral: membro.situacao_cadastral || "Ativo",
       observacao: membro.observacao || "",
     })
-
+    setFuncoesSelecionadas(
+      (membro.membro_funcoes || [])
+        .filter((item) => item.ativo)
+        .map((item) => item.funcao_id),
+    )
+    setFormAberto(true)
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
@@ -107,270 +209,79 @@ export default function Membros({ user }) {
     navigate("/usuarios")
   }
 
-  function formatarData(data) {
-    if (!data) return "Não informado"
-    return data.split("-").reverse().join("/")
-  }
-
-  const membrosDaSituacao = membros.filter(
-    (membro) => membro.situacao_cadastral === filtroSituacao
+  const membrosFiltrados = useMemo(
+    () =>
+      membros.filter(
+        (membro) =>
+          (filtroSituacao === "Todos" || membro.situacao_cadastral === filtroSituacao) &&
+          `${membro.nome} ${membro.telefone || ""}`
+            .toLocaleLowerCase("pt-BR")
+            .includes(pesquisa.toLocaleLowerCase("pt-BR")),
+      ),
+    [membros, filtroSituacao, pesquisa],
   )
 
-  const membrosFiltrados = membrosDaSituacao
-    .filter((membro) =>
-      membro.nome?.toLowerCase().includes(pesquisa.toLowerCase())
-    )
-    .slice(0, limite)
-
   return (
-    <div className="page">
-      <div className="ebd-header">
-        <div>
-          <h1>Membros</h1>
-          <p>Cadastro geral dos membros da igreja.</p>
-        </div>
-      </div>
-
-      <SecretariaAbas ativa="membros" />
-
-      <form onSubmit={salvarMembro} className="form-card">
-        <div className="form-title-row">
-          <h2>{editandoId ? "Editar membro" : "Novo membro"}</h2>
-          <p>Preencha os dados principais do cadastro.</p>
-        </div>
-
-        <div className="form-grid-ebd">
-          <input
-            type="text"
-            placeholder="Nome"
-            value={form.nome}
-            onChange={(e) =>
-              setForm({ ...form, nome: e.target.value.toUpperCase() })
-            }
-            required
-          />
-
-          <input
-            type="date"
-            value={form.data_nascimento}
-            onChange={(e) =>
-              setForm({ ...form, data_nascimento: e.target.value })
-            }
-          />
-
-          <input
-            type="text"
-            placeholder="Telefone"
-            value={form.telefone}
-            onChange={(e) =>
-              setForm({ ...form, telefone: e.target.value })
-            }
-          />
-
-          <select
-            value={form.sexo}
-            onChange={(e) =>
-              setForm({ ...form, sexo: e.target.value })
-            }
+    <div className="page secretaria-page">
+      <SecretariaCabecalho
+        ativa="membros"
+        titulo="Membros"
+        descricao="Cadastros, funções e situação de cada pessoa da igreja."
+        acao={
+          <button
+            className="secretaria-botao-claro"
+            onClick={() => {
+              if (formAberto) limparFormulario()
+              else setFormAberto(true)
+            }}
           >
-            <option value="">Sexo</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Feminino">Feminino</option>
-          </select>
-
-          <select
-            value={form.estado_civil}
-            onChange={(e) =>
-              setForm({ ...form, estado_civil: e.target.value })
-            }
-          >
-            <option value="">Estado civil</option>
-            <option value="Solteiro">Solteiro</option>
-            <option value="Casado">Casado</option>
-            <option value="Divorciado">Divorciado</option>
-            <option value="Viuvo">Viuvo</option>
-          </select>
-
-          <select
-            value={form.situacao_cadastral}
-            onChange={(e) =>
-              setForm({ ...form, situacao_cadastral: e.target.value })
-            }
-          >
-            <option value="Ativo">Ativo</option>
-            <option value="Desativado">Desativado</option>
-            <option value="Bloqueado">Bloqueado</option>
-          </select>
-
-          <select
-            value={form.batizado_aguas ? "Sim" : "Não"}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                batizado_aguas: e.target.value === "Sim"
-              })
-            }
-          >
-            <option value="Não">Batizado nas águas? Não</option>
-            <option value="Sim">Batizado nas águas? Sim</option>
-          </select>
-
-          <textarea
-            placeholder="Observação"
-            value={form.observacao}
-            onChange={(e) =>
-              setForm({ ...form, observacao: e.target.value })
-            }
-          />
-        </div>
-
-        <div className="form-actions">
-          <button type="submit">
-            {editandoId ? "Salvar alterações" : "Salvar membro"}
+            {formAberto ? "Fechar cadastro" : "+ Novo membro"}
           </button>
+        }
+      />
 
-          {editandoId && (
-            <button
-              type="button"
-              className="btn-secundario"
-              onClick={limparFormulario}
-            >
-              Cancelar edição
-            </button>
-          )}
-        </div>
-      </form>
-
-      <div className="list-card">
-        <div className="list-header">
-          <div>
-            <h2>Lista de membros</h2>
-            <p>
-              Total geral: <strong>{membros.length}</strong> membros •{" "}
-              Exibindo: <strong>{membrosFiltrados.length}</strong> de{" "}
-              <strong>{membrosDaSituacao.length}</strong>
-            </p>
+      {formAberto && (
+        <section className="secretaria-bloco secretaria-formulario-bloco">
+          <div className="secretaria-titulo-linha">
+            <div><span>CADASTRO</span><h2>{editandoId ? "Editar membro" : "Novo membro"}</h2></div>
           </div>
+          <form className="secretaria-formulario" onSubmit={salvarMembro}>
+            <label className="secretaria-campo secretaria-campo-largo"><span>Nome completo *</span><input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value.toUpperCase() })} required /></label>
+            <label className="secretaria-campo"><span>Data de nascimento</span><input type="date" value={form.data_nascimento} onChange={(e) => setForm({ ...form, data_nascimento: e.target.value })} /></label>
+            <label className="secretaria-campo"><span>Telefone / WhatsApp</span><input inputMode="tel" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} /></label>
+            <label className="secretaria-campo"><span>Sexo</span><select value={form.sexo} onChange={(e) => setForm({ ...form, sexo: e.target.value })}><option value="">Não informado</option><option>Masculino</option><option>Feminino</option></select></label>
+            <label className="secretaria-campo"><span>Estado civil</span><select value={form.estado_civil} onChange={(e) => setForm({ ...form, estado_civil: e.target.value })}><option value="">Não informado</option><option>Solteiro</option><option>Casado</option><option>Divorciado</option><option>Viúvo</option></select></label>
+            <label className="secretaria-campo"><span>Situação cadastral</span><select value={form.situacao_cadastral} onChange={(e) => setForm({ ...form, situacao_cadastral: e.target.value })}><option>Ativo</option><option>Desativado</option><option>Bloqueado</option></select></label>
+            <label className="secretaria-campo"><span>Batizado nas águas?</span><select value={form.batizado_aguas ? "Sim" : "Não"} onChange={(e) => setForm({ ...form, batizado_aguas: e.target.value === "Sim" })}><option>Não</option><option>Sim</option></select></label>
+            <label className="secretaria-campo secretaria-campo-largo"><span>Observação</span><textarea value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} /></label>
+            <SeletorFuncoes funcoes={funcoes} selecionadas={funcoesSelecionadas} onChange={setFuncoesSelecionadas} />
+            <div className="secretaria-form-acoes secretaria-campo-largo"><button className="secretaria-botao-primario" disabled={salvando}>{salvando ? "Salvando..." : "Salvar membro"}</button><button type="button" className="secretaria-botao-secundario" onClick={limparFormulario}>Cancelar</button></div>
+          </form>
+        </section>
+      )}
+
+      <section className="secretaria-bloco secretaria-lista-membros">
+        <div className="secretaria-titulo-linha secretaria-lista-topo">
+          <div><span>CADASTRO GERAL</span><h2>{membrosFiltrados.length} membros</h2></div>
+          <div className="secretaria-filtros"><input className="secretaria-busca" placeholder="Buscar nome ou telefone" value={pesquisa} onChange={(e) => setPesquisa(e.target.value)} /><select value={filtroSituacao} onChange={(e) => setFiltroSituacao(e.target.value)}><option>Ativo</option><option>Desativado</option><option>Bloqueado</option><option>Todos</option></select></div>
         </div>
 
-        <div className="form-actions" style={{ marginBottom: "18px" }}>
-          <button
-            type="button"
-            onClick={() => setFiltroSituacao("Ativo")}
-            className={filtroSituacao === "Ativo" ? "" : "btn-secundario"}
-          >
-            Ativos
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setFiltroSituacao("Desativado")}
-            className={filtroSituacao === "Desativado" ? "" : "btn-secundario"}
-          >
-            Desativados
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setFiltroSituacao("Bloqueado")}
-            className={filtroSituacao === "Bloqueado" ? "" : "btn-secundario"}
-          >
-            Bloqueados
-          </button>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            flexWrap: "wrap",
-            marginBottom: "20px"
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Pesquisar membro..."
-            value={pesquisa}
-            onChange={(e) => setPesquisa(e.target.value)}
-            style={{ maxWidth: "320px" }}
-          />
-
-          <select
-            value={limite}
-            onChange={(e) => setLimite(Number(e.target.value))}
-            style={{ maxWidth: "150px" }}
-          >
-            <option value={12}>12 membros</option>
-            <option value={24}>24 membros</option>
-            <option value={50}>50 membros</option>
-            <option value={100}>100 membros</option>
-            <option value={99999}>Todos</option>
-          </select>
-        </div>
-
-        {loading ? (
-          <p>Carregando...</p>
-        ) : (
-          <div className="membros-grid">
-            {membrosFiltrados.map((membro) => (
-              <div key={membro.id} className="membro-card">
-                <div className="membro-card-top">
-                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                    <div
-                      style={{
-                        width: "58px",
-                        height: "58px",
-                        borderRadius: "50%",
-                        background: "#dbeafe",
-                        color: "#1d4ed8",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: "800"
-                      }}
-                    >
-                      {membro.nome?.charAt(0)}
-                    </div>
-
-                    <div>
-                      <h3>{membro.nome}</h3>
-                      <span className="badge-turma">
-                        {membro.situacao_cadastral}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="membro-info">
-                  <p><strong>Nascimento:</strong> {formatarData(membro.data_nascimento)}</p>
-                  <p><strong>Telefone:</strong> {membro.telefone || "Não informado"}</p>
-                  <p><strong>Sexo:</strong> {membro.sexo || "Não informado"}</p>
-                  <p><strong>Estado civil:</strong> {membro.estado_civil || "Não informado"}</p>
-                  <p><strong>Batizado:</strong> {membro.batizado_aguas ? "Sim" : "Não"}</p>
-                  <p><strong>Criado por:</strong> {membro.criado_por || "Não informado"}</p>
-                </div>
-
-                <div className="form-actions" style={{ marginTop: "12px" }}>
-                  <button
-                    type="button"
-                    onClick={() => editarMembro(membro)}
-                  >
-                    Editar
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn-secundario"
-                    onClick={() => criarAcesso(membro)}
-                  >
-                    Criar acesso
-                  </button>
-                </div>
-              </div>
-            ))}
+        {carregando ? <p>Carregando...</p> : membrosFiltrados.length === 0 ? <p className="secretaria-vazio">Nenhum membro encontrado.</p> : (
+          <div className="secretaria-membros-lista">
+            {membrosFiltrados.map((membro) => {
+              const cargos = (membro.membro_funcoes || []).filter((item) => item.ativo && item.secretaria_funcoes)
+              return (
+                <article className="secretaria-membro" key={membro.id}>
+                  <div className="secretaria-membro-identidade"><span>{membro.nome?.charAt(0)}</span><div><h3>{membro.nome}</h3><p>{membro.telefone || "Telefone não informado"} · {formatarData(membro.data_nascimento)}</p></div></div>
+                  <div className="secretaria-membro-funcoes">{cargos.length ? cargos.slice(0, 3).map((item) => <span key={item.id}>{item.secretaria_funcoes.nome}</span>) : <small>Sem função cadastrada</small>}{cargos.length > 3 && <small>+{cargos.length - 3}</small>}</div>
+                  <span className={`secretaria-situacao ${membro.situacao_cadastral?.toLowerCase()}`}>{membro.situacao_cadastral}</span>
+                  <div className="secretaria-membro-acoes"><button onClick={() => editarMembro(membro)}>Editar</button><button onClick={() => criarAcesso(membro)}>Criar acesso</button></div>
+                </article>
+              )
+            })}
           </div>
         )}
-      </div>
+      </section>
     </div>
   )
 }

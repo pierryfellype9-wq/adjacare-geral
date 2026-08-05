@@ -43,3 +43,10 @@ test("funções enviadas foram incluídas no cadastro pesquisável", () => {
     assert.ok(schema.includes(funcao))
   }
 })
+
+test("banco limita cada membro a uma única função ativa", () => {
+  assert.match(
+    schema,
+    /create unique index membro_funcoes_ativo_unique\s+on public\.membro_funcoes \(membro_id\)\s+where ativo = true/,
+  )
+})

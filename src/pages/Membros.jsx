@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import SecretariaCabecalho from "../components/SecretariaCabecalho"
 import { supabase } from "../lib/supabase"
+import { ordenarFuncoes } from "../lib/secretaria"
 
 const FORM_INICIAL = {
   nome: "",
@@ -19,61 +20,11 @@ function formatarData(data) {
   return data.split("-").reverse().join("/")
 }
 
-function SeletorFuncoes({ funcoes, selecionadas, onChange }) {
-  const [busca, setBusca] = useState("")
-  const filtradas = funcoes.filter((funcao) =>
-    `${funcao.nome} ${funcao.categoria}`
-      .toLocaleLowerCase("pt-BR")
-      .includes(busca.toLocaleLowerCase("pt-BR")),
-  )
-
-  function alternar(id) {
-    onChange(
-      selecionadas.includes(id)
-        ? selecionadas.filter((item) => item !== id)
-        : [...selecionadas, id],
-    )
-  }
-
-  return (
-    <div className="secretaria-funcoes secretaria-campo-largo">
-      <div className="secretaria-funcoes-topo">
-        <div>
-          <span>Funções na igreja</span>
-          <small>O membro pode exercer mais de uma função.</small>
-        </div>
-        <b>{selecionadas.length} selecionada(s)</b>
-      </div>
-      <input
-        type="search"
-        placeholder="Buscar função ou departamento"
-        value={busca}
-        onChange={(event) => setBusca(event.target.value)}
-      />
-      <div className="secretaria-funcoes-lista">
-        {filtradas.map((funcao) => (
-          <label
-            className={selecionadas.includes(funcao.id) ? "selecionada" : ""}
-            key={funcao.id}
-          >
-            <input
-              type="checkbox"
-              checked={selecionadas.includes(funcao.id)}
-              onChange={() => alternar(funcao.id)}
-            />
-            <span><strong>{funcao.nome}</strong><small>{funcao.categoria}</small></span>
-          </label>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 export default function Membros({ user }) {
   const navigate = useNavigate()
   const [membros, setMembros] = useState([])
   const [funcoes, setFuncoes] = useState([])
-  const [funcoesSelecionadas, setFuncoesSelecionadas] = useState([])
+  const [funcaoSelecionada, setFuncaoSelecionada] = useState("")
   const [form, setForm] = useState(FORM_INICIAL)
   const [formAberto, setFormAberto] = useState(false)
   const [editandoId, setEditandoId] = useState(null)
@@ -93,15 +44,14 @@ export default function Membros({ user }) {
         .from("secretaria_funcoes")
         .select("id,nome,categoria")
         .eq("ativa", true)
-        .order("categoria")
-        .order("nome"),
+        .order("nome", { ascending: true }),
     ])
 
     if (membrosResposta.error || funcoesResposta.error) {
       alert("Não foi possível carregar todos os dados dos membros.")
     }
     setMembros(membrosResposta.data || [])
-    setFuncoes(funcoesResposta.data || [])
+    setFuncoes(ordenarFuncoes(funcoesResposta.data || []))
     setCarregando(false)
   }
 
@@ -111,7 +61,7 @@ export default function Membros({ user }) {
 
   function limparFormulario() {
     setForm(FORM_INICIAL)
-    setFuncoesSelecionadas([])
+    setFuncaoSelecionada("")
     setEditandoId(null)
     setFormAberto(false)
   }
@@ -124,11 +74,9 @@ export default function Membros({ user }) {
       .eq("ativo", true)
 
     if (error) throw error
-    const idsAtuais = (atuais || []).map((item) => item.funcao_id)
-    const remover = (atuais || []).filter(
-      (item) => !funcoesSelecionadas.includes(item.funcao_id),
-    )
-    const adicionar = funcoesSelecionadas.filter((id) => !idsAtuais.includes(id))
+    const atual = atuais?.[0] || null
+    const remover = atual && atual.funcao_id !== funcaoSelecionada ? [atual] : []
+    const adicionar = funcaoSelecionada && atual?.funcao_id !== funcaoSelecionada
 
     if (remover.length) {
       const { error: erroRemover } = await supabase
@@ -138,15 +86,13 @@ export default function Membros({ user }) {
       if (erroRemover) throw erroRemover
     }
 
-    if (adicionar.length) {
-      const { error: erroAdicionar } = await supabase.from("membro_funcoes").insert(
-        adicionar.map((funcaoId) => ({
-          membro_id: membroId,
-          funcao_id: funcaoId,
-          data_inicio: new Date().toLocaleDateString("en-CA"),
-          criado_por: user?.nome || user?.email,
-        })),
-      )
+    if (adicionar) {
+      const { error: erroAdicionar } = await supabase.from("membro_funcoes").insert({
+        membro_id: membroId,
+        funcao_id: funcaoSelecionada,
+        data_inicio: new Date().toLocaleDateString("en-CA"),
+        criado_por: user?.nome || user?.email,
+      })
       if (erroAdicionar) throw erroAdicionar
     }
   }
@@ -195,10 +141,8 @@ export default function Membros({ user }) {
       situacao_cadastral: membro.situacao_cadastral || "Ativo",
       observacao: membro.observacao || "",
     })
-    setFuncoesSelecionadas(
-      (membro.membro_funcoes || [])
-        .filter((item) => item.ativo)
-        .map((item) => item.funcao_id),
+    setFuncaoSelecionada(
+      (membro.membro_funcoes || []).find((item) => item.ativo)?.funcao_id || "",
     )
     setFormAberto(true)
     window.scrollTo({ top: 0, behavior: "smooth" })
@@ -254,7 +198,23 @@ export default function Membros({ user }) {
             <label className="secretaria-campo"><span>Situação cadastral</span><select value={form.situacao_cadastral} onChange={(e) => setForm({ ...form, situacao_cadastral: e.target.value })}><option>Ativo</option><option>Desativado</option><option>Bloqueado</option></select></label>
             <label className="secretaria-campo"><span>Batizado nas águas?</span><select value={form.batizado_aguas ? "Sim" : "Não"} onChange={(e) => setForm({ ...form, batizado_aguas: e.target.value === "Sim" })}><option>Não</option><option>Sim</option></select></label>
             <label className="secretaria-campo secretaria-campo-largo"><span>Observação</span><textarea value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} /></label>
-            <SeletorFuncoes funcoes={funcoes} selecionadas={funcoesSelecionadas} onChange={setFuncoesSelecionadas} />
+            <label className="secretaria-campo secretaria-campo-largo">
+              <span>Função na igreja</span>
+              <select
+                value={funcaoSelecionada}
+                onChange={(event) => setFuncaoSelecionada(event.target.value)}
+              >
+                <option value="">Sem função cadastrada</option>
+                {funcoes.map((funcao) => (
+                  <option value={funcao.id} key={funcao.id}>
+                    {funcao.nome}
+                  </option>
+                ))}
+              </select>
+              <small className="secretaria-ajuda-campo">
+                As funções estão organizadas em ordem alfabética.
+              </small>
+            </label>
             <div className="secretaria-form-acoes secretaria-campo-largo"><button className="secretaria-botao-primario" disabled={salvando}>{salvando ? "Salvando..." : "Salvar membro"}</button><button type="button" className="secretaria-botao-secundario" onClick={limparFormulario}>Cancelar</button></div>
           </form>
         </section>
@@ -269,11 +229,11 @@ export default function Membros({ user }) {
         {carregando ? <p>Carregando...</p> : membrosFiltrados.length === 0 ? <p className="secretaria-vazio">Nenhum membro encontrado.</p> : (
           <div className="secretaria-membros-lista">
             {membrosFiltrados.map((membro) => {
-              const cargos = (membro.membro_funcoes || []).filter((item) => item.ativo && item.secretaria_funcoes)
+              const cargo = (membro.membro_funcoes || []).find((item) => item.ativo && item.secretaria_funcoes)
               return (
                 <article className="secretaria-membro" key={membro.id}>
                   <div className="secretaria-membro-identidade"><span>{membro.nome?.charAt(0)}</span><div><h3>{membro.nome}</h3><p>{membro.telefone || "Telefone não informado"} · {formatarData(membro.data_nascimento)}</p></div></div>
-                  <div className="secretaria-membro-funcoes">{cargos.length ? cargos.slice(0, 3).map((item) => <span key={item.id}>{item.secretaria_funcoes.nome}</span>) : <small>Sem função cadastrada</small>}{cargos.length > 3 && <small>+{cargos.length - 3}</small>}</div>
+                  <div className="secretaria-membro-funcoes">{cargo ? <span>{cargo.secretaria_funcoes.nome}</span> : <small>Sem função cadastrada</small>}</div>
                   <span className={`secretaria-situacao ${membro.situacao_cadastral?.toLowerCase()}`}>{membro.situacao_cadastral}</span>
                   <div className="secretaria-membro-acoes"><button onClick={() => editarMembro(membro)}>Editar</button><button onClick={() => criarAcesso(membro)}>Criar acesso</button></div>
                 </article>

@@ -44,3 +44,13 @@ export function formatarDataSecretaria(data) {
     timeZone: "America/Sao_Paulo",
   }).format(new Date(data))
 }
+
+export function ordenarFuncoes(funcoes = []) {
+  return [...funcoes].sort((a, b) => {
+    const nomeA = a.nome.replace(/^\d+º\s*/, "")
+    const nomeB = b.nome.replace(/^\d+º\s*/, "")
+    const porNome = nomeA.localeCompare(nomeB, "pt-BR", { sensitivity: "base" })
+
+    return porNome || a.nome.localeCompare(b.nome, "pt-BR", { numeric: true })
+  })
+}

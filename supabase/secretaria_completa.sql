@@ -56,8 +56,9 @@ create table if not exists public.secretaria_datas_importantes (
 );
 
 create index if not exists membro_funcoes_membro_idx on public.membro_funcoes (membro_id);
-create unique index if not exists membro_funcoes_ativo_unique
-  on public.membro_funcoes (membro_id, funcao_id)
+drop index if exists public.membro_funcoes_ativo_unique;
+create unique index membro_funcoes_ativo_unique
+  on public.membro_funcoes (membro_id)
   where ativo = true;
 create index if not exists secretaria_movimentacoes_membro_data_idx on public.secretaria_movimentacoes (membro_id, data desc);
 create index if not exists secretaria_documentos_membro_data_idx on public.secretaria_documentos (membro_id, data_emissao desc);

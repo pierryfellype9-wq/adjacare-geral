@@ -1,6 +1,9 @@
 import test from "node:test"
 import assert from "node:assert/strict"
-import { calcularResumoSecretaria } from "../src/lib/secretaria.js"
+import {
+  calcularResumoSecretaria,
+  ordenarFuncoes,
+} from "../src/lib/secretaria.js"
 
 test("calcula os indicadores da visão geral da Secretaria", () => {
   const resumo = calcularResumoSecretaria(
@@ -36,4 +39,25 @@ test("calcula os indicadores da visão geral da Secretaria", () => {
     aniversariantes: 1,
     cadastrosIncompletos: 2,
   })
+})
+
+test("ordena funções pelo nome do cargo e mantém primeiro e segundo juntos", () => {
+  const funcoes = ordenarFuncoes([
+    { nome: "2º Líder de Jovens" },
+    { nome: "1º Guardador de Ofertas" },
+    { nome: "Auxiliar Dep. Infantil" },
+    { nome: "1º Líder de Jovens" },
+    { nome: "2º Guardador de Ofertas" },
+  ])
+
+  assert.deepEqual(
+    funcoes.map((funcao) => funcao.nome),
+    [
+      "Auxiliar Dep. Infantil",
+      "1º Guardador de Ofertas",
+      "2º Guardador de Ofertas",
+      "1º Líder de Jovens",
+      "2º Líder de Jovens",
+    ],
+  )
 })

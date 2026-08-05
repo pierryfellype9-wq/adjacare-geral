@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
+import SecretariaAbas from "../components/SecretariaAbas"
 
 export default function Membros({ user }) {
   const navigate = useNavigate()
@@ -129,6 +130,8 @@ export default function Membros({ user }) {
           <p>Cadastro geral dos membros da igreja.</p>
         </div>
       </div>
+
+      <SecretariaAbas ativa="membros" />
 
       <form onSubmit={salvarMembro} className="form-card">
         <div className="form-title-row">

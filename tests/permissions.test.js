@@ -33,11 +33,18 @@ test("custos fixos mantém os três perfis de gestão", () => {
   assert.equal(temPermissao({ role: PERFIS.SECRETARIA }, "custosFixos"), false)
 })
 
-test("membros é acessível somente para administrador e dirigente", () => {
-  assert.equal(temPermissao({ role: PERFIS.ADMINISTRADOR }, "membros"), true)
-  assert.equal(temPermissao({ role: PERFIS.DIRIGENTE }, "membros"), true)
+test("secretaria e membros são acessíveis aos três perfis responsáveis", () => {
+  for (const role of [
+    PERFIS.ADMINISTRADOR,
+    PERFIS.DIRIGENTE,
+    PERFIS.SECRETARIA,
+  ]) {
+    assert.equal(temPermissao({ role }, "secretaria"), true)
+    assert.equal(temPermissao({ role }, "membros"), true)
+  }
+
+  assert.equal(temPermissao({ role: PERFIS.MIDIA }, "secretaria"), false)
   assert.equal(temPermissao({ role: PERFIS.MIDIA }, "membros"), false)
-  assert.equal(temPermissao({ role: PERFIS.SECRETARIA }, "membros"), false)
 })
 
 test("perfil desconhecido nunca recebe permissão implicitamente", () => {

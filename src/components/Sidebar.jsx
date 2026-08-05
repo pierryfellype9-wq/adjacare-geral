@@ -86,7 +86,7 @@ export default function Sidebar({ open, setOpen, user, onLogout }) {
 
           <section>
             <h2>ADMINISTRAÇÃO</h2>
-            {temPermissao(user, "membros") && <Item to="/membros" icon="membros" setOpen={setOpen}>Membros</Item>}
+            {temPermissao(user, "secretaria") && <Item to="/secretaria" icon="membros" setOpen={setOpen}>Secretaria</Item>}
             <Item to="/usuarios" icon="usuarios" setOpen={setOpen}>Usuários</Item>
             <Item to="/trocar-senha" icon="senha" setOpen={setOpen}>Alterar senha</Item>
             {temPermissao(user, "senhasAplicativos") && <Item to="/senhas-aplicativos" icon="cofre" setOpen={setOpen}>Senhas de aplicativos</Item>}

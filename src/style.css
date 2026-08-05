@@ -2022,6 +2022,396 @@ label {
 
 /* MEMBROS - AJUSTE FINAL */
 
+/* SECRETARIA */
+
+.secretaria-page {
+  --secretaria-azul: #123d72;
+  --secretaria-azul-profundo: #0b274a;
+  --secretaria-dourado: #b58a3b;
+  color: #182333;
+}
+
+.secretaria-cabecalho {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 34px 38px;
+  background: var(--secretaria-azul-profundo);
+  color: #ffffff;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.secretaria-cabecalho::after {
+  content: "";
+  position: absolute;
+  right: 5%;
+  bottom: -95px;
+  width: 280px;
+  height: 280px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.secretaria-kicker,
+.secretaria-painel-titulo span,
+.secretaria-qualidade > span,
+.secretaria-secao-titulo > span {
+  display: block;
+  color: #d4b26e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  margin-bottom: 8px;
+}
+
+.secretaria-cabecalho h1 {
+  margin: 0 0 8px;
+  color: #ffffff;
+  font-size: clamp(32px, 4vw, 48px);
+}
+
+.secretaria-cabecalho p {
+  max-width: 650px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.6;
+}
+
+.secretaria-acao-principal {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  padding: 13px 20px;
+  background: #ffffff;
+  color: var(--secretaria-azul-profundo);
+  font-weight: 800;
+  text-decoration: none;
+  border-radius: 3px;
+}
+
+.secretaria-abas {
+  display: flex;
+  gap: 28px;
+  padding: 0 8px;
+  border-bottom: 1px solid #d9e0e8;
+  overflow-x: auto;
+}
+
+.secretaria-abas a,
+.secretaria-abas span {
+  flex: 0 0 auto;
+  padding: 20px 2px 16px;
+  color: #657184;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+
+.secretaria-abas a.ativa {
+  color: var(--secretaria-azul);
+  border-bottom-color: var(--secretaria-dourado);
+}
+
+.secretaria-abas span {
+  color: #a2aab5;
+  cursor: not-allowed;
+}
+
+.secretaria-estado {
+  margin-top: 24px;
+  padding: 30px;
+  background: #ffffff;
+  border-left: 4px solid var(--secretaria-azul);
+}
+
+.secretaria-estado.erro {
+  border-left-color: #b42318;
+  color: #8a1c13;
+}
+
+.secretaria-indicadores {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 26px;
+  background: #ffffff;
+  border: 1px solid #dde3ea;
+}
+
+.secretaria-indicador {
+  min-height: 145px;
+  padding: 25px 26px;
+  border-right: 1px solid #dde3ea;
+}
+
+.secretaria-indicador:last-child {
+  border-right: 0;
+}
+
+.secretaria-indicador span,
+.secretaria-indicador small {
+  display: block;
+  color: #687588;
+}
+
+.secretaria-indicador span {
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.secretaria-indicador strong {
+  display: block;
+  margin: 10px 0 5px;
+  color: var(--secretaria-azul-profundo);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.secretaria-indicador small {
+  font-size: 12px;
+}
+
+.secretaria-indicador.destaque {
+  background: var(--secretaria-azul);
+}
+
+.secretaria-indicador.destaque span,
+.secretaria-indicador.destaque small {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.secretaria-indicador.destaque strong {
+  color: #ffffff;
+}
+
+.secretaria-conteudo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.75fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.secretaria-painel {
+  background: #ffffff;
+  border: 1px solid #dde3ea;
+  padding: 28px;
+}
+
+.secretaria-painel-titulo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.secretaria-painel h2,
+.secretaria-secao-titulo h2 {
+  margin: 0;
+  color: var(--secretaria-azul-profundo);
+  font-size: 23px;
+}
+
+.secretaria-painel-titulo a,
+.secretaria-qualidade a {
+  color: var(--secretaria-azul);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.secretaria-recentes {
+  border-top: 1px solid #e4e8ed;
+}
+
+.secretaria-recente {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #e4e8ed;
+}
+
+.secretaria-inicial {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  background: #e9f0f8;
+  color: var(--secretaria-azul);
+  font-weight: 800;
+  border-radius: 50%;
+}
+
+.secretaria-recente strong,
+.secretaria-recente small {
+  display: block;
+}
+
+.secretaria-recente strong {
+  margin-bottom: 3px;
+  color: #1a2636;
+  font-size: 14px;
+}
+
+.secretaria-recente small {
+  color: #7a8595;
+  font-size: 12px;
+}
+
+.secretaria-recente > b {
+  padding: 5px 9px;
+  background: #edf7f1;
+  color: #247346;
+  font-size: 11px;
+  border-radius: 3px;
+}
+
+.secretaria-qualidade {
+  border-top: 4px solid var(--secretaria-dourado);
+}
+
+.secretaria-qualidade h2 {
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+.secretaria-qualidade p {
+  color: #657184;
+  line-height: 1.65;
+}
+
+.secretaria-qualidade a {
+  display: inline-block;
+  margin-top: 12px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--secretaria-dourado);
+}
+
+.secretaria-proximas-etapas {
+  margin-top: 46px;
+}
+
+.secretaria-secao-titulo {
+  margin-bottom: 20px;
+}
+
+.secretaria-secao-titulo p {
+  margin: 8px 0 0;
+  color: #6d7888;
+}
+
+.secretaria-areas {
+  border-top: 1px solid #cfd7e1;
+}
+
+.secretaria-areas article {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+  padding: 20px 4px;
+  border-bottom: 1px solid #cfd7e1;
+}
+
+.secretaria-areas article > span {
+  color: var(--secretaria-dourado);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.secretaria-areas h3 {
+  margin: 0 0 4px;
+  color: var(--secretaria-azul-profundo);
+  font-size: 16px;
+}
+
+.secretaria-areas p {
+  margin: 0;
+  color: #6c7787;
+  font-size: 13px;
+}
+
+.secretaria-areas small {
+  color: #8993a0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.secretaria-vazio {
+  color: #6c7787;
+}
+
+@media (max-width: 900px) {
+  .secretaria-indicadores {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .secretaria-indicador:nth-child(2) {
+    border-right: 0;
+  }
+
+  .secretaria-indicador:nth-child(-n + 2) {
+    border-bottom: 1px solid #dde3ea;
+  }
+
+  .secretaria-conteudo {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .secretaria-cabecalho {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 26px 22px;
+  }
+
+  .secretaria-acao-principal {
+    width: 100%;
+    text-align: center;
+  }
+
+  .secretaria-indicadores {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .secretaria-indicador {
+    min-height: 126px;
+    padding: 19px 17px;
+  }
+
+  .secretaria-indicador strong {
+    font-size: 29px;
+  }
+
+  .secretaria-painel {
+    padding: 21px 18px;
+  }
+
+  .secretaria-recente {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .secretaria-recente > b {
+    display: none;
+  }
+
+  .secretaria-areas article {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .secretaria-areas small {
+    display: none;
+  }
+}
+
 .membros-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(280px, 360px)) !important;

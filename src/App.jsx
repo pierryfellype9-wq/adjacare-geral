@@ -35,6 +35,7 @@ const EBDDashboard = lazy(() => import("./pages/EBDDashboard"))
 const PortalAluno = lazy(() => import("./pages/PortalAluno"))
 const EBDFinanceiro = lazy(() => import("./pages/EBDFinanceiro"))
 const Membros = lazy(() => import("./pages/Membros"))
+const Secretaria = lazy(() => import("./pages/Secretaria"))
 const WhatsApp = lazy(() => import("./pages/WhatsApp"))
 const EBD = lazy(() => import("./pages/EBD"))
 const EBDAlunos = lazy(() => import("./pages/EBDAlunos"))
@@ -188,6 +189,7 @@ export default function App() {
   const podeVerSenhas = temPermissao(user, "senhasAplicativos")
   const podeVerCustosFixos = temPermissao(user, "custosFixos")
   const podeVerMembros = temPermissao(user, "membros")
+  const podeVerSecretaria = temPermissao(user, "secretaria")
 
   return (
     <>
@@ -460,6 +462,16 @@ export default function App() {
                 <Route path="/ebd/relatorios" element={<EBDRelatorios user={user} />} />
                 <Route path="/ebd/relatorio-ofertas" element={<EBDRelatorioOfertas user={user} />} />
                 <Route path="/ebd/dashboard" element={<EBDDashboard user={user} />} />
+                <Route
+                  path="/secretaria"
+                  element={
+                    podeVerSecretaria ? (
+                      <Secretaria user={user} />
+                    ) : (
+                      <Navigate to="/dashboard" replace />
+                    )
+                  }
+                />
                 <Route
                   path="/membros"
                   element={

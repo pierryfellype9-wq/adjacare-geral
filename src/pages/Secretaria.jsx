@@ -18,7 +18,7 @@ const AREAS_FUTURAS = [
   },
   {
     titulo: "Datas importantes",
-    descricao: "Batismos, apresentações, casamentos e aniversários.",
+    descricao: "Batismos, apresentações, recebimentos e aniversários.",
   },
 ]
 

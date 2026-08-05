@@ -50,3 +50,15 @@ test("banco limita cada membro a uma única função ativa", () => {
     /create unique index membro_funcoes_ativo_unique\s+on public\.membro_funcoes \(membro_id\)\s+where ativo = true/,
   )
 })
+
+test("documentos possuem texto editável e responsáveis pela assinatura", () => {
+  for (const campo of [
+    "conteudo text",
+    "assinante_1_nome text",
+    "assinante_1_cargo text",
+    "assinante_2_nome text",
+    "assinante_2_cargo text",
+  ]) {
+    assert.ok(schema.includes(campo))
+  }
+})

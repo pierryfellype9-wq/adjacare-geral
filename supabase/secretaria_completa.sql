@@ -38,7 +38,12 @@ create table if not exists public.secretaria_documentos (
   tipo text not null check (tipo in ('Carta de recomendação', 'Declaração de membro', 'Certificado', 'Outro')),
   data_emissao date not null default current_date,
   finalidade text,
+  conteudo text,
   observacao text,
+  assinante_1_nome text,
+  assinante_1_cargo text,
+  assinante_2_nome text,
+  assinante_2_cargo text,
   status text not null default 'Emitido' check (status in ('Rascunho', 'Emitido', 'Cancelado')),
   criado_por text,
   created_at timestamptz not null default now()

@@ -5,6 +5,7 @@ import SecretariaCabecalho from "../components/SecretariaCabecalho"
 import { notificar } from "../lib/feedback"
 import { supabase } from "../lib/supabase"
 import {
+  avisoDocumentoSecretaria,
   codigoDocumentoSecretaria,
   formatarDataSecretaria,
   modeloDocumentoSecretaria,
@@ -69,7 +70,7 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
       ...(tipoPagina === "documentos" ? {
         conteudo: modeloDocumentoSecretaria(config.tipos[0]),
         assinante_1_nome: "",
-        assinante_1_cargo: "Pastor local",
+        assinante_1_cargo: "Dirigente local",
         assinante_2_nome: "",
         assinante_2_cargo: "Secretaria",
       } : {}),
@@ -171,11 +172,12 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
       { nome: registro.membros?.nome || "Interessado", finalidade: registro.finalidade },
     )).replaceAll("\n", "<br>")
     const codigo = escaparHtml(codigoDocumentoSecretaria(registro.id))
+    const avisoDocumento = escaparHtml(avisoDocumentoSecretaria(registro.tipo))
     const assinante1 = escaparHtml(registro.assinante_1_nome)
     const cargo1 = escaparHtml(registro.assinante_1_cargo || "Pastor local")
     const assinante2 = escaparHtml(registro.assinante_2_nome)
     const cargo2 = escaparHtml(registro.assinante_2_cargo || "Secretaria")
-    janela.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${tipo}</title><style>@page{size:A4;margin:16mm}*{box-sizing:border-box}body{margin:0;color:#172438;font:11pt Arial,sans-serif;line-height:1.65}.documento{min-height:265mm;display:flex;flex-direction:column;border-top:5px solid #17477c;padding:12mm 10mm 8mm}header{display:grid;grid-template-columns:72px 1fr 110px;align-items:center;gap:18px;padding-bottom:18px;border-bottom:1px solid #c8a75b}header img{width:68px;height:68px;object-fit:contain}.identidade strong{display:block;color:#123f72;font-size:13pt}.identidade span{display:block;font-size:9pt;color:#647286}.protocolo{text-align:right;font-size:8pt;color:#657286}.protocolo b{display:block;color:#24364c;font-size:9pt}main{flex:1;padding:20mm 4mm 8mm}h1{margin:0 0 16mm;text-align:center;text-transform:uppercase;letter-spacing:1.5px;color:#173f6d;font:700 18pt Georgia,serif}.corpo{text-align:justify;font-size:11.5pt;line-height:1.9}.complemento{margin-top:10mm;padding:5mm 6mm;background:#f5f7f9;border-left:3px solid #c8a75b;font-size:9.5pt}.data{margin-top:18mm;text-align:right}.assinaturas{display:grid;grid-template-columns:1fr 1fr;gap:18mm;margin-top:22mm}.assinatura{text-align:center;border-top:1px solid #26384e;padding-top:5px;min-height:38px}.assinatura strong{display:block}.assinatura span{font-size:9pt;color:#5c697a}footer{margin-top:12mm;padding-top:5mm;border-top:1px solid #d8dee6;text-align:center;color:#667487;font-size:8.5pt}@media print{.documento{min-height:260mm}}</style></head><body><article class="documento"><header><img src="/logo-ad-institucional-escura.png" alt=""><div class="identidade"><strong>ASSEMBLEIA DE DEUS, BAIRRO JACARÉ</strong><span>Ministério Belém · Secretaria da Igreja</span></div><div class="protocolo">DOCUMENTO Nº<b>${codigo}</b></div></header><main><h1>${tipo}</h1><div class="corpo">${conteudo}</div>${observacao ? `<div class="complemento"><strong>Informações complementares</strong><br>${observacao}</div>` : ""}<div class="data">Cabreúva, ${formatarDataSecretaria(registro[config.campoData])}.</div><div class="assinaturas"><div class="assinatura">${assinante1 ? `<strong>${assinante1}</strong>` : ""}<span>${cargo1}</span></div><div class="assinatura">${assinante2 ? `<strong>${assinante2}</strong>` : ""}<span>${cargo2}</span></div></div></main><footer>Av. Ver. José Donato, 913 · Bairro Jacaré · Cabreúva/SP · CEP 13318-000</footer></article><script>window.addEventListener('load',()=>window.print())</script></body></html>`)
+    janela.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${tipo}</title><style>@page{size:A4;margin:16mm}*{box-sizing:border-box}body{margin:0;color:#172438;font:11pt Arial,sans-serif;line-height:1.65}.documento{min-height:265mm;display:flex;flex-direction:column;border-top:5px solid #17477c;padding:12mm 10mm 8mm}header{display:grid;grid-template-columns:72px 1fr 110px;align-items:center;gap:18px;padding-bottom:18px;border-bottom:1px solid #c8a75b}header img{width:68px;height:68px;object-fit:contain}.identidade strong{display:block;color:#123f72;font-size:13pt}.identidade span{display:block;font-size:9pt;color:#647286}.protocolo{text-align:right;font-size:8pt;color:#657286}.protocolo b{display:block;color:#24364c;font-size:9pt}main{flex:1;padding:17mm 4mm 8mm}h1{margin:0 0 13mm;text-align:center;text-transform:uppercase;letter-spacing:1.5px;color:#173f6d;font:700 18pt Georgia,serif}.corpo{text-align:justify;font-size:11.5pt;line-height:1.9}.complemento{margin-top:9mm;padding:5mm 6mm;background:#f5f7f9;border-left:3px solid #c8a75b;font-size:9.5pt}.data{margin-top:14mm;text-align:right}.assinaturas{display:grid;grid-template-columns:1fr 1fr;gap:18mm;margin-top:19mm}.assinatura{text-align:center;border-top:1px solid #26384e;padding-top:5px;min-height:38px}.assinatura strong{display:block}.assinatura span{font-size:9pt;color:#5c697a}.validade{margin-top:13mm;padding:4mm 6mm;border:1px solid #d9c697;border-radius:5px;color:#5b513a;background:#fbf8ef;font-size:8.8pt;line-height:1.5;text-align:center}.validade strong{color:#7b5b18}footer{margin-top:8mm;padding-top:5mm;border-top:1px solid #d8dee6;text-align:center;color:#667487;font-size:8.5pt}@media print{.documento{min-height:260mm}}</style></head><body><article class="documento"><header><img src="/logo-ad-institucional-escura.png" alt=""><div class="identidade"><strong>ASSEMBLEIA DE DEUS, BAIRRO JACARÉ</strong><span>Ministério Belém · Secretaria da Igreja</span></div><div class="protocolo">DOCUMENTO Nº<b>${codigo}</b></div></header><main><h1>${tipo}</h1><div class="corpo">${conteudo}</div>${observacao ? `<div class="complemento"><strong>Observações</strong><br>${observacao}</div>` : ""}<div class="data">Cabreúva, ${formatarDataSecretaria(registro[config.campoData])}.</div><div class="assinaturas"><div class="assinatura">${assinante1 ? `<strong>${assinante1}</strong>` : ""}<span>${cargo1}</span></div><div class="assinatura">${assinante2 ? `<strong>${assinante2}</strong>` : ""}<span>${cargo2}</span></div></div>${avisoDocumento ? `<div class="validade"><strong>Atenção:</strong> ${avisoDocumento}</div>` : ""}</main><footer>Av. Ver. José Donato, 913 · Bairro Jacaré · Cabreúva/SP · CEP 13318-000</footer></article><script>window.addEventListener('load',()=>window.print())</script></body></html>`)
     janela.document.close()
   }
 
@@ -218,7 +220,10 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
               setForm({
                 ...form,
                 tipo,
-                ...(tipoPagina === "documentos" ? { conteudo: modeloDocumentoSecretaria(tipo) } : {}),
+                ...(tipoPagina === "documentos" ? {
+                  conteudo: modeloDocumentoSecretaria(tipo),
+                  assinante_1_cargo: tipo === "Carta de recomendação" ? "Dirigente local" : "Pastor local",
+                } : {}),
               })
             }}>
               {config.tipos.map((tipo) => <option key={tipo}>{tipo}</option>)}
@@ -230,7 +235,7 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
           </label>
           {config.campos.map(([campo, titulo]) => (
             <label className="secretaria-campo" key={campo}>
-              <span>{tipoPagina === "documentos" && campo === "finalidade" ? "Destino ou finalidade *" : titulo}</span>
+              <span>{tipoPagina === "documentos" && campo === "finalidade" ? (form.tipo === "Carta de recomendação" ? "Igreja de destino *" : "Finalidade *") : titulo}</span>
               <input value={form[campo]} onChange={(event) => setForm({ ...form, [campo]: event.target.value })} required={tipoPagina === "documentos" && campo === "finalidade"} />
             </label>
           ))}
@@ -239,7 +244,7 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
               <label className="secretaria-campo secretaria-campo-largo">
                 <span>Texto do documento *</span>
                 <textarea className="secretaria-texto-documento" value={form.conteudo} onChange={(event) => setForm({ ...form, conteudo: event.target.value })} required />
-                <small className="secretaria-ajuda-campo">Use {"{nome}"} e {"{finalidade}"}; o sistema substitui pelos dados do registro ao imprimir.</small>
+                <small className="secretaria-ajuda-campo">Use {"{nome}"} e {form.tipo === "Carta de recomendação" ? "{destino}" : "{finalidade}"}; o sistema substitui pelos dados do registro ao imprimir.</small>
               </label>
               <label className="secretaria-campo">
                 <span>Nome do primeiro responsável</span>

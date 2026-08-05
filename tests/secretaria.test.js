@@ -2,6 +2,7 @@ import test from "node:test"
 import assert from "node:assert/strict"
 import {
   calcularResumoSecretaria,
+  avisoDocumentoSecretaria,
   codigoDocumentoSecretaria,
   formatarDataSecretaria,
   modeloDocumentoSecretaria,
@@ -58,13 +59,21 @@ test("gera documentos completos com os dados do registro", () => {
 
     assert.match(texto, /MARIA DA SILVA/)
     assert.match(texto, /apresentação à igreja de destino/)
-    assert.doesNotMatch(texto, /\{nome\}|\{finalidade\}/)
+    assert.doesNotMatch(texto, /\{nome\}|\{finalidade\}|\{destino\}/)
   }
 
   assert.equal(
     codigoDocumentoSecretaria("12345678-abcd-4000-9000-123456789012"),
     "ADJ-12345678AB",
   )
+})
+
+test("carta de recomendação informa comunhão, base bíblica e validade", () => {
+  const carta = modeloDocumentoSecretaria("Carta de recomendação")
+  assert.match(carta, /Colossenses 3:16/)
+  assert.match(carta, /plena comunhão/)
+  assert.match(avisoDocumentoSecretaria("Carta de recomendação"), /60 dias/)
+  assert.equal(avisoDocumentoSecretaria("Certificado"), "")
 })
 
 test("formata datas civis sem recuar um dia pelo fuso horário", () => {

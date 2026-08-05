@@ -60,7 +60,7 @@ export function ordenarFuncoes(funcoes = []) {
 }
 
 const MODELOS_DOCUMENTOS = {
-  "Carta de recomendação": "A Assembleia de Deus, Bairro Jacaré, por meio desta, recomenda o(a) irmão(ã) {nome}, membro desta congregação, à {finalidade}. Solicitamos que seja recebido(a) com amor cristão e comunhão fraterna, na graça e na paz de nosso Senhor Jesus Cristo.",
+  "Carta de recomendação": "Prezados irmãos, a paz do Senhor.\n\n“Habite, ricamente, em vós a palavra de Cristo.” (Colossenses 3:16)\n\nA Assembleia de Deus, Bairro Jacaré, apresenta à {destino} o(a) irmão(ã) {nome}, membro desta congregação e em plena comunhão. Por meio desta carta, recomendamos que seja recebido(a) com amor fraternal, conforme a comunhão dos santos.",
   "Declaração de membro": "Declaramos, para os devidos fins, que {nome} encontra-se regularmente cadastrado(a) como membro da Assembleia de Deus, Bairro Jacaré. A presente declaração é emitida a pedido do(a) interessado(a), para {finalidade}.",
   Certificado: "A Assembleia de Deus, Bairro Jacaré, confere o presente certificado a {nome}, em reconhecimento a {finalidade}.",
   Outro: "A Assembleia de Deus, Bairro Jacaré, declara, para os devidos fins, que {nome}: {finalidade}.",
@@ -74,6 +74,12 @@ export function preencherDocumentoSecretaria(modelo, { nome, finalidade }) {
   return String(modelo || "")
     .replaceAll("{nome}", nome || "[NOME DO MEMBRO]")
     .replaceAll("{finalidade}", finalidade || "[FINALIDADE DO DOCUMENTO]")
+    .replaceAll("{destino}", finalidade || "[IGREJA DE DESTINO]")
+}
+
+export function avisoDocumentoSecretaria(tipo) {
+  if (tipo !== "Carta de recomendação") return ""
+  return "Validade: 60 dias a partir da data de emissão. Dentro desse período, apresente esta carta à igreja de destino para encaminhamento à respectiva secretaria."
 }
 
 export function codigoDocumentoSecretaria(id = "") {

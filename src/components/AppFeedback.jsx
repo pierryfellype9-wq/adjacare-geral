@@ -14,7 +14,7 @@ export default function AppFeedback() {
   useEffect(() => {
     const alertOriginal = window.alert
 
-    window.alert = (valor) => {
+    function adicionar(valor) {
       const mensagem = String(valor ?? "")
       setFila((anterior) => [
         ...anterior,
@@ -26,8 +26,13 @@ export default function AppFeedback() {
       ])
     }
 
+    window.alert = adicionar
+    const receberFeedback = (event) => adicionar(event.detail)
+    window.addEventListener("app:feedback", receberFeedback)
+
     return () => {
       window.alert = alertOriginal
+      window.removeEventListener("app:feedback", receberFeedback)
     }
   }, [])
 

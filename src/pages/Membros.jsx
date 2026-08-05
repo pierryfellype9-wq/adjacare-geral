@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import SecretariaCabecalho from "../components/SecretariaCabecalho"
+import { notificar } from "../lib/feedback"
 import { supabase } from "../lib/supabase"
 import { ordenarFuncoes } from "../lib/secretaria"
 
@@ -48,7 +49,7 @@ export default function Membros({ user }) {
     ])
 
     if (membrosResposta.error || funcoesResposta.error) {
-      alert("Não foi possível carregar todos os dados dos membros.")
+      notificar("Não foi possível carregar todos os dados dos membros.")
     }
     setMembros(membrosResposta.data || [])
     setFuncoes(ordenarFuncoes(funcoesResposta.data || []))
@@ -118,12 +119,12 @@ export default function Membros({ user }) {
       }
 
       await sincronizarFuncoes(membroId)
-      alert(editandoId ? "Membro atualizado." : "Membro cadastrado.")
+      notificar(editandoId ? "Membro atualizado." : "Membro cadastrado.")
       limparFormulario()
       await carregar()
     } catch (error) {
       console.error(error)
-      alert(`Não foi possível salvar o cadastro: ${error.message || "erro inesperado"}`)
+      notificar(`Não foi possível salvar o cadastro: ${error.message || "erro inesperado"}`)
     } finally {
       setSalvando(false)
     }

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import CampoMembro from "../components/CampoMembro"
+import Confirmacao from "../components/Confirmacao"
 import SecretariaCabecalho from "../components/SecretariaCabecalho"
+import { notificar } from "../lib/feedback"
 import { supabase } from "../lib/supabase"
 import {
   codigoDocumentoSecretaria,
@@ -80,6 +82,7 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
   const [editando, setEditando] = useState(null)
   const [busca, setBusca] = useState("")
   const [carregando, setCarregando] = useState(true)
+  const [exclusaoPendente, setExclusaoPendente] = useState(null)
 
   async function carregar() {
     setCarregando(true)
@@ -96,7 +99,7 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
     ])
 
     if (membrosResposta.error || registrosResposta.error) {
-      alert("Não foi possível carregar os registros da Secretaria.")
+      notificar("Não foi possível carregar os registros da Secretaria.")
     }
     setMembros(membrosResposta.data || [])
     setRegistros(registrosResposta.data || [])
@@ -115,7 +118,7 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
   async function salvar(event) {
     event.preventDefault()
     if (!config.membroOpcional && !form.membro_id) {
-      alert("Selecione um membro.")
+      notificar("Selecione um membro.")
       return
     }
 
@@ -130,10 +133,11 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
       : await supabase.from(config.tabela).insert(payload)
 
     if (resposta.error) {
-      alert(`Não foi possível salvar: ${resposta.error.message}`)
+      notificar(`Não foi possível salvar: ${resposta.error.message}`)
       return
     }
 
+    notificar(editando ? "Registro atualizado com sucesso." : "Registro salvo com sucesso.")
     limpar()
     await carregar()
   }
@@ -148,15 +152,16 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
   }
 
   async function excluir(registro) {
-    if (!confirm(`Excluir este registro de ${registro.tipo}?`)) return
     const { error } = await supabase.from(config.tabela).delete().eq("id", registro.id)
-    if (error) return alert("Não foi possível excluir o registro.")
-    carregar()
+    if (error) return notificar("Não foi possível excluir o registro.")
+    setExclusaoPendente(null)
+    notificar("Registro excluído com sucesso.")
+    await carregar()
   }
 
   function imprimir(registro) {
     const janela = window.open("", "_blank", "width=850,height=900")
-    if (!janela) return alert("Autorize a abertura da janela de impressão.")
+    if (!janela) return notificar("Autorize a abertura da janela de impressão.")
     const nome = escaparHtml(registro.membros?.nome || "Interessado")
     const tipo = escaparHtml(registro.tipo)
     const finalidade = escaparHtml(registro.finalidade)
@@ -182,6 +187,13 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
 
   return (
     <div className="page secretaria-page">
+      <Confirmacao
+        aberto={Boolean(exclusaoPendente)}
+        titulo="Excluir registro?"
+        mensagem={exclusaoPendente ? `O registro de ${exclusaoPendente.tipo} será removido do histórico.` : ""}
+        cancelar={() => setExclusaoPendente(null)}
+        confirmar={() => excluir(exclusaoPendente)}
+      />
       <SecretariaCabecalho
         ativa={tipoPagina}
         titulo={config.titulo}
@@ -276,11 +288,11 @@ export default function SecretariaRegistros({ tipoPagina, user }) {
               <thead><tr><th>Data</th><th>Membro</th><th>Tipo</th>{config.status && <th>Status</th>}<th>Ações</th></tr></thead>
               <tbody>{filtrados.map((registro) => (
                 <tr key={registro.id}>
-                  <td>{formatarDataSecretaria(registro[config.campoData])}</td>
-                  <td><strong>{registro.membros?.nome || "Sem membro vinculado"}</strong></td>
-                  <td>{registro.tipo}</td>
-                  {config.status && <td><span className="secretaria-status">{registro.status}</span></td>}
-                  <td><div className="secretaria-acoes-tabela"><button onClick={() => editar(registro)}>Editar</button>{tipoPagina === "documentos" && <button onClick={() => imprimir(registro)}>Imprimir</button>}<button className="perigo" onClick={() => excluir(registro)}>Excluir</button></div></td>
+                  <td data-label="Data">{formatarDataSecretaria(registro[config.campoData])}</td>
+                  <td data-label="Membro"><strong>{registro.membros?.nome || "Sem membro vinculado"}</strong></td>
+                  <td data-label="Tipo">{registro.tipo}</td>
+                  {config.status && <td data-label="Status"><span className="secretaria-status">{registro.status}</span></td>}
+                  <td data-label="Ações"><div className="secretaria-acoes-tabela"><button onClick={() => editar(registro)}>Editar</button>{tipoPagina === "documentos" && <button onClick={() => imprimir(registro)}>Imprimir</button>}<button className="perigo" onClick={() => setExclusaoPendente(registro)}>Excluir</button></div></td>
                 </tr>
               ))}</tbody>
             </table>

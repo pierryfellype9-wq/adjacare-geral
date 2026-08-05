@@ -11,6 +11,12 @@ const schema = readFileSync(
   new URL("../supabase/secretaria_completa.sql", import.meta.url),
   "utf8",
 )
+const registros = readFileSync(
+  new URL("../src/pages/SecretariaRegistros.jsx", import.meta.url),
+  "utf8",
+)
+const membros = readFileSync(new URL("../src/pages/Membros.jsx", import.meta.url), "utf8")
+const estilos = readFileSync(new URL("../src/pages/Secretaria.css", import.meta.url), "utf8")
 
 test("módulo da Secretaria possui todas as páginas planejadas", () => {
   for (const rota of [
@@ -61,4 +67,12 @@ test("documentos possuem texto editável e responsáveis pela assinatura", () =>
   ]) {
     assert.ok(schema.includes(campo))
   }
+})
+
+test("Secretaria usa avisos internos e layout responsivo próprio", () => {
+  assert.doesNotMatch(registros, /\balert\s*\(|\bconfirm\s*\(/)
+  assert.doesNotMatch(membros, /\balert\s*\(|\bconfirm\s*\(/)
+  assert.match(registros, /<Confirmacao/)
+  assert.match(estilos, /@media \(max-width: 700px\)/)
+  assert.match(estilos, /\.secretaria-tabela td::before/)
 })

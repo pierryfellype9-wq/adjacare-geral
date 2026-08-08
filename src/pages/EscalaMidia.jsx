@@ -9,7 +9,27 @@ const FUNCOES = [
   { campo: "video", nome: "Vídeo", icone: "▶", classe: "video" },
   { campo: "story", nome: "Stories", icone: "◫", classe: "story" },
   { campo: "fotos", nome: "Fotografia", icone: "●", classe: "fotos" },
+  { campo: "live", nome: "Live", icone: "◉", classe: "live" },
 ]
+
+function SeletorResponsavel({ classe, icone, titulo, valor, aoAlterar, usuarios }) {
+  return (
+    <label className={classe}>
+      <b>{icone}</b><span>{titulo}</span>
+      <select value={valor} onChange={(evento) => aoAlterar(evento.target.value)}>
+        <option value="">A definir</option>
+        {valor && !usuarios.some((usuario) => usuario.nome === valor) && (
+          <option value={valor}>{valor} — cadastro anterior</option>
+        )}
+        {usuarios.map((usuario) => (
+          <option value={usuario.nome} key={usuario.id}>
+            {usuario.nome}{usuario.funcao_midia ? ` — ${usuario.funcao_midia}` : usuario.role ? ` — ${usuario.role}` : ""}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
 
 function formatarData(data) {
   if (!data) return { dia: "--", mes: "---", semana: "" }
@@ -42,6 +62,8 @@ export default function EscalaMidia({ user }) {
   const [video, setVideo] = useState("")
   const [story, setStory] = useState("")
   const [fotos, setFotos] = useState("")
+  const [live, setLive] = useState("")
+  const [usuarios, setUsuarios] = useState([])
   const [observacao, setObservacao] = useState("")
   const [editandoId, setEditandoId] = useState(null)
   const [escalas, setEscalas] = useState([])
@@ -54,6 +76,33 @@ export default function EscalaMidia({ user }) {
   useEffect(() => {
     carregarEscalas()
   }, [aba])
+
+  useEffect(() => {
+    carregarUsuarios()
+  }, [])
+
+  async function carregarUsuarios() {
+    const { data: registros, error } = await supabase
+      .from("users")
+      .select("id,nome,role,funcao_midia")
+      .not("nome", "is", null)
+      .order("nome", { ascending: true })
+
+    if (error) {
+      console.error("Erro ao carregar responsáveis:", error)
+      notificar("Não foi possível carregar a lista de responsáveis.")
+      return
+    }
+
+    const nomesUnicos = new Map()
+    for (const registro of registros || []) {
+      const nome = registro.nome?.trim()
+      if (nome && !nomesUnicos.has(nome.toLocaleLowerCase("pt-BR"))) {
+        nomesUnicos.set(nome.toLocaleLowerCase("pt-BR"), { ...registro, nome })
+      }
+    }
+    setUsuarios([...nomesUnicos.values()])
+  }
 
   async function carregarEscalas() {
     setCarregando(true)
@@ -89,6 +138,7 @@ export default function EscalaMidia({ user }) {
             <p><b>Vídeo:</b> ${video || "-"}</p>
             <p><b>Stories:</b> ${story || "-"}</p>
             <p><b>Fotografia:</b> ${fotos || "-"}</p>
+            <p><b>Live:</b> ${live || "-"}</p>
             ${observacao ? `<p><b>Observação:</b> ${observacao}</p>` : ""}
             <br>
             <p>Atualizado por: ${user?.nome}</p>
@@ -107,6 +157,7 @@ export default function EscalaMidia({ user }) {
     setVideo("")
     setStory("")
     setFotos("")
+    setLive("")
     setObservacao("")
     setEditandoId(null)
   }
@@ -124,6 +175,7 @@ export default function EscalaMidia({ user }) {
         video: video.trim(),
         story: story.trim(),
         fotos: fotos.trim(),
+        live: live.trim(),
         observacao: observacao.trim(),
       }
 
@@ -176,6 +228,7 @@ export default function EscalaMidia({ user }) {
     setVideo(escala.video || "")
     setStory(escala.story || "")
     setFotos(escala.fotos || "")
+    setLive(escala.live || "")
     setObservacao(escala.observacao || "")
     setFormularioAberto(true)
     window.scrollTo({ top: 0, behavior: "smooth" })
@@ -218,6 +271,7 @@ export default function EscalaMidia({ user }) {
         escala.video,
         escala.story,
         escala.fotos,
+        escala.live,
         escala.observacao,
       ].join(" ").toLocaleLowerCase("pt-BR").includes(termo)
     )
@@ -229,7 +283,7 @@ export default function EscalaMidia({ user }) {
     const proxima = futuras[0] || null
     const pessoas = new Set(
       escalas.flatMap((escala) =>
-        [escala.projecao, escala.video, escala.story, escala.fotos]
+        [escala.projecao, escala.video, escala.story, escala.fotos, escala.live]
           .filter(Boolean)
           .map((nome) => nome.trim().toLocaleLowerCase("pt-BR"))
       )
@@ -326,22 +380,11 @@ export default function EscalaMidia({ user }) {
             </div>
 
             <div className="escala-formulario__funcoes">
-              <label className="projecao">
-                <b>▣</b><span>Projeção</span>
-                <input placeholder="Nome do responsável" value={projecao} onChange={(e) => setProjecao(e.target.value)} />
-              </label>
-              <label className="video">
-                <b>▶</b><span>Vídeo</span>
-                <input placeholder="Nome do responsável" value={video} onChange={(e) => setVideo(e.target.value)} />
-              </label>
-              <label className="story">
-                <b>◫</b><span>Stories</span>
-                <input placeholder="Nome do responsável" value={story} onChange={(e) => setStory(e.target.value)} />
-              </label>
-              <label className="fotos">
-                <b>●</b><span>Fotografia</span>
-                <input placeholder="Nome do responsável" value={fotos} onChange={(e) => setFotos(e.target.value)} />
-              </label>
+              <SeletorResponsavel classe="projecao" icone="▣" titulo="Projeção" valor={projecao} aoAlterar={setProjecao} usuarios={usuarios} />
+              <SeletorResponsavel classe="video" icone="▶" titulo="Vídeo" valor={video} aoAlterar={setVideo} usuarios={usuarios} />
+              <SeletorResponsavel classe="story" icone="◫" titulo="Stories" valor={story} aoAlterar={setStory} usuarios={usuarios} />
+              <SeletorResponsavel classe="fotos" icone="●" titulo="Fotografia" valor={fotos} aoAlterar={setFotos} usuarios={usuarios} />
+              <SeletorResponsavel classe="live" icone="◉" titulo="Live" valor={live} aoAlterar={setLive} usuarios={usuarios} />
             </div>
 
             <label className="escala-formulario__observacao">

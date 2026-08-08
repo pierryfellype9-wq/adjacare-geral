@@ -222,6 +222,7 @@
 }
 
 .escala-formulario input,
+.escala-formulario select,
 .escala-formulario textarea {
   width: 100%;
   box-sizing: border-box;
@@ -236,6 +237,7 @@
 }
 
 .escala-formulario input:focus,
+.escala-formulario select:focus,
 .escala-formulario textarea:focus,
 .escala-busca input:focus {
   border-color: #55a6b9;
@@ -244,7 +246,7 @@
 
 .escala-formulario__funcoes {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 11px;
   margin-top: 17px;
 }
@@ -275,6 +277,8 @@
 .escala-card__equipe .story > span { color: #c04c7c; background: #fce8f1; }
 .escala-formulario__funcoes .fotos > b,
 .escala-card__equipe .fotos > span { color: #087d67; background: #e0f6f0; }
+.escala-formulario__funcoes .live > b,
+.escala-card__equipe .live > span { color: #b13b32; background: #fde9e6; }
 
 .escala-formulario__observacao {
   display: block;
@@ -497,7 +501,7 @@
 
 .escala-card__equipe {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 9px;
   margin-top: 15px;
 }

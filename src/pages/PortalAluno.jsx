@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { notificar } from "../lib/feedback"
 import { supabase } from "../lib/supabase"
 import "./PortalAluno.css"
 
@@ -125,7 +126,7 @@ export default function PortalAluno() {
       return
     }
 
-    alert("Senha criada com sucesso! Agora faça login.")
+    notificar("Senha criada com sucesso! Agora faça login.")
 
     setPagina("inicio")
     setSenha("")

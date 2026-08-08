@@ -1,3 +1,4 @@
+import { notificar, confirmarAcao } from "../lib/feedback"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
@@ -48,7 +49,7 @@ export default function EBDFinanceiro({ user }) {
 
     if (erroAlunos) {
       console.error(erroAlunos)
-      alert("Erro ao carregar alunos.")
+      notificar("Erro ao carregar alunos.")
       return
     }
 
@@ -77,7 +78,7 @@ export default function EBDFinanceiro({ user }) {
 
     if (erroRegistros) {
       console.error(erroRegistros)
-      alert("Erro ao carregar lançamentos.")
+      notificar("Erro ao carregar lançamentos.")
       return
     }
 
@@ -88,7 +89,7 @@ export default function EBDFinanceiro({ user }) {
     e.preventDefault()
 
     if (!alunoId || !descricao || !valor) {
-      alert("Preencha aluno, descrição e valor.")
+      notificar("Preencha aluno, descrição e valor.")
       return
     }
 
@@ -99,7 +100,7 @@ export default function EBDFinanceiro({ user }) {
       alunoSelecionado &&
       !turmasPermitidas.includes(alunoSelecionado.turma_id)
     ) {
-      alert("Você não possui acesso a esse aluno.")
+      notificar("Você não possui acesso a esse aluno.")
       return
     }
 
@@ -118,7 +119,7 @@ export default function EBDFinanceiro({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao salvar lançamento.")
+      notificar("Erro ao salvar lançamento.")
       return
     }
 
@@ -129,7 +130,7 @@ export default function EBDFinanceiro({ user }) {
     setObservacao("")
 
     carregarDados()
-    alert("Lançamento criado com sucesso!")
+    notificar("Lançamento criado com sucesso!")
   }
 
   async function marcarComoPago(id) {
@@ -140,7 +141,7 @@ export default function EBDFinanceiro({ user }) {
       item?.ebd_alunos?.turma_id &&
       !turmasPermitidas.includes(item.ebd_alunos.turma_id)
     ) {
-      alert("Você não possui acesso a esse lançamento.")
+      notificar("Você não possui acesso a esse lançamento.")
       return
     }
 
@@ -154,7 +155,7 @@ export default function EBDFinanceiro({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao marcar como pago.")
+      notificar("Erro ao marcar como pago.")
       return
     }
 
@@ -169,7 +170,7 @@ export default function EBDFinanceiro({ user }) {
       item?.ebd_alunos?.turma_id &&
       !turmasPermitidas.includes(item.ebd_alunos.turma_id)
     ) {
-      alert("Você não possui acesso a esse lançamento.")
+      notificar("Você não possui acesso a esse lançamento.")
       return
     }
 
@@ -183,7 +184,7 @@ export default function EBDFinanceiro({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao marcar como pendente.")
+      notificar("Erro ao marcar como pendente.")
       return
     }
 
@@ -191,7 +192,7 @@ export default function EBDFinanceiro({ user }) {
   }
 
   async function excluirLancamento(id) {
-    const confirmar = confirm("Deseja excluir este lançamento?")
+    const confirmar = await confirmarAcao("Deseja excluir este lançamento?")
     if (!confirmar) return
 
     const item = registros.find((registro) => registro.id === id)
@@ -201,7 +202,7 @@ export default function EBDFinanceiro({ user }) {
       item?.ebd_alunos?.turma_id &&
       !turmasPermitidas.includes(item.ebd_alunos.turma_id)
     ) {
-      alert("Você não possui acesso a esse lançamento.")
+      notificar("Você não possui acesso a esse lançamento.")
       return
     }
 
@@ -212,7 +213,7 @@ export default function EBDFinanceiro({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao excluir lançamento.")
+      notificar("Erro ao excluir lançamento.")
       return
     }
 

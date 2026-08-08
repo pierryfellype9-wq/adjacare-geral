@@ -1,3 +1,4 @@
+import { notificar, confirmarAcao } from "../lib/feedback"
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
@@ -88,7 +89,7 @@ export default function EBDChamada({ user }) {
       .order("idade_min", { ascending: true })
 
     if (error) {
-      alert("Erro ao carregar turmas.")
+      notificar("Erro ao carregar turmas.")
       console.log(error)
       return
     }
@@ -111,7 +112,7 @@ export default function EBDChamada({ user }) {
 
   async function carregarTrimestres() {
     if (!usuarioPodeAcessarTurma(turmaSelecionada)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       setTurmaSelecionada("")
       return
     }
@@ -124,7 +125,7 @@ export default function EBDChamada({ user }) {
       .order("numero", { ascending: false })
 
     if (error) {
-      alert("Erro ao carregar trimestres.")
+      notificar("Erro ao carregar trimestres.")
       console.log(error)
       return
     }
@@ -145,7 +146,7 @@ export default function EBDChamada({ user }) {
       .order("numero_licao", { ascending: true })
 
     if (error) {
-      alert("Erro ao carregar lições.")
+      notificar("Erro ao carregar lições.")
       console.log(error)
       return
     }
@@ -164,7 +165,7 @@ export default function EBDChamada({ user }) {
 
   async function carregarAlunosEChamada() {
     if (!usuarioPodeAcessarTurma(turmaSelecionada)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
@@ -176,7 +177,7 @@ export default function EBDChamada({ user }) {
       .order("nome", { ascending: true })
 
     if (erroAlunos) {
-      alert("Erro ao carregar alunos.")
+      notificar("Erro ao carregar alunos.")
       console.log(erroAlunos)
       return
     }
@@ -197,7 +198,7 @@ export default function EBDChamada({ user }) {
       .eq("aula_id", licaoSelecionada)
 
     if (erroPresencas) {
-      alert("Erro ao carregar presenças.")
+      notificar("Erro ao carregar presenças.")
       console.log(erroPresencas)
       return
     }
@@ -225,7 +226,7 @@ export default function EBDChamada({ user }) {
       .order("criado_em", { ascending: true })
 
     if (error) {
-      alert("Erro ao carregar visitantes.")
+      notificar("Erro ao carregar visitantes.")
       console.log(error)
       return
     }
@@ -238,7 +239,7 @@ export default function EBDChamada({ user }) {
     if (!temAcessoEBD) return
 
     if (!usuarioPodeAcessarTurma(turmaSelecionada)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
@@ -250,12 +251,12 @@ export default function EBDChamada({ user }) {
 
   function adicionarVisitante() {
     if (!licaoSelecionada) {
-      alert("Selecione uma lição antes de adicionar visitantes.")
+      notificar("Selecione uma lição antes de adicionar visitantes.")
       return
     }
 
     if (!usuarioPodeAcessarTurma(turmaSelecionada)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
@@ -282,8 +283,8 @@ export default function EBDChamada({ user }) {
     )
   }
 
-  function removerVisitante(visitante) {
-    if (!confirm("Remover este visitante?")) return
+  async function removerVisitante(visitante) {
+    if (!await confirmarAcao("Remover este visitante?")) return
 
     if (!visitante.novo) {
       setVisitantesRemovidos((prev) => [...prev, visitante.id])
@@ -301,7 +302,7 @@ export default function EBDChamada({ user }) {
 
       if (error) {
         console.log(error)
-        alert("Erro ao remover visitante.")
+        notificar("Erro ao remover visitante.")
         return false
       }
     }
@@ -331,7 +332,7 @@ export default function EBDChamada({ user }) {
 
       if (error) {
         console.log(error)
-        alert(error.message || "Erro ao salvar visitantes.")
+        notificar(error.message || "Erro ao salvar visitantes.")
         return false
       }
     }
@@ -353,7 +354,7 @@ export default function EBDChamada({ user }) {
 
       if (error) {
         console.log(error)
-        alert(error.message || "Erro ao atualizar visitante.")
+        notificar(error.message || "Erro ao atualizar visitante.")
         return false
       }
     }
@@ -363,32 +364,32 @@ export default function EBDChamada({ user }) {
 
   async function salvarChamada() {
     if (!temAcessoEBD) {
-      alert("Você não possui permissão para alterar esta área.")
+      notificar("Você não possui permissão para alterar esta área.")
       return
     }
 
     if (!turmaSelecionada) {
-      alert("Selecione uma turma.")
+      notificar("Selecione uma turma.")
       return
     }
 
     if (!usuarioPodeAcessarTurma(turmaSelecionada)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
     if (!trimestreSelecionado) {
-      alert("Selecione um trimestre.")
+      notificar("Selecione um trimestre.")
       return
     }
 
     if (!licaoSelecionada) {
-      alert("Selecione uma lição.")
+      notificar("Selecione uma lição.")
       return
     }
 
     if (alunos.length === 0 && visitantes.length === 0) {
-      alert("Nenhum aluno ou visitante encontrado para esta chamada.")
+      notificar("Nenhum aluno ou visitante encontrado para esta chamada.")
       return
     }
 
@@ -414,7 +415,7 @@ export default function EBDChamada({ user }) {
       if (error) {
         setCarregando(false)
         console.error(error)
-        alert("Erro ao salvar chamada.")
+        notificar("Erro ao salvar chamada.")
         return
       }
     }
@@ -437,7 +438,7 @@ export default function EBDChamada({ user }) {
     if (erroAula) {
       setCarregando(false)
       console.log(erroAula)
-      alert("Chamada salva, mas houve erro ao registrar quem realizou.")
+      notificar("Chamada salva, mas houve erro ao registrar quem realizou.")
       return
     }
 
@@ -445,7 +446,7 @@ export default function EBDChamada({ user }) {
     setChamadaExistente(true)
     await carregarLicoes()
     await carregarVisitantes()
-    alert("Chamada salva com sucesso!")
+    notificar("Chamada salva com sucesso!")
   }
 
   function formatarData(data) {

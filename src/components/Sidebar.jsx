@@ -14,6 +14,7 @@ const ICONES = {
   senha: "M7 10V7a5 5 0 0 1 10 0v3m-11 0h12v11H6V10Zm6 4v3",
   cofre: "M5 4h14v16H5V4Zm4 7a3 3 0 1 0 6 0 3 3 0 0 0-6 0Zm3 3v3",
   custos: "M3 6h18v13H3V6Zm2 3v8h14V9H5Zm7 1a3 3 0 1 1 0 6 3 3 0 0 1 0-6ZM6 3h12v2H6V3Z",
+  gestao: "M4 20V10m6 10V4m6 16v-7m5 7H2",
 }
 
 function Icone({ nome }) {
@@ -86,6 +87,7 @@ export default function Sidebar({ open, setOpen, user, onLogout }) {
 
           <section>
             <h2>ADMINISTRAÇÃO</h2>
+            {temPermissao(user, "gestao") && <Item to="/gestao" icon="gestao" setOpen={setOpen}>Gestão geral</Item>}
             {temPermissao(user, "secretaria") && <Item to="/secretaria" icon="membros" setOpen={setOpen}>Secretaria</Item>}
             <Item to="/usuarios" icon="usuarios" setOpen={setOpen}>Usuários</Item>
             <Item to="/trocar-senha" icon="senha" setOpen={setOpen}>Alterar senha</Item>

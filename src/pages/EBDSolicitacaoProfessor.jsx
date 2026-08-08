@@ -1,3 +1,4 @@
+import { notificar, confirmarAcao } from "../lib/feedback"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { supabase } from "../lib/supabase"
@@ -52,7 +53,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
 
     if (error || !solicitacaoData) {
       console.error(error)
-      alert("Solicitação não encontrada.")
+      notificar("Solicitação não encontrada.")
       navigate("/ebd/solicitacoes-professores")
       return
     }
@@ -116,27 +117,27 @@ export default function EBDSolicitacaoProfessor({ user }) {
 
   function validarFormulario() {
     if (!form.nome_completo.trim()) {
-      alert("Informe o nome completo.")
+      notificar("Informe o nome completo.")
       return false
     }
 
     if (!form.data_nascimento) {
-      alert("Informe a data de nascimento.")
+      notificar("Informe a data de nascimento.")
       return false
     }
 
     if (!form.telefone.trim()) {
-      alert("Informe o telefone.")
+      notificar("Informe o telefone.")
       return false
     }
 
     if (!form.email.trim()) {
-      alert("Informe o e-mail.")
+      notificar("Informe o e-mail.")
       return false
     }
 
     if (form.turmas_ebd.length === 0) {
-      alert("Selecione pelo menos uma turma.")
+      notificar("Selecione pelo menos uma turma.")
       return false
     }
 
@@ -175,12 +176,12 @@ export default function EBDSolicitacaoProfessor({ user }) {
 
     if (error) {
       console.error(error)
-      alert(error.message)
+      notificar(error.message)
       return false
     }
 
     if (mostrarAlerta) {
-      alert("Solicitação salva com sucesso.")
+      notificar("Solicitação salva com sucesso.")
     }
 
     return true
@@ -237,11 +238,11 @@ export default function EBDSolicitacaoProfessor({ user }) {
     )
 
     if (!membroSelecionado) {
-      alert("Selecione o membro que receberá este acesso antes de aprovar.")
+      notificar("Selecione o membro que receberá este acesso antes de aprovar.")
       return
     }
 
-    if (!confirm(`Aprovar cadastro de ${form.nome_completo} e vincular ao membro ${membroSelecionado.nome}?`)) return
+    if (!await confirmarAcao(`Aprovar cadastro de ${form.nome_completo} e vincular ao membro ${membroSelecionado.nome}?`)) return
 
     const salvou = await salvarSolicitacao(false)
     if (!salvou) return
@@ -262,7 +263,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
     ])
 
     if (erroUsuario) {
-      alert(erroUsuario.message)
+      notificar(erroUsuario.message)
       console.error(erroUsuario)
       return
     }
@@ -277,7 +278,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
       .eq("id", id)
 
     if (erroSolicitacao) {
-      alert(erroSolicitacao.message)
+      notificar(erroSolicitacao.message)
       console.error(erroSolicitacao)
       return
     }
@@ -285,13 +286,13 @@ export default function EBDSolicitacaoProfessor({ user }) {
     try {
       await enviarEmailAprovacao(senhaProvisoria)
 
-      alert(
+      notificar(
         `Professor aprovado com sucesso!\n\nO e-mail com os dados de acesso foi enviado para:\n${form.email}`
       )
     } catch (error) {
       console.error("Erro ao enviar e-mail:", error)
 
-      alert(
+      notificar(
         `Professor aprovado e usuário criado, mas o e-mail não foi enviado.\n\nE-mail: ${form.email}\nSenha provisória: ${senhaProvisoria}\n\nErro: ${error.message}`
       )
     }
@@ -300,7 +301,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
   }
 
   async function recusarSolicitacao() {
-    if (!confirm("Recusar esta solicitação?")) return
+    if (!await confirmarAcao("Recusar esta solicitação?")) return
 
     const { error } = await supabase
       .from("ebd_solicitacoes_professores")
@@ -308,7 +309,7 @@ export default function EBDSolicitacaoProfessor({ user }) {
       .eq("id", id)
 
     if (error) {
-      alert(error.message)
+      notificar(error.message)
       console.error(error)
       return
     }

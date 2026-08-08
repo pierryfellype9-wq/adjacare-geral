@@ -1,3 +1,4 @@
+import { notificar } from "../lib/feedback"
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
@@ -46,7 +47,7 @@ export default function EBDRelatorios({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao carregar turmas.")
+      notificar("Erro ao carregar turmas.")
       return
     }
 
@@ -85,7 +86,7 @@ export default function EBDRelatorios({ user }) {
     } else {
       if (turmaFiltro) {
         if (!turmasPermitidas.includes(turmaFiltro)) {
-          alert("Você não possui acesso a essa turma.")
+          notificar("Você não possui acesso a essa turma.")
           setDados([])
           return
         }
@@ -100,7 +101,7 @@ export default function EBDRelatorios({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao carregar relatório.")
+      notificar("Erro ao carregar relatório.")
       return
     }
 

@@ -1,3 +1,4 @@
+import { notificar } from "../lib/feedback"
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { apiFetch } from "../lib/api"
@@ -78,10 +79,10 @@ export default function Agenda({ user }) {
       setFim("")
       setPublico(true)
       setFormularioAberto(false)
-      alert("Evento criado na agenda!")
+      notificar("Evento criado na agenda!")
     } catch (error) {
       console.error(error)
-      alert("Não foi possível criar o evento.")
+      notificar("Não foi possível criar o evento.")
     } finally {
       setSalvando(false)
     }

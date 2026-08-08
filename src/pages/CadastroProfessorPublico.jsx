@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { notificar } from "../lib/feedback"
 import { supabase } from "../lib/supabase"
 
 export default function CadastroProfessorPublico() {
@@ -64,27 +65,27 @@ export default function CadastroProfessorPublico() {
     e.preventDefault()
 
     if (!form.nome_completo.trim()) {
-      alert("Informe o nome completo.")
+      notificar("Informe o nome completo.")
       return
     }
 
     if (!form.data_nascimento) {
-      alert("Informe a data de nascimento.")
+      notificar("Informe a data de nascimento.")
       return
     }
 
     if (!form.telefone.trim()) {
-      alert("Informe o telefone.")
+      notificar("Informe o telefone.")
       return
     }
 
     if (!form.email.trim()) {
-      alert("Informe o e-mail.")
+      notificar("Informe o e-mail.")
       return
     }
 
     if (form.turmas_ebd.length === 0) {
-      alert("Selecione pelo menos uma turma.")
+      notificar("Selecione pelo menos uma turma.")
       return
     }
 
@@ -108,7 +109,7 @@ export default function CadastroProfessorPublico() {
 
     if (error) {
       console.error("Erro ao enviar cadastro:", error)
-      alert("Erro ao enviar cadastro. Tente novamente.")
+      notificar("Erro ao enviar cadastro. Tente novamente.")
       return
     }
 

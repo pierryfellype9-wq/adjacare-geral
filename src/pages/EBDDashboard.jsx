@@ -1,3 +1,4 @@
+import { notificar } from "../lib/feedback"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
@@ -60,7 +61,7 @@ export default function EBDDashboard({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao carregar dashboard.")
+      notificar("Erro ao carregar dashboard.")
       setCarregando(false)
       return
     }

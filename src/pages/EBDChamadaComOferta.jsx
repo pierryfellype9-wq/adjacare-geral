@@ -1,3 +1,4 @@
+import { notificar } from "../lib/feedback"
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
 import EBDChamada from "./EBDChamada"
@@ -134,7 +135,7 @@ export default function EBDChamadaComOferta({ user }) {
 
   async function salvarOferta() {
     if (!aulaId) {
-      alert("Selecione a lição da chamada.")
+      notificar("Selecione a lição da chamada.")
       return
     }
 
@@ -142,7 +143,7 @@ export default function EBDChamadaComOferta({ user }) {
     const numero = Number(normalizado)
 
     if (!Number.isFinite(numero) || numero < 0) {
-      alert("Digite um valor de oferta válido.")
+      notificar("Digite um valor de oferta válido.")
       return
     }
 
@@ -166,7 +167,7 @@ export default function EBDChamadaComOferta({ user }) {
 
     if (error || !data) {
       console.error(error)
-      alert("Não foi possível salvar a oferta. Atualize a página e tente novamente.")
+      notificar("Não foi possível salvar a oferta. Atualize a página e tente novamente.")
       return
     }
 
@@ -183,7 +184,7 @@ export default function EBDChamadaComOferta({ user }) {
       )
     )
 
-    alert("Oferta registrada com sucesso!")
+    notificar("Oferta registrada com sucesso!")
   }
 
   return (

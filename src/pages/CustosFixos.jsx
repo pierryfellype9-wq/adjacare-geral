@@ -1,3 +1,4 @@
+import { notificar } from "../lib/feedback"
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
 import "./CustosFixos.css"
@@ -184,7 +185,7 @@ export default function CustosFixos({ user }) {
     e.preventDefault()
 
     if (!form.nome || !form.valor || !form.data_proximo_pagamento) {
-      alert("Preencha nome, valor e data.")
+      notificar("Preencha nome, valor e data.")
       return
     }
 
@@ -213,7 +214,7 @@ export default function CustosFixos({ user }) {
       await carregarCustos()
     } catch (error) {
       console.error("Erro ao cadastrar custo:", error)
-      alert("Erro ao cadastrar custo fixo.")
+      notificar("Erro ao cadastrar custo fixo.")
     } finally {
       setSalvando(false)
     }
@@ -283,7 +284,7 @@ export default function CustosFixos({ user }) {
       )
     } catch (error) {
       console.error("Erro ao marcar como pago:", error)
-      alert("Erro ao marcar como pago.")
+      notificar("Erro ao marcar como pago.")
     } finally {
       setProcessandoId(null)
     }

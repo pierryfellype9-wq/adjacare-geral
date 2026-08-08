@@ -1,8 +1,12 @@
+import { notificar } from "./lib/feedback"
 import { lazy, Suspense, useState, useEffect } from "react"
 import { Routes, Route, Navigate } from "react-router-dom"
 
 import Sidebar from "./components/Sidebar"
 import AppFeedback from "./components/AppFeedback"
+import AppDialogos from "./components/AppDialogos"
+import BuscaGlobal from "./components/BuscaGlobal"
+import CentralNotificacoes from "./components/CentralNotificacoes"
 import { temPermissao } from "./lib/permissions"
 import "./AppShell.css"
 import {
@@ -52,6 +56,7 @@ const EBDSolicitacoesProfessores = lazy(() => import("./pages/EBDSolicitacoesPro
 const EBDSolicitacaoProfessor = lazy(() => import("./pages/EBDSolicitacaoProfessor"))
 const TetelestaiApp = lazy(() => import("./tetelestai/TetelestaiApp"))
 const IgrejaSite = lazy(() => import("./igreja/IgrejaSite"))
+const GestaoGeral = lazy(() => import("./pages/GestaoGeral"))
 
 function CarregandoPagina() {
   return (
@@ -61,6 +66,10 @@ function CarregandoPagina() {
       <small>Preparando as informações para você...</small>
     </div>
   )
+}
+
+function AreaPublica({ children, fallback = <CarregandoPagina /> }) {
+  return <><AppFeedback /><AppDialogos /><Suspense fallback={fallback}>{children}</Suspense></>
 }
 
 function isTetelestaiRequest() {
@@ -84,10 +93,10 @@ function isIgrejaRequest() {
 
 export default function App() {
   const rotaHinos = window.location.pathname.toLowerCase() === "/enviar-hino"
-  if (rotaHinos) return <Suspense fallback={<CarregandoPagina />}><EnviarHinoPublico /></Suspense>
-  if (isTetelestaiRequest()) return <Suspense fallback={<div style={{minHeight:"100vh",background:"#020306"}} />}><TetelestaiApp /></Suspense>
-  if (isPortalAlunoRequest()) return <Suspense fallback={<CarregandoPagina />}><PortalAluno /></Suspense>
-  if (isIgrejaRequest()) return <Suspense fallback={<div style={{minHeight:"100vh",background:"#061a34"}} />}><IgrejaSite /></Suspense>
+  if (rotaHinos) return <AreaPublica><EnviarHinoPublico /></AreaPublica>
+  if (isTetelestaiRequest()) return <AreaPublica fallback={<div style={{minHeight:"100vh",background:"#020306"}} />}><TetelestaiApp /></AreaPublica>
+  if (isPortalAlunoRequest()) return <AreaPublica><PortalAluno /></AreaPublica>
+  if (isIgrejaRequest()) return <AreaPublica fallback={<div style={{minHeight:"100vh",background:"#061a34"}} />}><IgrejaSite /></AreaPublica>
 
   useEffect(() => { document.title = "Sistema AD Jacaré" }, [])
 
@@ -110,7 +119,7 @@ export default function App() {
       setUser(profile)
       setSenha("")
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Não foi possível entrar.")
+      notificar(error instanceof Error ? error.message : "Não foi possível entrar.")
     } finally {
       setLoginLoading(false)
     }
@@ -176,7 +185,7 @@ export default function App() {
     try {
       await baixarAtualizacaoDoApp(atualizacao.url)
     } catch (error) {
-      alert(
+      notificar(
         error instanceof Error
           ? error.message
           : "Não foi possível abrir a atualização."
@@ -193,10 +202,12 @@ export default function App() {
   const podeVerCustosFixos = temPermissao(user, "custosFixos")
   const podeVerMembros = temPermissao(user, "membros")
   const podeVerSecretaria = temPermissao(user, "secretaria")
+  const podeVerGestao = temPermissao(user, "gestao")
 
   return (
     <>
       <AppFeedback />
+      <AppDialogos />
       {atualizacao && (
         <div
           role="dialog"
@@ -382,6 +393,8 @@ export default function App() {
                 </div>
 
                 <div className="app-topbar__acoes">
+                  <BuscaGlobal user={user} />
+                  <CentralNotificacoes user={user} />
                   <div className="app-topbar__usuario">
                     <span>{(user.nome || "U").charAt(0).toUpperCase()}</span>
                     <div><strong>{user.nome}</strong><small>{user.role}</small></div>
@@ -407,6 +420,7 @@ export default function App() {
                 <Route path="/agenda" element={<Agenda user={user} />} />
                 <Route path="/avisos" element={<Avisos user={user} />} />
                 <Route path="/usuarios" element={<Usuarios user={user} />} />
+                <Route path="/gestao" element={podeVerGestao ? <GestaoGeral user={user} /> : <Navigate to="/dashboard" replace />} />
                 <Route path="/ebd/financeiro" element={<EBDFinanceiro user={user} />} />
                 <Route path="/whatsapp" element={<WhatsApp user={user} />} />
 

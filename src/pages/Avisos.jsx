@@ -1,3 +1,4 @@
+import { notificar } from "../lib/feedback"
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { apiFetch } from "../lib/api"
@@ -78,7 +79,7 @@ export default function Avisos({ user }) {
     if (salvando || !podeEditar) return
 
     if (!titulo.trim() || !mensagem.trim()) {
-      alert("Preencha título e mensagem")
+      notificar("Preencha título e mensagem")
       return
     }
 
@@ -107,10 +108,10 @@ export default function Avisos({ user }) {
       setExpira("")
       setFormularioAberto(false)
       await carregarAvisos()
-      alert("Aviso enviado")
+      notificar("Aviso enviado")
     } catch (error) {
       console.error(error)
-      alert("Não foi possível publicar o aviso.")
+      notificar("Não foi possível publicar o aviso.")
     } finally {
       setSalvando(false)
     }

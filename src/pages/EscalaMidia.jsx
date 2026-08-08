@@ -1,3 +1,4 @@
+import { notificar, confirmarAcao } from "../lib/feedback"
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { apiFetch } from "../lib/api"
@@ -140,7 +141,7 @@ export default function EscalaMidia({ user }) {
           .maybeSingle()
 
         if (existente) {
-          alert("Já existe uma escala cadastrada para essa data.")
+          notificar("Já existe uma escala cadastrada para essa data.")
           return
         }
 
@@ -158,10 +159,10 @@ export default function EscalaMidia({ user }) {
       limparFormulario()
       setFormularioAberto(false)
       await carregarEscalas()
-      alert(mensagem)
+      notificar(mensagem)
     } catch (error) {
       console.error("Erro ao salvar escala:", error)
-      alert("Não foi possível salvar a escala.")
+      notificar("Não foi possível salvar a escala.")
     } finally {
       setSalvando(false)
     }
@@ -181,14 +182,14 @@ export default function EscalaMidia({ user }) {
   }
 
   async function arquivar(id) {
-    if (!confirm("Arquivar esta escala?")) return
+    if (!await confirmarAcao("Arquivar esta escala?")) return
     const { error } = await supabase
       .from("escala_midia")
       .update({ arquivado: true })
       .eq("id", id)
 
     if (error) {
-      alert("Não foi possível arquivar a escala.")
+      notificar("Não foi possível arquivar a escala.")
       return
     }
     await carregarEscalas()
@@ -201,7 +202,7 @@ export default function EscalaMidia({ user }) {
       .eq("id", id)
 
     if (error) {
-      alert("Não foi possível restaurar a escala.")
+      notificar("Não foi possível restaurar a escala.")
       return
     }
     await carregarEscalas()

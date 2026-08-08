@@ -1,3 +1,4 @@
+import { notificar, confirmarAcao } from "../lib/feedback"
 import { useState, useEffect } from "react"
 import { supabase } from "../lib/supabase"
 import { apiFetch } from "../lib/api"
@@ -210,17 +211,17 @@ export default function Usuarios({ user }) {
     e.preventDefault()
 
     if (!isAdmin) {
-      alert("Apenas administradores podem criar usuários.")
+      notificar("Apenas administradores podem criar usuários.")
       return
     }
 
     if (!nome || !email || !senha || !role) {
-      alert("Preencha todos os campos.")
+      notificar("Preencha todos os campos.")
       return
     }
 
     if (role === "EBD" && turmasEbdSelecionadas.length === 0) {
-      alert("Selecione pelo menos uma turma da EBD.")
+      notificar("Selecione pelo menos uma turma da EBD.")
       return
     }
 
@@ -243,7 +244,7 @@ export default function Usuarios({ user }) {
     ])
 
     if (error) {
-      alert(error.message)
+      notificar(error.message)
       console.log(error)
       return
     }
@@ -299,7 +300,7 @@ export default function Usuarios({ user }) {
 
   function iniciarEdicao(u) {
     if (!isAdmin) {
-      alert("Apenas administradores podem editar usuários.")
+      notificar("Apenas administradores podem editar usuários.")
       return
     }
 
@@ -338,12 +339,12 @@ export default function Usuarios({ user }) {
     e.preventDefault()
 
     if (!isAdmin) {
-      alert("Apenas administradores podem editar usuários.")
+      notificar("Apenas administradores podem editar usuários.")
       return
     }
 
     if (!nome || !email || !senha || !role) {
-      alert("Preencha todos os campos.")
+      notificar("Preencha todos os campos.")
       return
     }
 
@@ -368,7 +369,7 @@ turmas_ebd: turmasEbdSelecionadas,
       .eq("id", usuarioId)
 
     if (error) {
-      alert(error.message)
+      notificar(error.message)
       console.log(error)
       return
     }
@@ -390,16 +391,16 @@ turmas_ebd: turmasEbdSelecionadas,
 
   async function excluirUsuario(id) {
     if (!isAdmin) {
-      alert("Apenas administradores podem excluir usuários.")
+      notificar("Apenas administradores podem excluir usuários.")
       return
     }
 
-    if (!confirm("Excluir usuário?")) return
+    if (!await confirmarAcao("Excluir usuário?")) return
 
     const { error } = await supabase.from("users").delete().eq("id", id)
 
     if (error) {
-      alert(error.message)
+      notificar(error.message)
       console.log(error)
       return
     }

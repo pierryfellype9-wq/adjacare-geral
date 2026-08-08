@@ -1,3 +1,4 @@
+import { notificar } from "../lib/feedback"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { sanitizeUser } from "../lib/auth"
@@ -21,17 +22,17 @@ export default function TrocarSenha({ user, setUser }) {
     e.preventDefault()
 
     if (!user?.id) {
-      alert("Usuário não encontrado.")
+      notificar("Usuário não encontrado.")
       return
     }
 
     if (senha.length < 8) {
-      alert("A nova senha deve ter pelo menos 8 caracteres.")
+      notificar("A nova senha deve ter pelo menos 8 caracteres.")
       return
     }
 
     if (senha !== confirmar) {
-      alert("As senhas não coincidem.")
+      notificar("As senhas não coincidem.")
       return
     }
 
@@ -68,7 +69,7 @@ export default function TrocarSenha({ user, setUser }) {
       setSenha("")
       setConfirmar("")
 
-      alert(
+      notificar(
         primeiroAcesso
           ? "Senha criada com sucesso!"
           : "Senha alterada com sucesso!"
@@ -77,7 +78,7 @@ export default function TrocarSenha({ user, setUser }) {
       navigate("/dashboard")
     } catch (error) {
       console.error(error)
-      alert(error?.message || "Erro ao alterar senha.")
+      notificar(error?.message || "Erro ao alterar senha.")
     } finally {
       setCarregando(false)
     }

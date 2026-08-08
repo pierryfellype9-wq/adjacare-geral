@@ -1,3 +1,4 @@
+import { notificar } from "../lib/feedback"
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { apiFetch } from "../lib/api";
@@ -276,7 +277,7 @@ export default function WhatsApp({ user }) {
     });
 
     if (!resposta.ok) {
-      alert("Erro ao iniciar atendimento.");
+      notificar("Erro ao iniciar atendimento.");
       return;
     }
 
@@ -298,7 +299,7 @@ export default function WhatsApp({ user }) {
     });
 
     if (!resposta.ok) {
-      alert("Erro ao finalizar atendimento.");
+      notificar("Erro ao finalizar atendimento.");
       return;
     }
 
@@ -326,7 +327,7 @@ export default function WhatsApp({ user }) {
       });
 
       if (!resposta.ok) {
-        alert("Erro ao enviar mensagem.");
+        notificar("Erro ao enviar mensagem.");
         setEnviando(false);
         return;
       }
@@ -334,7 +335,7 @@ export default function WhatsApp({ user }) {
       setTexto("");
       carregarTudo();
     } catch (error) {
-      alert("Erro ao enviar mensagem.");
+      notificar("Erro ao enviar mensagem.");
     }
 
     setEnviando(false);
@@ -385,7 +386,7 @@ export default function WhatsApp({ user }) {
     setSalvandoCulto(false);
 
     if (error) {
-      alert(
+      notificar(
         error.code === "23505"
           ? "Já existe um culto com esse nome, nessa mesma data e horário."
           : `Erro ao salvar culto: ${error.message}`
@@ -402,7 +403,7 @@ export default function WhatsApp({ user }) {
       .update({ status })
       .eq("id", culto.id);
     if (error) {
-      alert(`Erro ao atualizar culto: ${error.message}`);
+      notificar(`Erro ao atualizar culto: ${error.message}`);
       return;
     }
     carregarTudo();
@@ -414,7 +415,7 @@ export default function WhatsApp({ user }) {
       .update({ status })
       .eq("id", hino.id);
     if (error) {
-      alert(`Erro ao atualizar hino: ${error.message}`);
+      notificar(`Erro ao atualizar hino: ${error.message}`);
       return;
     }
     carregarTudo();

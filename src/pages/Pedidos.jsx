@@ -1,3 +1,4 @@
+import { notificar, confirmarAcao } from "../lib/feedback"
 import { useEffect, useMemo, useState } from "react"
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd"
 import { supabase } from "../lib/supabase"
@@ -189,10 +190,10 @@ export default function Pedidos({ user }) {
       setDestino("Mídia")
       setFormularioAberto(false)
       await carregarPedidos()
-      alert("Pedido enviado com sucesso!")
+      notificar("Pedido enviado com sucesso!")
     } catch (error) {
       console.error("Erro ao criar pedido:", error)
-      alert(error.message || "Erro ao enviar pedido")
+      notificar(error.message || "Erro ao enviar pedido")
     } finally {
       setEnviando(false)
     }
@@ -209,7 +210,7 @@ export default function Pedidos({ user }) {
     }])
 
     if (error) {
-      alert("Não foi possível enviar o comentário.")
+      notificar("Não foi possível enviar o comentário.")
       return
     }
 
@@ -236,7 +237,7 @@ export default function Pedidos({ user }) {
       .eq("id", String(id))
 
     if (error) {
-      alert("Não foi possível atualizar o pedido.")
+      notificar("Não foi possível atualizar o pedido.")
       return
     }
 
@@ -268,7 +269,7 @@ export default function Pedidos({ user }) {
     if (!podeEditarPedido(pedido)) return
 
     const arquivar = !pedido.arquivado
-    if (arquivar && !confirm(`Arquivar o pedido "${pedido.titulo}"?`)) return
+    if (arquivar && !await confirmarAcao(`Arquivar o pedido "${pedido.titulo}"?`)) return
 
     const { error } = await supabase
       .from("pedidos")
@@ -276,7 +277,7 @@ export default function Pedidos({ user }) {
       .eq("id", String(pedido.id))
 
     if (error) {
-      alert("Não foi possível atualizar o arquivamento.")
+      notificar("Não foi possível atualizar o arquivamento.")
       return
     }
 

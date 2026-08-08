@@ -1,3 +1,4 @@
+import { notificar, confirmarAcao } from "../lib/feedback"
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { apiFetch } from "../lib/api"
@@ -100,7 +101,7 @@ export default function EBDAlunos({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao carregar alunos.")
+      notificar("Erro ao carregar alunos.")
       return
     }
 
@@ -289,33 +290,33 @@ export default function EBDAlunos({ user }) {
     e.preventDefault()
 
     if (!temAcessoEBD) {
-      alert("Você não possui permissão para alterar esta área.")
+      notificar("Você não possui permissão para alterar esta área.")
       return
     }
 
     if (!nome.trim()) {
-      alert("Informe o nome do aluno.")
+      notificar("Informe o nome do aluno.")
       return
     }
 
     if (!dataNascimento) {
-      alert("Informe a data de nascimento do aluno.")
+      notificar("Informe a data de nascimento do aluno.")
       return
     }
 
     if (idade !== null && idade < 18) {
       if (!nomePai.trim()) {
-        alert("Informe o nome do pai.")
+        notificar("Informe o nome do pai.")
         return
       }
 
       if (!nomeMae.trim()) {
-        alert("Informe o nome da mãe.")
+        notificar("Informe o nome da mãe.")
         return
       }
 
       if (!contato.trim()) {
-        alert("Informe o contato do responsável.")
+        notificar("Informe o contato do responsável.")
         return
       }
     }
@@ -325,7 +326,7 @@ export default function EBDAlunos({ user }) {
       turmaFinal &&
       !turmasPermitidas.includes(turmaFinal.id)
     ) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
@@ -356,7 +357,7 @@ export default function EBDAlunos({ user }) {
 
       if (!resposta.data || resposta.data.length === 0) {
         setCarregando(false)
-        alert("Nenhum aluno foi atualizado. Verifique as permissões do Supabase.")
+        notificar("Nenhum aluno foi atualizado. Verifique as permissões do Supabase.")
         return
       }
     } else {
@@ -373,7 +374,7 @@ export default function EBDAlunos({ user }) {
 
     if (error) {
       console.error(error)
-      alert(editando ? "Erro ao editar aluno." : "Erro ao cadastrar aluno.")
+      notificar(editando ? "Erro ao editar aluno." : "Erro ao cadastrar aluno.")
       return
     }
 
@@ -400,7 +401,7 @@ export default function EBDAlunos({ user }) {
     await carregarDados()
     limparFormulario()
 
-    alert(editando ? "Aluno atualizado com sucesso!" : "Aluno cadastrado com sucesso!")
+    notificar(editando ? "Aluno atualizado com sucesso!" : "Aluno cadastrado com sucesso!")
   }
 
   async function enviarWhatsappAluno(aluno) {
@@ -428,26 +429,26 @@ export default function EBDAlunos({ user }) {
       })
 
       if (!resposta.ok) {
-        alert("Erro ao enviar mensagem.")
+        notificar("Erro ao enviar mensagem.")
         return
       }
 
-      alert("Mensagem enviada com sucesso.")
+      notificar("Mensagem enviada com sucesso.")
     } catch (error) {
       console.error(error)
-      alert("Erro ao enviar WhatsApp.")
+      notificar("Erro ao enviar WhatsApp.")
     }
   }
 
   async function alterarStatusAluno(aluno) {
     if (!podeGerenciarStatusAluno) {
-      alert("Apenas administradores, dirigentes ou superintendente podem alterar o status do aluno.")
+      notificar("Apenas administradores, dirigentes ou superintendente podem alterar o status do aluno.")
       return
     }
 
     const novoStatus = aluno.ativo === false ? true : false
 
-    const confirmar = confirm(
+    const confirmar = await confirmarAcao(
       novoStatus
         ? `Deseja ativar o aluno ${aluno.nome}?`
         : `Deseja inativar o aluno ${aluno.nome}?`
@@ -463,12 +464,12 @@ export default function EBDAlunos({ user }) {
 
     if (error) {
       console.error("Erro ao alterar status:", error)
-      alert("Erro ao alterar status do aluno: " + error.message)
+      notificar("Erro ao alterar status do aluno: " + error.message)
       return
     }
 
     if (!data || data.length === 0) {
-      alert("Nenhum aluno foi alterado. Verifique se a coluna ativo existe e se as permissões do Supabase permitem update.")
+      notificar("Nenhum aluno foi alterado. Verifique se a coluna ativo existe e se as permissões do Supabase permitem update.")
       return
     }
 
@@ -479,11 +480,11 @@ export default function EBDAlunos({ user }) {
 
   async function excluirAluno(id) {
     if (!podeVerTudoEBD) {
-      alert("Apenas administradores, dirigentes ou superintendente podem excluir alunos.")
+      notificar("Apenas administradores, dirigentes ou superintendente podem excluir alunos.")
       return
     }
 
-    const confirmar = confirm("Deseja excluir este aluno?")
+    const confirmar = await confirmarAcao("Deseja excluir este aluno?")
     if (!confirmar) return
 
     const { error } = await supabase
@@ -493,7 +494,7 @@ export default function EBDAlunos({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao excluir aluno.")
+      notificar("Erro ao excluir aluno.")
       return
     }
 

@@ -36,6 +36,7 @@ const REGRAS = {
     PERFIS.SECRETARIA,
   ],
   membros: [PERFIS.ADMINISTRADOR, PERFIS.DIRIGENTE, PERFIS.SECRETARIA],
+  gestao: [PERFIS.ADMINISTRADOR, PERFIS.DIRIGENTE],
 }
 
 export function temPermissao(user, recurso) {

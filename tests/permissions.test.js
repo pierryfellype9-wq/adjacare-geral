@@ -52,3 +52,10 @@ test("perfil desconhecido nunca recebe permissão implicitamente", () => {
   assert.equal(temPermissao(null, "custosFixos"), false)
   assert.equal(temPermissao({ role: PERFIS.ADMINISTRADOR }, "inexistente"), false)
 })
+
+test("gestão geral fica restrita à administração e direção", () => {
+  assert.equal(temPermissao({ role: PERFIS.ADMINISTRADOR }, "gestao"), true)
+  assert.equal(temPermissao({ role: PERFIS.DIRIGENTE }, "gestao"), true)
+  assert.equal(temPermissao({ role: PERFIS.SECRETARIA }, "gestao"), false)
+  assert.equal(temPermissao({ role: PERFIS.MIDIA }, "gestao"), false)
+})

@@ -1,3 +1,4 @@
+import { notificar } from "../lib/feedback"
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { jsPDF } from "jspdf"
@@ -101,7 +102,7 @@ export default function EBDRelatorioOfertas({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao carregar as turmas.")
+      notificar("Erro ao carregar as turmas.")
       return
     }
 
@@ -123,7 +124,7 @@ export default function EBDRelatorioOfertas({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao carregar os trimestres.")
+      notificar("Erro ao carregar os trimestres.")
       return
     }
 
@@ -147,7 +148,7 @@ export default function EBDRelatorioOfertas({ user }) {
 
     if (error) {
       console.error(error)
-      alert("Erro ao carregar o relatório de ofertas.")
+      notificar("Erro ao carregar o relatório de ofertas.")
       return
     }
 

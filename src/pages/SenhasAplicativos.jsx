@@ -1,3 +1,4 @@
+import { notificar, confirmarAcao } from "../lib/feedback"
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
 import "./SenhasAplicativos.css"
@@ -59,7 +60,7 @@ export default function SenhasAplicativos({ user }) {
       ])
     } catch (error) {
       console.error(error)
-      alert(error.message)
+      notificar(error.message)
     } finally {
       setLoading(false)
     }
@@ -132,14 +133,14 @@ export default function SenhasAplicativos({ user }) {
       await carregarItens()
     } catch (error) {
       console.error(error)
-      alert(error.message)
+      notificar(error.message)
     } finally {
       setSalvando(false)
     }
   }
 
   async function excluir(id) {
-    if (!podeEditar || !window.confirm("Deseja excluir este acesso?")) return
+    if (!podeEditar || !await confirmarAcao("Deseja excluir este acesso?")) return
 
     try {
       const token = await obterToken()
@@ -157,16 +158,16 @@ export default function SenhasAplicativos({ user }) {
       await carregarItens()
     } catch (error) {
       console.error(error)
-      alert(error.message)
+      notificar(error.message)
     }
   }
 
   async function copiarTexto(texto, mensagem) {
     try {
       await navigator.clipboard.writeText(texto || "")
-      alert(mensagem)
+      notificar(mensagem)
     } catch {
-      alert("Não foi possível copiar.")
+      notificar("Não foi possível copiar.")
     }
   }
 

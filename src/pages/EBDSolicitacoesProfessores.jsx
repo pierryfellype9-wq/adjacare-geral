@@ -1,3 +1,4 @@
+import { notificar, solicitarTexto } from "../lib/feedback"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
@@ -29,7 +30,7 @@ export default function EBDSolicitacoesProfessores() {
 
     if (error) {
       console.error(error)
-      alert("Erro ao carregar solicitações.")
+      notificar("Erro ao carregar solicitações.")
     }
 
     setTurmas(turmasData || [])
@@ -42,10 +43,10 @@ export default function EBDSolicitacoesProfessores() {
 
     try {
       await navigator.clipboard.writeText(link)
-      alert("Link de cadastro copiado!")
+      notificar("Link de cadastro copiado!")
     } catch (error) {
       console.error(error)
-      prompt("Copie o link de cadastro:", link)
+      await solicitarTexto("Copie o link de cadastro:", link)
     }
   }
 

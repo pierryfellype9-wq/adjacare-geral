@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import SecretariaCabecalho from "../components/SecretariaCabecalho"
 import { notificar } from "../lib/feedback"
 import { supabase } from "../lib/supabase"
@@ -23,6 +23,7 @@ function formatarData(data) {
 
 export default function Membros({ user }) {
   const navigate = useNavigate()
+  const [parametros] = useSearchParams()
   const [membros, setMembros] = useState([])
   const [funcoes, setFuncoes] = useState([])
   const [funcaoSelecionada, setFuncaoSelecionada] = useState("")
@@ -31,7 +32,7 @@ export default function Membros({ user }) {
   const [editandoId, setEditandoId] = useState(null)
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
-  const [pesquisa, setPesquisa] = useState("")
+  const [pesquisa, setPesquisa] = useState(() => parametros.get("busca") || "")
   const [filtroSituacao, setFiltroSituacao] = useState("Ativo")
 
   async function carregar() {

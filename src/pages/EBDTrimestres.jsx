@@ -1,3 +1,4 @@
+import { notificar, confirmarAcao } from "../lib/feedback"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
@@ -59,7 +60,7 @@ export default function EBDTrimestres({ user }) {
       .order("idade_min", { ascending: true })
 
     if (error) {
-      alert("Erro ao carregar turmas.")
+      notificar("Erro ao carregar turmas.")
       console.log(error)
       return
     }
@@ -82,7 +83,7 @@ export default function EBDTrimestres({ user }) {
 
   async function carregarTrimestres() {
     if (!usuarioPodeAcessarTurma(turmaId)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       setTurmaId("")
       return
     }
@@ -95,7 +96,7 @@ export default function EBDTrimestres({ user }) {
       .order("numero", { ascending: false })
 
     if (error) {
-      alert("Erro ao carregar trimestres.")
+      notificar("Erro ao carregar trimestres.")
       console.log(error)
       return
     }
@@ -107,17 +108,17 @@ export default function EBDTrimestres({ user }) {
     e.preventDefault()
 
     if (!turmaId) {
-      alert("Selecione uma turma.")
+      notificar("Selecione uma turma.")
       return
     }
 
     if (!usuarioPodeAcessarTurma(turmaId)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
     if (!nome || !ano || !numero || !dataInicio || !dataFim) {
-      alert("Preencha os campos obrigatórios.")
+      notificar("Preencha os campos obrigatórios.")
       return
     }
 
@@ -148,7 +149,7 @@ export default function EBDTrimestres({ user }) {
     }
 
     if (error) {
-      alert(editandoTrimestreId ? "Erro ao editar trimestre." : "Erro ao criar trimestre.")
+      notificar(editandoTrimestreId ? "Erro ao editar trimestre." : "Erro ao criar trimestre.")
       console.log(error)
       return
     }
@@ -159,7 +160,7 @@ export default function EBDTrimestres({ user }) {
 
   function iniciarEdicaoTrimestre(trimestre) {
     if (!usuarioPodeAcessarTurma(trimestre.turma_id)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
@@ -191,12 +192,12 @@ export default function EBDTrimestres({ user }) {
 
   async function excluirTrimestre(trimestre) {
     if (!usuarioPodeAcessarTurma(trimestre.turma_id)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
     if (
-      !confirm(
+      !await confirmarAcao(
         "Deseja excluir este trimestre? As lições dele também serão removidas."
       )
     ) {
@@ -209,7 +210,7 @@ export default function EBDTrimestres({ user }) {
       .eq("id", trimestre.id)
 
     if (error) {
-      alert("Erro ao excluir trimestre.")
+      notificar("Erro ao excluir trimestre.")
       console.log(error)
       return
     }
@@ -223,7 +224,7 @@ export default function EBDTrimestres({ user }) {
 
   async function abrirTrimestre(trimestre) {
     if (!usuarioPodeAcessarTurma(trimestre.turma_id)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
@@ -236,7 +237,7 @@ export default function EBDTrimestres({ user }) {
       .order("numero_licao", { ascending: true })
 
     if (error) {
-      alert("Erro ao carregar lições.")
+      notificar("Erro ao carregar lições.")
       console.log(error)
       return
     }
@@ -253,7 +254,7 @@ export default function EBDTrimestres({ user }) {
 
   async function gerarLicoesPadrao(trimestre) {
     if (!usuarioPodeAcessarTurma(trimestre.turma_id)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
@@ -285,7 +286,7 @@ export default function EBDTrimestres({ user }) {
     const { error } = await supabase.from("ebd_aulas").insert(registros)
 
     if (error) {
-      alert("Erro ao gerar lições. Talvez elas já existam.")
+      notificar("Erro ao gerar lições. Talvez elas já existam.")
       console.log(error)
       return
     }
@@ -301,7 +302,7 @@ export default function EBDTrimestres({ user }) {
 
   async function salvarLicao(licao) {
     if (trimestreAberto && !usuarioPodeAcessarTurma(trimestreAberto.turma_id)) {
-      alert("Você não possui acesso a essa turma.")
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
@@ -318,12 +319,12 @@ export default function EBDTrimestres({ user }) {
       .eq("id", licao.id)
 
     if (error) {
-      alert("Erro ao salvar lição.")
+      notificar("Erro ao salvar lição.")
       console.log(error)
       return
     }
 
-    alert("Lição salva com sucesso!")
+    notificar("Lição salva com sucesso!")
   }
 
   function formatarData(data) {

@@ -1085,8 +1085,19 @@
 .standalone-photos .event-button{margin-top:24px;color:var(--paper);border-color:rgba(229,197,124,.48)}
 .standalone-photos .event-button:hover{color:var(--brown);background:var(--gold)}
 .schedule-experience{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
-.schedule-guest-photo{aspect-ratio:16/10;background:#d9cebe}
-.schedule-guest-photo img{opacity:1;filter:none;object-fit:cover;transform:scale(1.04)}
+.schedule-guest-photo{aspect-ratio:1/1;background:#eee7dc}
+.schedule-guest-photo img{
+  position:absolute;
+  top:-16%;
+  left:50%;
+  width:124%;
+  height:auto;
+  max-width:none;
+  opacity:1;
+  filter:none;
+  object-fit:initial;
+  transform:translateX(-50%);
+}
 .schedule-guest>div:last-child{color:var(--brown)}
 @media(max-width:760px){
   .event-brand img{width:134px;max-height:34px}

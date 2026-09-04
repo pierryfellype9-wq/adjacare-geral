@@ -1,2 +1,3 @@
-import { InnerPage } from "../EventShell";
-export default function Fotos() { return <InnerPage eyebrow="Memórias" title="Fotos"><section className="standalone-photos"><div><h2>Galeria em breve.</h2><p>Os registros do congresso aparecerão aqui.</p></div><div className="photos-wall" aria-hidden="true"><div><span>01</span></div><div><span>02</span></div><div><span>03</span></div><div><span>04</span></div><div><span>05</span></div></div></section></InnerPage>; }
+import { FOTOS_URL, InnerPage } from "../EventShell";
+
+export default function Fotos() { return <InnerPage eyebrow="Memórias" title="Fotos"><section className="standalone-photos"><div><h2>Registros do Tetelestai.</h2><p>Acesse a pasta oficial para ver e baixar as fotos do congresso.</p><a className="event-button" href={FOTOS_URL} target="_blank" rel="noreferrer">Abrir álbum de fotos</a></div><div className="photos-wall" aria-hidden="true"><div><span>01</span></div><div><span>02</span></div><div><span>03</span></div><div><span>04</span></div><div><span>05</span></div></div></section></InnerPage>; }

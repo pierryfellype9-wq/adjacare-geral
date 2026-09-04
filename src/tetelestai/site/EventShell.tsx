@@ -1,18 +1,19 @@
 import type { ReactNode } from "react";
 import { siteUrl } from "./links";
 
+export const FOTOS_URL = "https://drive.google.com/drive/folders/1GkhbK55cGwVv4t0xDyejwGqOva7lTLYk?usp=drive_link";
+
 export function EventHeader() {
   return (
     <header className="event-nav event-nav-solid">
       <a href={siteUrl()} className="event-brand" aria-label="Tetelestai 2026">
-        <img src="/tetelestai-oficial/logo-oficial-clara.png" alt="" />
-        <span>7º Congresso • 2026</span>
+        <img src="/tetelestai-oficial/tetelestai-letreiro.png" alt="Tetelestai" />
       </a>
       <nav aria-label="Navegação principal">
         <a href={siteUrl("tema")}>Tema</a>
         <a href={siteUrl("programacao")}>Programação</a>
         <a href={siteUrl("playlist")}>Playlist</a>
-        <a href={siteUrl("fotos")}>Fotos</a>
+        <a href={FOTOS_URL} target="_blank" rel="noreferrer">Fotos</a>
         <a href={siteUrl("localizacao")}>Local</a>
       </nav>
     </header>
@@ -22,8 +23,7 @@ export function EventHeader() {
 export function EventFooter() {
   return (
     <footer className="event-footer">
-      <img src="/tetelestai-oficial/logo-oficial-clara.png" alt="Tetelestai" />
-      <p>7º Congresso de Jovens e Adolescentes</p>
+      <img src="/tetelestai-oficial/coroa.png" alt="" />
       <a href="https://instagram.com/adjacare" target="_blank" rel="noreferrer">@adjacare</a>
     </footer>
   );

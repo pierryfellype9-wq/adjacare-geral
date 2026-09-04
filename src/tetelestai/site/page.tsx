@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { EventFooter, EventHeader } from "./EventShell";
+import { EventFooter, EventHeader, FOTOS_URL } from "./EventShell";
 import { siteUrl } from "./links";
 
 const INICIO_CONGRESSO = new Date("2026-09-04T19:30:00-03:00").getTime();
@@ -52,7 +52,7 @@ export default function SiteInicial() {
             <img className="hero-lockup-wordmark" src="/tetelestai-oficial/logo-oficial-clara.png" alt="" />
           </div>
           <h1 className="sr-only">Tetelestai</h1>
-          <div className="hero-details"><strong>30 AGO</strong><i /><strong>4, 5 e 6 SET</strong></div>
+          <div className="hero-details"><strong>4, 5 e 6 de agosto</strong></div>
           <CongressoCountdown />
           <a className="event-button" href={siteUrl("programacao")}>Ver programação</a>
         </div>
@@ -85,7 +85,7 @@ export default function SiteInicial() {
           <a className="explore-card blue" href={siteUrl("tema")}><span className="card-number">02</span><div><small>João 19:30</small><h3>O tema</h3></div><b>→</b></a>
           <a className="explore-card music" href={siteUrl("playlist")}><span className="card-number">03</span><div><small>Playlist oficial</small><h3>Ouça agora</h3></div><b>♫</b></a>
           <a className="explore-card location" href={siteUrl("localizacao")}><span className="card-number">04</span><div><small>Como chegar</small><h3>Localização</h3></div><b>↗</b></a>
-          <a className="explore-card photos" href={siteUrl("fotos")}><span className="card-number">05</span><div><small>Em breve</small><h3>Fotos</h3></div><b>→</b></a>
+          <a className="explore-card photos" href={FOTOS_URL} target="_blank" rel="noreferrer"><span className="card-number">05</span><div><small>Álbum oficial</small><h3>Fotos</h3></div><b>↗</b></a>
         </div>
       </section>
       <EventFooter />

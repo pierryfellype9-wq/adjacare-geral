@@ -1030,6 +1030,65 @@
   .hourglass{animation:none}
 }
 
+/* Artes oficiais enviadas para a atualização das capas */
+@font-face{
+  font-family:"Avenza Grotesk";
+  src:url("/tetelestai-oficial/AvenzaGrotesk-Light.ttf") format("truetype");
+  font-style:normal;
+  font-weight:300;
+  font-display:swap;
+}
+.tetelestai-root,.event-site{
+  font-family:"Avenza Grotesk","Avenir Next","Century Gothic",Montserrat,Arial,sans-serif;
+}
+.event-nav nav a,.hero-kicker,.section-label,.event-button,.event-footer a{
+  font-family:"Avenza Grotesk","Avenir Next","Century Gothic",Montserrat,Arial,sans-serif;
+}
+.event-brand img{
+  width:clamp(128px,14vw,196px);
+  height:auto;
+  max-height:44px;
+  object-fit:contain;
+}
+.event-hero,.inner-hero{
+  color:var(--brown);
+  background-color:#eee7dc;
+  background-image:linear-gradient(rgba(247,242,233,.13),rgba(247,242,233,.13)),url("/tetelestai-oficial/fundo-nuvem.png");
+  background-position:center;
+  background-size:cover;
+}
+.event-hero::before{border-color:rgba(55,42,32,.14)}
+.event-hero .hero-glow{opacity:.22;background:radial-gradient(circle,rgba(183,152,98,.28),transparent 68%)}
+.event-hero .hero-kicker,.inner-hero>span{color:#725638}
+.event-hero .hero-lockup{filter:drop-shadow(0 22px 48px rgba(55,42,32,.14))}
+.event-hero .hero-lockup-wordmark{filter:brightness(0) saturate(100%) invert(13%) sepia(13%) saturate(1220%) hue-rotate(338deg) brightness(91%) contrast(91%)}
+.event-hero .hero-details{color:#5c493a}
+.event-hero .countdown-composition{border-color:rgba(55,42,32,.2);background:rgba(255,252,246,.5);box-shadow:0 22px 60px rgba(72,55,41,.13)}
+.event-hero .hero-countdown-label{color:#725638}
+.event-hero .hero-countdown>div{border-left-color:rgba(55,42,32,.14)}
+.event-hero .hero-countdown small{color:rgba(55,42,32,.62)}
+.event-hero .hourglass-frame{stroke:#725638}
+.event-hero .hourglass-glass-line{fill:rgba(114,86,56,.04);stroke:rgba(114,86,56,.45)}
+.event-hero .hourglass-sand-fill{fill:#9a744a}
+.event-hero .hourglass-sand-stream{stroke:#725638}
+.event-hero .event-button{color:var(--brown);border-color:rgba(55,42,32,.48)}
+.event-hero .event-button:hover{color:#f4efe6;background:var(--brown)}
+.event-hero .scroll-hint{color:var(--brown)}
+.inner-hero h1{color:var(--brown)}
+.inner-hero>div{-webkit-text-stroke-color:rgba(55,42,32,.09);color:transparent}
+.event-footer img{
+  width:clamp(76px,8vw,112px);
+  height:auto;
+  max-height:68px;
+  object-fit:contain;
+}
+.standalone-photos .event-button{margin-top:24px;color:var(--paper);border-color:rgba(229,197,124,.48)}
+.standalone-photos .event-button:hover{color:var(--brown);background:var(--gold)}
+@media(max-width:760px){
+  .event-brand img{width:134px;max-height:34px}
+  .event-footer img{width:78px;max-height:54px}
+}
+
 /* Correção de composição das páginas internas */
 .inner-site{
   background:#050403;

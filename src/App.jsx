@@ -72,10 +72,11 @@ function AreaPublica({ children, fallback = <CarregandoPagina /> }) {
   return <><AppFeedback /><AppDialogos /><Suspense fallback={fallback}>{children}</Suspense></>
 }
 
-// Mantém os dois domínios públicos do congresso na mesma experiência.\nfunction isTetelestaiRequest() {
+function isTetelestaiRequest() {
   const host = window.location.hostname.toLowerCase()
   const path = window.location.pathname.toLowerCase()
-  return host === "tetelestai.adjacare.org" || host.startsWith("tetelestai.") || path === "/site" || path.startsWith("/site/") || path === "/site-preview" || path.startsWith("/site-preview/")
+  const dominioTetelestai = host === "tetelestai.adjacare.org" || host === "www.tetelestai.adjacare.org" || host.startsWith("tetelestai.")
+  return dominioTetelestai || path === "/site" || path.startsWith("/site/") || path === "/site-preview" || path.startsWith("/site-preview/")
 }
 
 function isPortalAlunoRequest() {

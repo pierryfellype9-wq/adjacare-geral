@@ -19,8 +19,8 @@ const cultos = [
   {
     data: "06/09", dia: "Domingo de manhã", horario: "10h", destaque: "Culto da manhã",
     convidados: [
-      { tipo: "Palavra", nome: "Pr. Samir Hissa", foto: "/tetelestai-oficial/programacao/dommp-1.webp", posicao: "50% 36%" },
-      { tipo: "Louvor", nome: "Tatiana Hissa", foto: "/tetelestai-oficial/programacao/domml-2.webp", posicao: "50% 37%" },
+      { tipo: "Palavra", nome: "Tatiana Hissa", foto: "/tetelestai-oficial/programacao/dommp-1.webp", posicao: "50% 42%" },
+      { tipo: "Louvor", nome: "Pr. Samir Hissa", foto: "/tetelestai-oficial/programacao/domml-2.webp", posicao: "50% 42%" },
     ],
   },
   {
@@ -52,7 +52,6 @@ export default function Programacao() {
             <div className="schedule-guest-photo"><img src={convidado.foto} alt={convidado.nome} style={{ objectPosition: convidado.posicao }}/></div>
             <div><small>{convidado.tipo}</small><h3>{convidado.nome}</h3></div>
           </article>)}
-          <div className="schedule-place"><small>Local</small><strong>AD Jacaré</strong><span>Av. Ver. José Donato, 913</span></div>
         </div>
       </details>)}</div>
     </section>

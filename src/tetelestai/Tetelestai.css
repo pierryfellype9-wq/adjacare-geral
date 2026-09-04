@@ -1086,18 +1086,15 @@
 .standalone-photos .event-button:hover{color:var(--brown);background:var(--gold)}
 .schedule-experience{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
 .schedule-guest-photo{aspect-ratio:16/10;background:#d9cebe}
-.schedule-guest-photo img{opacity:1;filter:none;object-fit:cover}
+.schedule-guest-photo img{opacity:1;filter:none;object-fit:cover;transform:scale(1.04)}
 .schedule-guest>div:last-child{color:var(--brown)}
-.schedule-place{min-height:100%}
 @media(max-width:760px){
   .event-brand img{width:134px;max-height:34px}
   .event-footer img{width:78px;max-height:54px}
   .schedule-experience{grid-template-columns:1fr 1fr}
-  .schedule-place{grid-column:1/-1;min-height:125px}
 }
 @media(max-width:560px){
   .schedule-experience{grid-template-columns:1fr}
-  .schedule-place{grid-column:1}
 }
 
 /* Correção de composição das páginas internas */

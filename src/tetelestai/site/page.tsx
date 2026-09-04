@@ -52,7 +52,7 @@ export default function SiteInicial() {
             <img className="hero-lockup-wordmark" src="/tetelestai-oficial/logo-oficial-clara.png" alt="" />
           </div>
           <h1 className="sr-only">Tetelestai</h1>
-          <div className="hero-details"><strong>4, 5 e 6 de agosto</strong></div>
+          <div className="hero-details"><strong>4, 5 e 6 de setembro</strong></div>
           <CongressoCountdown />
           <a className="event-button" href={siteUrl("programacao")}>Ver programação</a>
         </div>

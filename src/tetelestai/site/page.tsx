@@ -1,42 +1,5 @@
-import { useEffect, useState } from "react";
 import { EventFooter, EventHeader, FOTOS_URL } from "./EventShell";
 import { siteUrl } from "./links";
-
-const INICIO_CONGRESSO = new Date("2026-09-04T19:30:00-03:00").getTime();
-
-function tempoRestante() {
-  const distancia = Math.max(0, INICIO_CONGRESSO - Date.now());
-  return {
-    dias: Math.floor(distancia / 86400000),
-    horas: Math.floor((distancia / 3600000) % 24),
-    minutos: Math.floor((distancia / 60000) % 60),
-    segundos: Math.floor((distancia / 1000) % 60),
-  };
-}
-
-function CongressoCountdown() {
-  const [tempo, setTempo] = useState(tempoRestante);
-  useEffect(() => {
-    const timer = window.setInterval(() => setTempo(tempoRestante()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-  return <div className="countdown-composition">
-    <div className="hourglass" aria-hidden="true">
-      <svg viewBox="0 0 48 64" role="presentation">
-        <path className="hourglass-frame" d="M8 4h32M8 60h32M12 7c0 12 4 17 12 25-8 8-12 13-12 25M36 7c0 12-4 17-12 25 8 8 12 13 12 25" />
-        <path className="hourglass-glass-line" d="M16 11h16c-.7 7.6-3.4 11.5-8 16-4.6-4.5-7.3-8.4-8-16ZM15.5 53c1.4-7.2 4.2-11.1 8.5-15.5 4.3 4.4 7.1 8.3 8.5 15.5h-17Z" />
-        <path className="hourglass-sand-fill" d="M18.5 13h11c-1 4.8-2.8 7.8-5.5 10.8-2.7-3-4.5-6-5.5-10.8ZM18 51c1.3-4.2 3.2-7 6-10.2 2.8 3.2 4.7 6 6 10.2H18Z" />
-        <path className="hourglass-sand-stream" d="M24 26v12" />
-      </svg>
-    </div>
-    <div className="countdown-content">
-      <span className="hero-countdown-label">Faltam</span>
-      <div className="hero-countdown" aria-label="Contagem regressiva para o congresso">
-        {Object.entries(tempo).map(([rotulo, valor]) => <div key={rotulo}><strong>{String(valor).padStart(2,"0")}</strong><small>{rotulo}</small></div>)}
-      </div>
-    </div>
-  </div>;
-}
 
 export default function SiteInicial() {
   return (
@@ -53,7 +16,6 @@ export default function SiteInicial() {
           </div>
           <h1 className="sr-only">Tetelestai</h1>
           <div className="hero-details"><strong>4, 5 e 6 de setembro</strong></div>
-          <CongressoCountdown />
           <a className="event-button" href={siteUrl("programacao")}>Ver programação</a>
         </div>
         <div className="scroll-hint">Explore o congresso <span>↓</span></div>

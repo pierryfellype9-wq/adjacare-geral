@@ -17,6 +17,7 @@ export default function WhatsApp({ user }) {
       : "conversas";
   });
   const [cultos, setCultos] = useState([]);
+  const [filtroCultos, setFiltroCultos] = useState("ativos");
   const [hinos, setHinos] = useState([]);
   const [buscaHinos, setBuscaHinos] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("");
@@ -128,18 +129,9 @@ export default function WhatsApp({ user }) {
 
     if (!erroSessoes) setSessoes(sessoesData || []);
 
-    const hojeEmSaoPaulo = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "America/Sao_Paulo",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date());
-    const inicioHoje = `${hojeEmSaoPaulo}T00:00:00-03:00`;
-
     const { data: cultosData, error: erroCultos } = await supabase
       .from("whatsapp_cultos")
       .select("*")
-      .gte("data_culto", inicioHoje)
       .order("data_culto", { ascending: true });
     if (!erroCultos) setCultos(cultosData || []);
 
@@ -459,6 +451,22 @@ export default function WhatsApp({ user }) {
     [hinos]
   );
 
+  const cultosSeparados = useMemo(() => {
+    const agora = Date.now();
+    const encerrado = (culto) =>
+      ["fechado", "cancelado"].includes(culto.status) ||
+      new Date(culto.data_culto).getTime() < agora;
+
+    return {
+      ativos: cultos.filter((culto) => !encerrado(culto)),
+      encerrados: cultos
+        .filter(encerrado)
+        .sort((a, b) => new Date(b.data_culto) - new Date(a.data_culto)),
+    };
+  }, [cultos]);
+
+  const cultosExibidos = cultosSeparados[filtroCultos];
+
   return (
     <div
       className={`whatsapp-page ${
@@ -758,12 +766,44 @@ export default function WhatsApp({ user }) {
 
           <div className="whatsapp-cultos-lista">
             <div>
-              <small>PRÓXIMOS CULTOS</small>
-              <h2>Cultos cadastrados</h2>
-              <p>A pasta no Drive será criada automaticamente no primeiro envio.</p>
+              <small>{filtroCultos === "ativos" ? "PRÓXIMOS CULTOS" : "HISTÓRICO"}</small>
+              <h2>{filtroCultos === "ativos" ? "Cultos ativos" : "Cultos encerrados"}</h2>
+              <p>
+                {filtroCultos === "ativos"
+                  ? "A pasta no Drive será criada automaticamente no primeiro envio."
+                  : "Consulte cultos finalizados sem misturá-los com a programação atual."}
+              </p>
             </div>
-            {cultos.length === 0 && <div className="whatsapp-vazio-grande"><strong>Nenhum culto cadastrado</strong></div>}
-            {cultos.map((culto) => (
+            <div className="whatsapp-cultos-filtros" role="tablist" aria-label="Situação dos cultos">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filtroCultos === "ativos"}
+                className={filtroCultos === "ativos" ? "ativo" : ""}
+                onClick={() => setFiltroCultos("ativos")}
+              >
+                Ativos <span>{cultosSeparados.ativos.length}</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filtroCultos === "encerrados"}
+                className={filtroCultos === "encerrados" ? "ativo" : ""}
+                onClick={() => setFiltroCultos("encerrados")}
+              >
+                Encerrados <span>{cultosSeparados.encerrados.length}</span>
+              </button>
+            </div>
+            {cultosExibidos.length === 0 && (
+              <div className="whatsapp-vazio-grande">
+                <strong>
+                  {filtroCultos === "ativos"
+                    ? "Nenhum culto ativo"
+                    : "Nenhum culto encerrado"}
+                </strong>
+              </div>
+            )}
+            {cultosExibidos.map((culto) => (
               <article key={culto.id}>
                 <div className="whatsapp-culto-info">
                   <span className={`status ${culto.status}`}>{rotuloStatus(culto.status)}</span>

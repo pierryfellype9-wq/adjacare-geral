@@ -776,3 +776,66 @@
     grid-column: 1;
   }
 }
+
+.ebd-trimestres-tabs {
+  display: flex;
+  width: fit-content;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 5px;
+  border: 1px solid #dfe6ef;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.ebd-trimestres-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  background: transparent;
+  color: #526071;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ebd-trimestres-tabs button.ativo {
+  background: #10233f;
+  color: #fff;
+}
+
+.ebd-trimestres-tabs span {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  place-items: center;
+  border-radius: 999px;
+  background: #e7eef8;
+  color: #10233f;
+  font-size: 11px;
+}
+
+.ebd-trimestres-tabs button.ativo span {
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+}
+
+.ebd-subpage button.ebd-trimestre-encerrar {
+  background: #b45309;
+}
+
+@media (max-width: 640px) {
+  .ebd-trimestres-tabs {
+    width: 100%;
+  }
+
+  .ebd-trimestres-tabs button {
+    flex: 1 1 0;
+    justify-content: center;
+    padding-inline: 10px;
+  }
+}

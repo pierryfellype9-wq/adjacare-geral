@@ -128,9 +128,18 @@ export default function WhatsApp({ user }) {
 
     if (!erroSessoes) setSessoes(sessoesData || []);
 
+    const hojeEmSaoPaulo = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+    const inicioHoje = `${hojeEmSaoPaulo}T00:00:00-03:00`;
+
     const { data: cultosData, error: erroCultos } = await supabase
       .from("whatsapp_cultos")
       .select("*")
+      .gte("data_culto", inicioHoje)
       .order("data_culto", { ascending: true });
     if (!erroCultos) setCultos(cultosData || []);
 

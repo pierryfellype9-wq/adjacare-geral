@@ -574,6 +574,53 @@
   gap: 12px;
 }
 
+.whatsapp-cultos-filtros {
+  display: flex;
+  width: fit-content;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid #dfe6ef;
+  border-radius: 13px;
+  background: #f5f8fc;
+}
+
+.whatsapp-cultos-filtros button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 9px;
+  padding: 9px 13px;
+  background: transparent;
+  color: #526071;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.whatsapp-cultos-filtros button.ativo {
+  background: #10233f;
+  color: #fff;
+}
+
+.whatsapp-cultos-filtros span {
+  display: inline-grid;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 5px;
+  place-items: center;
+  border-radius: 999px;
+  background: #e1e8f1;
+  color: #10233f;
+  font-size: 11px;
+}
+
+.whatsapp-cultos-filtros button.ativo span {
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+}
+
 .whatsapp-cultos-lista > article {
   display: flex;
   align-items: center;
@@ -828,5 +875,14 @@
 
   .whatsapp-culto-acoes {
     justify-content: flex-start;
+  }
+
+  .whatsapp-cultos-filtros {
+    width: 100%;
+  }
+
+  .whatsapp-cultos-filtros button {
+    flex: 1 1 0;
+    justify-content: center;
   }
 }

@@ -1,5 +1,5 @@
 import { notificar, confirmarAcao } from "../lib/feedback"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
 import "./EBDInternas.css"
@@ -10,6 +10,7 @@ export default function EBDTrimestres({ user }) {
 
   const [turmas, setTurmas] = useState([])
   const [trimestres, setTrimestres] = useState([])
+  const [abaTrimestres, setAbaTrimestres] = useState("ativos")
   const [trimestreAberto, setTrimestreAberto] = useState(null)
   const [licoes, setLicoes] = useState([])
 
@@ -222,6 +223,43 @@ export default function EBDTrimestres({ user }) {
     carregarTrimestres()
   }
 
+  async function encerrarTrimestre(trimestre) {
+    if (!usuarioPodeAcessarTurma(trimestre.turma_id)) {
+      notificar("Você não possui acesso a essa turma.")
+      return
+    }
+
+    if (
+      !await confirmarAcao(
+        `Deseja encerrar "${trimestre.nome}"? As lições, chamadas e ofertas serão preservadas.`
+      )
+    ) {
+      return
+    }
+
+    const { error } = await supabase
+      .from("ebd_trimestres")
+      .update({ status: "encerrado" })
+      .eq("id", trimestre.id)
+
+    if (error) {
+      notificar("Erro ao encerrar trimestre.")
+      console.log(error)
+      return
+    }
+
+    if (trimestreAberto?.id === trimestre.id) {
+      setTrimestreAberto(null)
+      setLicoes([])
+    }
+
+    if (editandoTrimestreId === trimestre.id) limparFormulario()
+
+    setAbaTrimestres("encerrados")
+    await carregarTrimestres()
+    notificar("Trimestre encerrado com sucesso!")
+  }
+
   async function abrirTrimestre(trimestre) {
     if (!usuarioPodeAcessarTurma(trimestre.turma_id)) {
       notificar("Você não possui acesso a essa turma.")
@@ -332,6 +370,16 @@ export default function EBDTrimestres({ user }) {
     const [ano, mes, dia] = data.split("-")
     return `${dia}/${mes}/${ano}`
   }
+
+  const trimestresSeparados = useMemo(
+    () => ({
+      ativos: trimestres.filter((trimestre) => trimestre.status === "ativo"),
+      encerrados: trimestres.filter((trimestre) => trimestre.status !== "ativo"),
+    }),
+    [trimestres]
+  )
+
+  const trimestresExibidos = trimestresSeparados[abaTrimestres]
 
   if (!temAcessoEBD) {
     return (
@@ -488,9 +536,36 @@ export default function EBDTrimestres({ user }) {
               fontWeight: "700",
             }}
           >
-            {trimestres.length} trimestre{trimestres.length !== 1 ? "s" : ""}
+            {trimestresExibidos.length} trimestre{trimestresExibidos.length !== 1 ? "s" : ""}
           </span>
         </div>
+
+        {turmaId && (
+          <div
+            className="ebd-trimestres-tabs"
+            role="tablist"
+            aria-label="Situação dos trimestres"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={abaTrimestres === "ativos"}
+              className={abaTrimestres === "ativos" ? "ativo" : ""}
+              onClick={() => setAbaTrimestres("ativos")}
+            >
+              Ativos <span>{trimestresSeparados.ativos.length}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={abaTrimestres === "encerrados"}
+              className={abaTrimestres === "encerrados" ? "ativo" : ""}
+              onClick={() => setAbaTrimestres("encerrados")}
+            >
+              Encerrados <span>{trimestresSeparados.encerrados.length}</span>
+            </button>
+          </div>
+        )}
 
         {!turmaId && (
           <div
@@ -506,7 +581,7 @@ export default function EBDTrimestres({ user }) {
           </div>
         )}
 
-        {turmaId && trimestres.length === 0 && (
+        {turmaId && trimestresExibidos.length === 0 && (
           <div
             style={{
               background: "#f8fafc",
@@ -516,12 +591,14 @@ export default function EBDTrimestres({ user }) {
               color: "#64748b",
             }}
           >
-            Nenhum trimestre cadastrado.
+            {abaTrimestres === "ativos"
+              ? "Nenhum trimestre ativo."
+              : "Nenhum trimestre encerrado."}
           </div>
         )}
 
         <div style={{ display: "grid", gap: "14px" }}>
-          {trimestres.map((tri) => (
+          {trimestresExibidos.map((tri) => (
             <div
               key={tri.id}
               style={{
@@ -600,6 +677,16 @@ export default function EBDTrimestres({ user }) {
                 <button onClick={() => abrirTrimestre(tri)}>
                   Abrir lições
                 </button>
+
+                {tri.status === "ativo" && (
+                  <button
+                    type="button"
+                    className="ebd-trimestre-encerrar"
+                    onClick={() => encerrarTrimestre(tri)}
+                  >
+                    Encerrar trimestre
+                  </button>
+                )}
 
                 <button
                   type="button"

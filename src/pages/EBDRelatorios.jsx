@@ -1,5 +1,5 @@
 import { notificar } from "../lib/feedback"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
 import { jsPDF } from "jspdf"
@@ -13,6 +13,8 @@ export default function EBDRelatorios({ user }) {
   const [dados, setDados] = useState([])
   const [turmas, setTurmas] = useState([])
   const [turmaFiltro, setTurmaFiltro] = useState("")
+  const [trimestres, setTrimestres] = useState([])
+  const [trimestreFiltro, setTrimestreFiltro] = useState("")
 
   const podeVerTudoEBD =
     usuario?.role === "Administrador" ||
@@ -34,10 +36,22 @@ export default function EBDRelatorios({ user }) {
   }, [])
 
   useEffect(() => {
-    if (temAcessoEBD) {
-      carregarRelatorio()
+    setTrimestres([])
+    setTrimestreFiltro("")
+    setDados([])
+
+    if (temAcessoEBD && turmaFiltro) {
+      carregarTrimestres()
     }
-  }, [turmaFiltro, turmas])
+  }, [turmaFiltro])
+
+  useEffect(() => {
+    if (temAcessoEBD && turmaFiltro && trimestreFiltro) {
+      carregarRelatorio()
+    } else {
+      setDados([])
+    }
+  }, [trimestreFiltro])
 
   async function carregarTurmas() {
     const { data, error } = await supabase
@@ -67,63 +81,115 @@ export default function EBDRelatorios({ user }) {
     }
   }
 
-  async function carregarRelatorio() {
-    let query = supabase
-      .from("ebd_alunos")
-      .select(`
-        id,
-        nome,
-        turma_id,
-        ebd_turmas(nome),
-        ebd_presencas(status)
-      `)
-      .order("nome", { ascending: true })
-
-    if (podeVerTudoEBD) {
-      if (turmaFiltro) {
-        query = query.eq("turma_id", turmaFiltro)
-      }
-    } else {
-      if (turmaFiltro) {
-        if (!turmasPermitidas.includes(turmaFiltro)) {
-          notificar("Você não possui acesso a essa turma.")
-          setDados([])
-          return
-        }
-
-        query = query.eq("turma_id", turmaFiltro)
-      } else {
-        query = query.in("turma_id", turmasPermitidas)
-      }
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-      console.error(error)
-      notificar("Erro ao carregar relatório.")
+  async function carregarTrimestres() {
+    if (!podeVerTudoEBD && !turmasPermitidas.includes(turmaFiltro)) {
+      notificar("Você não possui acesso a essa turma.")
       return
     }
 
-    const formatado = (data || []).map((aluno) => {
-      const presencas = aluno.ebd_presencas || []
+    const { data, error } = await supabase
+      .from("ebd_trimestres")
+      .select("id,nome,ano,numero,status,data_inicio,data_fim,turma_id")
+      .eq("turma_id", turmaFiltro)
+      .order("ano", { ascending: false })
+      .order("numero", { ascending: false })
 
-      const presentes = presencas.filter(
-        (p) => p.status === "presente"
+    if (error) {
+      console.error(error)
+      notificar("Erro ao carregar os trimestres.")
+      return
+    }
+
+    setTrimestres(data || [])
+  }
+
+  async function carregarRelatorio() {
+    if (!turmaFiltro || !trimestreFiltro) {
+      setDados([])
+      return
+    }
+
+    if (!podeVerTudoEBD && !turmasPermitidas.includes(turmaFiltro)) {
+      notificar("Você não possui acesso a essa turma.")
+      setDados([])
+      return
+    }
+
+    const trimestreSelecionado = trimestres.find(
+      (item) => String(item.id) === String(trimestreFiltro)
+    )
+
+    if (
+      !trimestreSelecionado ||
+      String(trimestreSelecionado.turma_id) !== String(turmaFiltro)
+    ) {
+      notificar("Selecione um trimestre válido para esta turma.")
+      setDados([])
+      return
+    }
+
+    const [
+      { data: alunos, error: erroAlunos },
+      { data: aulas, error: erroAulas },
+    ] = await Promise.all([
+      supabase
+        .from("ebd_alunos")
+        .select("id,nome,turma_id,ebd_turmas(nome)")
+        .eq("turma_id", turmaFiltro)
+        .order("nome", { ascending: true }),
+      supabase
+        .from("ebd_aulas")
+        .select("id")
+        .eq("trimestre_id", trimestreFiltro),
+    ])
+
+    if (erroAlunos || erroAulas) {
+      console.error(erroAlunos || erroAulas)
+      notificar("Erro ao carregar relatório.")
+      setDados([])
+      return
+    }
+
+    const idsAulas = (aulas || []).map((aula) => aula.id)
+    let presencas = []
+
+    if (idsAulas.length > 0) {
+      const { data, error } = await supabase
+        .from("ebd_presencas")
+        .select("aluno_id,status,aula_id")
+        .in("aula_id", idsAulas)
+
+      if (error) {
+        console.error(error)
+        notificar("Erro ao carregar as presenças do trimestre.")
+        setDados([])
+        return
+      }
+
+      presencas = data || []
+    }
+
+    const presencasPorAluno = presencas.reduce((mapa, presenca) => {
+      if (!mapa[presenca.aluno_id]) mapa[presenca.aluno_id] = []
+      mapa[presenca.aluno_id].push(presenca)
+      return mapa
+    }, {})
+
+    const formatado = (alunos || []).map((aluno) => {
+      const presencasAluno = presencasPorAluno[aluno.id] || []
+      const presentes = presencasAluno.filter(
+        (presenca) => presenca.status === "presente"
       ).length
-
-      const atrasados = presencas.filter(
-        (p) => p.status === "atrasado"
+      const atrasados = presencasAluno.filter(
+        (presenca) => presenca.status === "atrasado"
       ).length
-
-      const faltas = presencas.filter((p) => p.status === "falta").length
-
-      const justificadas = presencas.filter(
-        (p) => p.status === "justificado"
+      const faltas = presencasAluno.filter(
+        (presenca) => presenca.status === "falta"
       ).length
-
-      const total = presencas.length
-
+      const justificadas = presencasAluno.filter(
+        (presenca) => presenca.status === "justificado"
+      ).length
+      const total = presencasAluno.length
       const frequencia =
         total > 0 ? Math.round(((presentes + atrasados) / total) * 100) : 0
 
@@ -155,36 +221,29 @@ export default function EBDRelatorios({ user }) {
     return `${turmasPermitidas.length} turmas autorizadas`
   }
 
-  function exportarPDF(tipo) {
+  const trimestreSelecionado = useMemo(
+    () =>
+      trimestres.find(
+        (trimestre) => String(trimestre.id) === String(trimestreFiltro)
+      ),
+    [trimestres, trimestreFiltro]
+  )
+
+  function exportarPDF() {
+    if (!trimestreSelecionado || !turmaFiltro) return
+
     const doc = new jsPDF()
     const hoje = new Date()
-
-    let titulo = ""
-    let periodo = ""
-    let nomeArquivo = ""
-
-    if (tipo === "mensal") {
-      titulo = "Relatório Mensal - EBD"
-      periodo = hoje.toLocaleDateString("pt-BR", {
-        month: "long",
-        year: "numeric",
-      })
-      nomeArquivo = "relatorio-mensal-ebd.pdf"
-    }
-
-    if (tipo === "trimestral") {
-      const trimestre = Math.floor(hoje.getMonth() / 3) + 1
-      titulo = "Relatório Trimestral - EBD"
-      periodo = `${trimestre}º trimestre de ${hoje.getFullYear()}`
-      nomeArquivo = "relatorio-trimestral-ebd.pdf"
-    }
+    const titulo = "Relatório Trimestral - EBD"
+    const periodo = trimestreSelecionado.nome
+    const nomeArquivo = `relatorio-ebd-${trimestreSelecionado.ano}-${trimestreSelecionado.numero}-trimestre.pdf`
 
     doc.setFontSize(16)
     doc.text(titulo, 14, 18)
 
     doc.setFontSize(10)
     doc.text(`Período: ${periodo}`, 14, 27)
-    doc.text(`Turma: ${nomeTurmaSelecionada() || "Todas as turmas"}`, 14, 34)
+    doc.text(`Turma: ${nomeTurmaSelecionada() || "Não informada"}`, 14, 34)
     doc.text(`Gerado por: ${usuario?.nome || "Não identificado"}`, 14, 41)
     doc.text(`Data de emissão: ${hoje.toLocaleDateString("pt-BR")}`, 14, 48)
 
@@ -254,13 +313,26 @@ export default function EBDRelatorios({ user }) {
           onChange={(e) => setTurmaFiltro(e.target.value)}
           disabled={!podeVerTudoEBD && turmas.length <= 1}
         >
-          <option value="">
-            {podeVerTudoEBD ? "Todas as turmas" : "Todas as minhas turmas"}
-          </option>
+          <option value="">Selecione a turma</option>
 
           {turmas.map((turma) => (
             <option key={turma.id} value={turma.id}>
               {turma.nome}
+            </option>
+          ))}
+        </select>
+
+        <label>Trimestre</label>
+        <select
+          value={trimestreFiltro}
+          onChange={(e) => setTrimestreFiltro(e.target.value)}
+          disabled={!turmaFiltro}
+        >
+          <option value="">Selecione o trimestre</option>
+          {trimestres.map((trimestre) => (
+            <option key={trimestre.id} value={trimestre.id}>
+              {trimestre.nome}
+              {trimestre.status === "ativo" ? " (Ativo)" : " (Encerrado)"}
             </option>
           ))}
         </select>
@@ -276,19 +348,10 @@ export default function EBDRelatorios({ user }) {
           <button
             type="button"
             className="btn"
-            onClick={() => exportarPDF("mensal")}
-            disabled={dados.length === 0}
+            onClick={exportarPDF}
+            disabled={!trimestreFiltro || dados.length === 0}
           >
-            Relatório mensal
-          </button>
-
-          <button
-            type="button"
-            className="btn"
-            onClick={() => exportarPDF("trimestral")}
-            disabled={dados.length === 0}
-          >
-            Relatório trimestral
+            Exportar relatório do trimestre
           </button>
         </div>
       </div>
@@ -296,10 +359,12 @@ export default function EBDRelatorios({ user }) {
       <div className="list-card">
         <h2>
           Frequência dos alunos
-          {!podeVerTudoEBD && ` — ${nomeTurmaSelecionada()}`}
+          {trimestreSelecionado &&
+            ` — ${nomeTurmaSelecionada()} — ${trimestreSelecionado.nome}`}
         </h2>
 
-        {dados.length === 0 && <p>Nenhum dado encontrado.</p>}
+        {!trimestreFiltro && <p>Selecione a turma e o trimestre para gerar o relatório.</p>}
+        {trimestreFiltro && dados.length === 0 && <p>Nenhum dado encontrado neste trimestre.</p>}
 
         <div className="relatorio-grid">
           {dados.map((item) => (
